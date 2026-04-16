@@ -214,3 +214,17 @@ Tras la instalación:
 - `GET /admin/antropometria/atleta/{id}` → registra medición y ve gráfico
 - `GET /admin/reportes/atleta/{id}` → descarga ficha técnica (PDF o HTML imprimible)
 
+
+
+
+
+<img width="1131" height="990" alt="image" src="https://github.com/user-attachments/assets/63040ee1-b64a-49bb-b9b0-3f5ede8f0c62" />
+
+
+<img width="1515" height="1031" alt="image" src="https://github.com/user-attachments/assets/7dc3c0d9-49b2-48a6-9844-d34a0f61623c" />
+
+<img width="1919" height="997" alt="image" src="https://github.com/user-attachments/assets/d71949f4-b770-4fd9-a556-083c884a81fb" />
+
+
+<img width="1919" height="996" alt="image" src="https://github.com/user-attachments/assets/ad030031-03a2-41a3-8876-fa4ae6431acb" />
+
