@@ -11,11 +11,11 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Validator;
 use App\Models\Categoria;
-use App\Models\Plantel;
+use App\Models\Personal;
 use App\Services\AsistenciaService;
 use Throwable;
 
-final class AsistenciaController extends Controller
+final class AsistenciasController extends Controller
 {
     public function index(Request $request): Response
     {
@@ -31,7 +31,7 @@ final class AsistenciaController extends Controller
              LIMIT 50"
         )->fetchAll();
 
-        return $this->view('asistencia.index', [
+        return $this->view('asistencias.index', [
             'title' => 'Asistencia',
             'active' => 'asistencia',
             'breadcrumb' => ['Inicio', 'Asistencia'],
@@ -43,8 +43,8 @@ final class AsistenciaController extends Controller
     public function pase(Request $request): Response
     {
         $categorias = (new Categoria())->activas();
-        $entrenadores = (new Plantel())->entrenadores();
-        return $this->view('asistencia.pase_lista', [
+        $entrenadores = (new Personal())->entrenadores();
+        return $this->view('asistencias.pase_lista', [
             'title' => 'Pase de lista',
             'active' => 'asistencia',
             'breadcrumb' => ['Inicio', 'Asistencia', 'Pase de lista'],
