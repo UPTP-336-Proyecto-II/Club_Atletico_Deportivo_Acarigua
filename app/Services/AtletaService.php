@@ -30,11 +30,11 @@ final class AtletaService
             $atletaId = $atleta->insert([
                 'nombre'            => $data['nombre'],
                 'apellido'          => $data['apellido'],
-                'fecha_nacimiento'  => $data['fecha_nacimiento'],
+                'fecha_nac'         => $data['fecha_nacimiento'],
                 'sexo'              => $data['sexo'] ?? 'M', // Por default para evitar error
                 'cedula'            => $data['cedula'] ?: null,
                 'telefono'          => $data['telefono'] ?? null,
-                'posicion_de_juego' => $data['posicion_de_juego'] ?? null,
+                'posicion_juego_id' => $data['posicion_de_juego'] ?? null,
                 'pierna_dominante'  => $data['pierna_dominante'] ?? null,
                 'categoria_id'      => $data['categoria_id'] ?? null,
                 'representante_id'  => $representanteId,
@@ -82,11 +82,11 @@ final class AtletaService
             $update = [
                 'nombre'            => $data['nombre'],
                 'apellido'          => $data['apellido'],
-                'fecha_nacimiento'  => $data['fecha_nacimiento'],
+                'fecha_nac'         => $data['fecha_nacimiento'],
                 'sexo'              => $data['sexo'] ?? $actual['sexo'],
                 'cedula'            => $data['cedula'] ?: null,
                 'telefono'          => $data['telefono'] ?? null,
-                'posicion_de_juego' => $data['posicion_de_juego'] ?? null,
+                'posicion_juego_id' => $data['posicion_de_juego'] ?? null,
                 'pierna_dominante'  => $data['pierna_dominante'] ?? null,
                 'categoria_id'      => $data['categoria_id'] ?? null,
                 'representante_id'  => $representanteId,

@@ -78,7 +78,7 @@ final class AuthController extends Controller
         session_regenerate_id(true);
         Logger::audit('login.ok', ['email' => $email]);
 
-        flash('success', 'Bienvenido, ' . ($user['email'] ?? ''));
+        flash('success', 'Bienvenido, ' . ($user['correo'] ?? ''));
         return $this->redirect('/admin');
     }
 

@@ -10,7 +10,7 @@ use App\Controllers\Web\AuthController;
 use App\Controllers\Web\DashboardController;
 use App\Controllers\Web\AtletasController;
 use App\Controllers\Web\CategoriasController;
-use App\Controllers\Web\PersonalController;
+use App\Controllers\Web\UsuariosController;
 use App\Controllers\Web\AsistenciasController;
 use App\Controllers\Web\MedidasAntropometricasController;
 use App\Controllers\Web\ResultadosPruebasController;
@@ -51,28 +51,28 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
 
     // Atletas (lectura: todos autenticados; escritura: admin)
     $r->get('/atletas',           [AtletasController::class, 'index']);
-    $r->get('/atletas/crear',     [AtletasController::class, 'create'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/atletas',          [AtletasController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
+    $r->get('/atletas/crear',     [AtletasController::class, 'create'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/atletas',          [AtletasController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->get('/atletas/{id}',      [AtletasController::class, 'show']);
-    $r->get('/atletas/{id}/editar', [AtletasController::class, 'edit'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/atletas/{id}',     [AtletasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
-    $r->post('/atletas/{id}/eliminar', [AtletasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
+    $r->get('/atletas/{id}/editar', [AtletasController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/atletas/{id}',     [AtletasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/atletas/{id}/eliminar', [AtletasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Categorías
     $r->get('/categorias',              [CategoriasController::class, 'index']);
-    $r->get('/categorias/crear',        [CategoriasController::class, 'create'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/categorias',             [CategoriasController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
-    $r->get('/categorias/{id}/editar',  [CategoriasController::class, 'edit'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/categorias/{id}',        [CategoriasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
-    $r->post('/categorias/{id}/eliminar', [CategoriasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
+    $r->get('/categorias/crear',        [CategoriasController::class, 'create'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/categorias',             [CategoriasController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->get('/categorias/{id}/editar',  [CategoriasController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/categorias/{id}',        [CategoriasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/categorias/{id}/eliminar', [CategoriasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
-    // Personal (sólo admin)
-    $r->get('/personal',               [PersonalController::class, 'index'], [[RoleMiddleware::class, ['admin']]]);
-    $r->get('/personal/crear',         [PersonalController::class, 'create'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/personal',              [PersonalController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
-    $r->get('/personal/{id}/editar',   [PersonalController::class, 'edit'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/personal/{id}',         [PersonalController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
-    $r->post('/personal/{id}/eliminar', [PersonalController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
+    // Usuarios (sólo admin)
+    $r->get('/usuarios',               [UsuariosController::class, 'index'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->get('/usuarios/crear',         [UsuariosController::class, 'create'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios',              [UsuariosController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->get('/usuarios/{id}/editar',   [UsuariosController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios/{id}',         [UsuariosController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios/{id}/eliminar', [UsuariosController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Asistencias (admin + entrenador)
     $r->get('/asistencias',            [AsistenciasController::class, 'index']);
@@ -91,7 +91,7 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
 
     // Ficha médica (lectura entrenador; escritura admin)
     $r->get('/ficha-medica/{id}',      [FichaMedicaController::class, 'show']);
-    $r->post('/ficha-medica/{id}',     [FichaMedicaController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
+    $r->post('/ficha-medica/{id}',     [FichaMedicaController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Reportes
     $r->get('/reportes',                  [ReportesController::class, 'index']);
@@ -100,9 +100,9 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/reportes/categoria/{id}',   [ReportesController::class, 'categoria']);
 
     // Configuración (sólo admin)
-    $r->get('/configuracion',         [ConfiguracionController::class, 'index'], [[RoleMiddleware::class, ['admin']]]);
-    $r->get('/configuracion/usuarios', [ConfiguracionController::class, 'usuarios'], [[RoleMiddleware::class, ['admin']]]);
-    $r->post('/configuracion/usuarios', [ConfiguracionController::class, 'guardarUsuario'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin']]]);
+    $r->get('/configuracion',         [ConfiguracionController::class, 'index'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->get('/configuracion/usuarios', [ConfiguracionController::class, 'usuarios'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/configuracion/usuarios', [ConfiguracionController::class, 'guardarUsuario'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 });
 
 // ---------------------------------------------------------------------------

@@ -8,22 +8,64 @@ use App\Core\Model;
 /**
  * Modelo para la tabla `usuarios` de cada_db.
  *
- * PK: email (VARCHAR 100), no tiene usuario_id autoincrement.
- * Columnas: email, password, token, rol (FK), estatus, foto, ultimo_acceso, created_at, updated_at
+ * PK: usuario_id (INT UNSIGNED AUTO_INCREMENT).
+ * Columnas: usuario_id, correo, contrasena, token, rol_id, estatus,
+ *           nombre, apellido, cedula, telefono, fecha_nac,
+ *           direccion_id, foto, ultimo_acceso, creado_en, actualizado_en
  */
 final class Usuario extends Model
 {
     protected string $table = 'usuarios';
-    protected string $primaryKey = 'email';
+    protected string $primaryKey = 'usuario_id';
 
+    /**
+     * Lista todos los usuarios con su rol.
+     */
     public function allWithRol(): array
     {
         return $this->query(
-            'SELECT u.email, u.estatus, u.ultimo_acceso, u.created_at,
-                    r.nombre_rol, u.rol
+            'SELECT u.usuario_id, u.correo, u.nombre, u.apellido, u.cedula,
+                    u.telefono, u.estatus, u.foto, u.ultimo_acceso, u.creado_en,
+                    r.nombre_rol, u.rol_id
              FROM usuarios u
-             JOIN rol_usuarios r ON r.rol_id = u.rol
-             ORDER BY u.email'
+             JOIN roles_usuarios r ON r.rol_id = u.rol_id
+             ORDER BY u.apellido, u.nombre'
         );
+    }
+
+    /**
+     * Lista los usuarios con rol de entrenador.
+     */
+    public function entrenadores(): array
+    {
+        return $this->query(
+            'SELECT usuario_id, nombre, apellido FROM usuarios
+             WHERE rol_id = :r AND estatus = "Activo"
+             ORDER BY apellido, nombre',
+            [':r' => ROL_ENTRENADOR]
+        );
+    }
+
+    /**
+     * Trae un usuario con toda su información de dirección (JOINs cascada).
+     */
+    public function findCompleto(int $id): ?array
+    {
+        $sql = "
+            SELECT u.*,
+                   d.parroquias_id, d.localidad, d.tipo_vivienda, d.ubicacion_vivienda,
+                   pa.parroquia AS parroquia_nombre,
+                   m.municipio AS municipio_nombre,
+                   e.estado AS estado_nombre,
+                   pa.municipio_id, m.estado_id
+            FROM usuarios u
+            LEFT JOIN direcciones d ON d.direccion_id = u.direccion_id
+            LEFT JOIN parroquias pa ON pa.parroquia_id = d.parroquias_id
+            LEFT JOIN municipios m ON m.municipio_id = pa.municipio_id
+            LEFT JOIN estados e ON e.estado_id = m.estado_id
+            WHERE u.usuario_id = :id
+            LIMIT 1
+        ";
+        return $this->queryOne($sql, [':id' => $id]);
     }
 }

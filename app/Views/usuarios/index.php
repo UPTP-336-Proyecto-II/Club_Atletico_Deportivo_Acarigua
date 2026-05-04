@@ -1,11 +1,11 @@
 <?php /** @var array $items */ ?>
 <div class="page-header">
     <div>
-        <h1>Plantel Técnico y Administrativo</h1>
-        <div class="subtitle">Gestión de entrenadores, médicos y directiva</div>
+        <h1>Gestión de Usuarios</h1>
+        <div class="subtitle">Entrenadores, médicos y personal administrativo del club</div>
     </div>
-    <a href="<?= e(url('/admin/plantel/crear')) ?>" class="btn btn-primary">
-        <i class="ph ph-plus"></i> Añadir Personal
+    <a href="<?= e(url('/admin/usuarios/crear')) ?>" class="btn btn-primary">
+        <i class="ph ph-plus"></i> Nuevo Usuario
     </a>
 </div>
 
@@ -39,7 +39,7 @@
                 <td>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
                         <span style="font-size: 13px; color: var(--color-text);"><i class="ph ph-phone text-muted"></i> <?= e($p['telefono']) ?></span>
-                        <span style="font-size: 13px; color: var(--color-text-muted);"><i class="ph ph-envelope text-muted"></i> <?= e($p['email_id'] ?? 'Sin correo') ?></span>
+                        <span style="font-size: 13px; color: var(--color-text-muted);"><i class="ph ph-envelope text-muted"></i> <?= e($p['correo'] ?? 'Sin correo') ?></span>
                     </div>
                 </td>
                 <td>
@@ -47,7 +47,8 @@
                         $badgeColor = match (strtolower($p['nombre_rol'] ?? '')) {
                             'entrenador' => 'primary',
                             'medico', 'médico' => 'success',
-                            'directivo', 'admin' => 'danger',
+                            'directivo', 'administrador' => 'danger',
+                            'super_user' => 'danger',
                             default => 'warning'
                         };
                     ?>
@@ -57,10 +58,10 @@
                 </td>
                 <td style="text-align: right; padding-right: 24px;">
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <a href="<?= e(url("/admin/plantel/{$p['plantel_id']}/editar")) ?>" class="btn btn-sm btn-outline" title="Editar">
+                        <a href="<?= e(url("/admin/usuarios/{$p['usuario_id']}/editar")) ?>" class="btn btn-sm btn-outline" title="Editar">
                             <i class="ph ph-pencil-simple"></i>
                         </a>
-                        <form method="POST" action="<?= e(url("/admin/plantel/{$p['plantel_id']}/eliminar")) ?>" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas dar de baja a este miembro del personal?')">
+                        <form method="POST" action="<?= e(url("/admin/usuarios/{$p['usuario_id']}/eliminar")) ?>" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar a este usuario?')">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--color-danger);" title="Eliminar">
                                 <i class="ph ph-trash"></i>
@@ -74,7 +75,7 @@
             <tr>
                 <td colspan="5" style="padding: 64px 24px; text-align: center;">
                     <i class="ph ph-users-three text-muted" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.5;"></i>
-                    <h3 class="text-muted" style="margin: 0 0 8px;">No hay personal registrado</h3>
+                    <h3 class="text-muted" style="margin: 0 0 8px;">No hay usuarios registrados</h3>
                     <p class="text-muted" style="font-size: 14px; max-width: 400px; margin: 0 auto;">Registra a entrenadores, médicos y personal administrativo aquí.</p>
                 </td>
             </tr>

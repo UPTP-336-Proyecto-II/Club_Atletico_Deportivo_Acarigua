@@ -30,10 +30,10 @@ $isEdit = !empty($c['categoria_id']);
     <div class="form-row">
         <div class="form-group">
             <label class="form-label">Entrenador asignado</label>
-            <select name="entrenador_id" class="form-control">
+            <select name="usuario_id" class="form-control">
                 <option value="">Sin asignar</option>
                 <?php foreach ($entrenadores as $e): ?>
-                    <option value="<?= (int) $e['plantel_id'] ?>" <?= (int) $get('entrenador_id') === (int) $e['plantel_id'] ? 'selected' : '' ?>>
+                    <option value="<?= (int) $e['usuario_id'] ?>" <?= (int) $get('usuario_id') === (int) $e['usuario_id'] ? 'selected' : '' ?>>
                         <?= e($e['nombre'] . ' ' . $e['apellido']) ?>
                     </option>
                 <?php endforeach; ?>
@@ -42,8 +42,8 @@ $isEdit = !empty($c['categoria_id']);
         <div class="form-group">
             <label class="form-label">Estatus</label>
             <select name="estatus" class="form-control">
-                <?php foreach (['Activa','Inactiva'] as $op): ?>
-                    <option value="<?= e($op) ?>" <?= $get('estatus', 'Activa') === $op ? 'selected' : '' ?>><?= e($op) ?></option>
+                <?php foreach (['activa','inactiva'] as $op): ?>
+                    <option value="<?= e($op) ?>" <?= $get('estatus', 'activa') === $op ? 'selected' : '' ?>><?= e(ucfirst($op)) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

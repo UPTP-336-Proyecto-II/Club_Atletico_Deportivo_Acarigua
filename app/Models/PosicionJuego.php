@@ -7,6 +7,6 @@ use App\Core\Model;
 
 final class PosicionJuego extends Model
 {
-    protected string $table = 'posicion_juego';
+    protected string $table = 'posiciones_juegos';
     protected string $primaryKey = 'posicion_id';
 }

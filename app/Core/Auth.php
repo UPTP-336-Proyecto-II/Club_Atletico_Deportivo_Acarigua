@@ -9,13 +9,20 @@ use Throwable;
 /**
  * Autenticación adaptada a la tabla `usuarios` de cada_db.
  *
- * Estructura de la tabla:
- *   - email       VARCHAR(100)  PK
- *   - password    VARCHAR(255)  bcrypt hash
- *   - token       VARCHAR(500)  (legacy, no usado por PHP)
- *   - rol         INT           FK → rol_usuarios.rol_id
- *   - estatus     ENUM('Activo','Inactivo')
- *   - foto        VARCHAR(255)
+ * Estructura de la tabla (nueva BD):
+ *   - usuario_id   INT UNSIGNED  PK AUTO_INCREMENT
+ *   - correo       VARCHAR(50)
+ *   - contrasena   VARCHAR(255)  bcrypt hash
+ *   - token        VARCHAR(500)
+ *   - rol_id       TINYINT       FK → roles_usuarios.rol_id
+ *   - estatus      ENUM('Activo','Inactivo')
+ *   - nombre       VARCHAR(30)
+ *   - apellido     VARCHAR(30)
+ *   - cedula       VARCHAR(12)
+ *   - telefono     VARCHAR(15)
+ *   - fecha_nac    DATE
+ *   - direccion_id BIGINT UNSIGNED FK → direcciones
+ *   - foto         VARCHAR(255)
  *   - ultimo_acceso DATETIME
  */
 final class Auth
@@ -24,19 +31,20 @@ final class Auth
     private static bool $attempted = false;
 
     /**
-     * Autentica con email/password. Devuelve el usuario y setea cookie JWT.
+     * Autentica con correo/contraseña. Devuelve el usuario y setea cookie JWT.
      */
     public static function attempt(string $email, string $password): ?array
     {
         $db = Database::connection();
         $stmt = $db->prepare(
-            'SELECT u.email, u.password, u.rol, u.estatus, u.foto, r.nombre_rol
+            'SELECT u.usuario_id, u.correo, u.contrasena, u.rol_id, u.estatus,
+                    u.foto, u.nombre, u.apellido, r.nombre_rol
              FROM usuarios u
-             JOIN rol_usuarios r ON r.rol_id = u.rol
-             WHERE u.email = :email
+             JOIN roles_usuarios r ON r.rol_id = u.rol_id
+             WHERE u.correo = :correo
              LIMIT 1'
         );
-        $stmt->execute([':email' => $email]);
+        $stmt->execute([':correo' => $email]);
         $row = $stmt->fetch();
         if (!$row) {
             return null;
@@ -44,14 +52,14 @@ final class Auth
         if ($row['estatus'] !== 'Activo') {
             throw new RuntimeException('Usuario inactivo. Contacta a la directiva.');
         }
-        if (!password_verify($password, (string) $row['password'])) {
+        if (!password_verify($password, (string) $row['contrasena'])) {
             return null;
         }
 
-        $db->prepare('UPDATE usuarios SET ultimo_acceso = NOW() WHERE email = :email')
-            ->execute([':email' => $row['email']]);
+        $db->prepare('UPDATE usuarios SET ultimo_acceso = NOW() WHERE usuario_id = :id')
+            ->execute([':id' => $row['usuario_id']]);
 
-        unset($row['password']);
+        unset($row['contrasena']);
         self::$user = $row;
         self::setCookie($row);
         return $row;
@@ -70,8 +78,9 @@ final class Auth
             'iss'   => (string) config('auth.jwt.issuer'),
             'iat'   => $now,
             'exp'   => $now + $ttl,
-            'sub'   => $user['email'],
-            'rol'   => (int) $user['rol'],
+            'sub'   => (string) $user['usuario_id'],
+            'correo'=> $user['correo'],
+            'rol'   => (int) $user['rol_id'],
             'rol_name' => $user['nombre_rol'] ?? null,
         ]);
 
@@ -128,13 +137,14 @@ final class Auth
 
         $db = Database::connection();
         $stmt = $db->prepare(
-            'SELECT u.email, u.rol, u.estatus, u.foto, r.nombre_rol
+            'SELECT u.usuario_id, u.correo, u.rol_id, u.estatus, u.foto,
+                    u.nombre, u.apellido, r.nombre_rol
              FROM usuarios u
-             JOIN rol_usuarios r ON r.rol_id = u.rol
-             WHERE u.email = :email AND u.estatus = "Activo"
+             JOIN roles_usuarios r ON r.rol_id = u.rol_id
+             WHERE u.usuario_id = :id AND u.estatus = "Activo"
              LIMIT 1'
         );
-        $stmt->execute([':email' => $payload['sub'] ?? '']);
+        $stmt->execute([':id' => $payload['sub'] ?? '']);
         $row = $stmt->fetch();
         if (!$row) {
             return null;
@@ -148,10 +158,10 @@ final class Auth
         return self::user() !== null;
     }
 
-    public static function id(): ?string
+    public static function id(): ?int
     {
         $u = self::user();
-        return $u ? $u['email'] : null;
+        return $u ? (int) $u['usuario_id'] : null;
     }
 
     public static function hasRole(int|string $role): bool
@@ -164,7 +174,7 @@ final class Auth
             $map = config('auth.roles') ?? [];
             $role = $map[$role] ?? 0;
         }
-        return (int) $u['rol'] === (int) $role;
+        return (int) $u['rol_id'] === (int) $role;
     }
 
     public static function isAdmin(): bool

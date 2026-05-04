@@ -1,9 +1,9 @@
 <?php /** @var array $stats */ $user = auth() ?? []; ?>
 
 <div class="welcome-card">
-    <div class="wc-avatar"><?= strtoupper(mb_substr($user['email'] ?? '?', 0, 1)) ?></div>
+    <div class="wc-avatar"><?= strtoupper(mb_substr($user['nombre'] ?? '?', 0, 1)) ?></div>
     <div>
-        <div class="wc-title">Bienvenido, <?= e($user['email'] ?? 'usuario') ?></div>
+        <div class="wc-title">Bienvenido, <?= e(($user['nombre'] ?? '') . ' ' . ($user['apellido'] ?? '')) ?></div>
         <div class="wc-sub"><?= e($user['nombre_rol'] ?? 'Administrador') ?> — Club Atlético Deportivo Acarigua</div>
     </div>
 </div>
@@ -22,8 +22,8 @@
         <div class="stat-label">Categorías activas</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number" style="color: var(--color-warning);"><?= (int) ($stats['plantel'] ?? 0) ?></div>
-        <div class="stat-label">Personal técnico</div>
+        <div class="stat-number" style="color: var(--color-warning);"><?= (int) ($stats['usuarios'] ?? 0) ?></div>
+        <div class="stat-label">Usuarios del sistema</div>
     </div>
 </div>
 

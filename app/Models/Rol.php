@@ -7,7 +7,7 @@ use App\Core\Model;
 
 final class Rol extends Model
 {
-    protected string $table = 'rol_usuarios';
+    protected string $table = 'roles_usuarios';
     protected string $primaryKey = 'rol_id';
 
     /**
@@ -15,6 +15,6 @@ final class Rol extends Model
      */
     public function allActive(): array
     {
-        return $this->query('SELECT * FROM rol_usuarios WHERE rol_id != 4 ORDER BY nombre_rol');
+        return $this->query('SELECT * FROM roles_usuarios WHERE rol_id != 4 ORDER BY nombre_rol');
     }
 }
