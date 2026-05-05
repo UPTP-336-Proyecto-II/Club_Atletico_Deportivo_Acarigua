@@ -2,7 +2,7 @@
 <div class="page-header">
     <div>
         <h1>Gestión de Usuarios</h1>
-        <div class="subtitle">Entrenadores, médicos y personal administrativo del club</div>
+        <div class="subtitle">Entrenadores y personal administrativo del club</div>
     </div>
     <a href="<?= e(url('/admin/usuarios/crear')) ?>" class="btn btn-primary">
         <i class="ph ph-plus"></i> Nuevo Usuario
@@ -76,7 +76,7 @@
                 <td colspan="5" style="padding: 64px 24px; text-align: center;">
                     <i class="ph ph-users-three text-muted" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.5;"></i>
                     <h3 class="text-muted" style="margin: 0 0 8px;">No hay usuarios registrados</h3>
-                    <p class="text-muted" style="font-size: 14px; max-width: 400px; margin: 0 auto;">Registra a entrenadores, médicos y personal administrativo aquí.</p>
+                    <p class="text-muted" style="font-size: 14px; max-width: 400px; margin: 0 auto;">Registra a entrenadores y personal administrativo aquí.</p>
                 </td>
             </tr>
         <?php endif; ?>

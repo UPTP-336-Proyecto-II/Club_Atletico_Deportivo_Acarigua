@@ -64,4 +64,24 @@
             </li>
         </div>
     </ul>
+
+    <?php if (\App\Core\Auth::isAdmin()): ?>
+        <ul class="sidebar__nav" style="margin-top: 16px;">
+            <div class="sidebar__group">
+                <div class="sidebar__group-title">Administración</div>
+                <li>
+                    <a href="<?= e(url('/admin/usuarios')) ?>" class="<?= $active === 'usuarios' ? 'active' : '' ?>">
+                        <span class="icon"><i class="ph ph-user-gear"></i></span>
+                        <span class="nav-text">Gestión de Usuarios</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?= e(url('/admin/ajustes')) ?>" class="<?= $active === 'ajustes' ? 'active' : '' ?>">
+                        <span class="icon"><i class="ph ph-gear"></i></span>
+                        <span class="nav-text">Configuración</span>
+                    </a>
+                </li>
+            </div>
+        </ul>
+    <?php endif; ?>
 </aside>

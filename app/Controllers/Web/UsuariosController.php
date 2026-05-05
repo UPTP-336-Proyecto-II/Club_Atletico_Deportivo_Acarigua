@@ -114,13 +114,15 @@ final class UsuariosController extends Controller
         return [
             'nombre'    => trim((string) $request->input('nombre')),
             'apellido'  => trim((string) $request->input('apellido')),
-            'cedula'    => trim((string) $request->input('cedula')),
+            'cedula'    => preg_replace('/[^0-9]/', '', (string) $request->input('cedula')),
             'telefono'  => trim((string) $request->input('telefono')),
             'fecha_nac' => trim((string) $request->input('fecha_nac')),
             'correo'    => trim((string) $request->input('correo')),
             'rol_id'    => (int) $request->input('rol_id'),
             // Dirección
-            'parroquia_id'       => $request->input('parroquias_id') ?: null,
+            'estado_id'          => $request->input('estado_id') ?: null,
+            'municipio_id'       => $request->input('municipio_id') ?: null,
+            'parroquia_id'       => $request->input('parroquia_id') ?: null,
             'localidad'          => trim((string) $request->input('localidad', '')),
             'tipo_vivienda'      => trim((string) $request->input('tipo_vivienda', '')),
             'ubicacion_vivienda' => trim((string) $request->input('ubicacion_vivienda', '')),
@@ -129,7 +131,7 @@ final class UsuariosController extends Controller
 
     private function validar(array $data, ?int $ignoreId = null): array
     {
-        $cedulaRule = 'required|min:5|max:12|regex:/^[0-9]+$/';
+        $cedulaRule = 'required|min:7|max:12|regex:/^[0-9]+$/';
         if ($ignoreId) {
             $cedulaRule .= "|unique:usuarios,cedula,usuario_id:$ignoreId";
         } else {
@@ -155,6 +157,9 @@ final class UsuariosController extends Controller
             'localidad' => 'required|min:2|max:100',
             'tipo_vivienda' => 'required',
             'ubicacion_vivienda' => 'required|min:5|max:100',
+        ], [
+            'parroquia_id' => 'El campo parroquia es obligatorio.',
+            'rol_id'       => 'El campo rol / cargo es obligatorio.',
         ]);
 
         $v->validate();

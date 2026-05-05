@@ -80,8 +80,8 @@ $breadcrumb = $breadcrumb ?? [$title];
 
 
             <div class="admin-content">
-                <?php include view_path('partials.flash'); ?>
                 <?= $_content ?? '' ?>
+                <?php include view_path('partials.flash'); ?>
             </div>
         </div>
     </div>
