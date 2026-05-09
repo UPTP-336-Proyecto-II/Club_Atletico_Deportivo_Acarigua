@@ -37,12 +37,12 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Nombres</label>
-                    <input type="text" id="nombre" name="nombre" class="form-control" required maxlength="30" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" value="<?= e($get('nombre', '')) ?>">
+                    <input type="text" id="nombre" name="nombre" class="form-control" required minlength="3" maxlength="30" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" value="<?= e($get('nombre', '')) ?>">
                     <span class="field-error" id="nombre-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Apellidos</label>
-                    <input type="text" id="apellido" name="apellido" class="form-control" required maxlength="30" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" value="<?= e($get('apellido', '')) ?>">
+                    <input type="text" id="apellido" name="apellido" class="form-control" required minlength="3" maxlength="30" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" value="<?= e($get('apellido', '')) ?>">
                     <span class="field-error" id="apellido-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
             </div>
@@ -52,7 +52,7 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                     <input type="text" id="cedula" name="cedula" class="form-control" required maxlength="13" placeholder="V-12.345.678" autocomplete="off" value="<?= e($get('cedula', '')) ?>">
                     <span class="field-error" id="cedula-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                     <?php if (!$isEdit): ?>
-                        <div class="form-hint">Se usará como contraseña inicial.</div>
+                        <div class="form-hint">Se usarán solo los números como contraseña inicial.</div>
                     <?php endif; ?>
                 </div>
                 <div class="form-group">
@@ -104,6 +104,14 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                         <?php endforeach; ?>
                     </select>
                     <span class="field-error" id="rol_id-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><span class="required">*</span> Estatus</label>
+                    <select id="estatus" name="estatus" class="form-control" required>
+                        <option value="Activo" <?= $get('estatus', 'Activo') === 'Activo' ? 'selected' : '' ?>>Activo</option>
+                        <option value="Inactivo" <?= $get('estatus') === 'Inactivo' ? 'selected' : '' ?>>Inactivo</option>
+                    </select>
+                    <span class="field-error" id="estatus-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Foto de Perfil</label>
@@ -202,11 +210,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const validateField = () => {
             if (!input.value) {
                 showError(input.id, 'Este campo es obligatorio.');
+            } else if (input.type === 'email') {
+                const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!regex.test(input.value)) {
+                    showError(input.id, 'Por favor ingresa un correo válido (ej: usuario@correo.com).');
+                } else {
+                    clearError(input.id);
+                }
             } else if (!input.checkValidity()) {
                 let msg = 'El valor ingresado es inválido.';
-                if (input.type === 'email') msg = 'Por favor ingresa un correo válido.';
-                if (input.type === 'date') msg = 'Ingresa una fecha válida (mayor de 18 años).';
-                if (input.pattern) msg = input.title || 'El formato es incorrecto.';
+                if (input.validity.tooShort) {
+                    msg = `Debe tener al menos ${input.minLength} caracteres.`;
+                } else if (input.type === 'date') {
+                    msg = 'Ingresa una fecha válida (mayor de 18 años).';
+                } else if (input.pattern && input.validity.patternMismatch) {
+                    msg = input.title || 'El formato es incorrecto.';
+                }
                 showError(input.id, msg);
             } else {
                 clearError(input.id);

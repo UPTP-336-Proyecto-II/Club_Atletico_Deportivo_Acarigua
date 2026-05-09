@@ -38,7 +38,7 @@ final class Auth
         $db = Database::connection();
         $stmt = $db->prepare(
             'SELECT u.usuario_id, u.correo, u.contrasena, u.rol_id, u.estatus,
-                    u.foto, u.nombre, u.apellido, r.nombre_rol
+                    u.foto, u.nombre, u.apellido, u.cedula, r.nombre_rol
              FROM usuarios u
              JOIN roles_usuarios r ON r.rol_id = u.rol_id
              WHERE u.correo = :correo
@@ -138,7 +138,7 @@ final class Auth
         $db = Database::connection();
         $stmt = $db->prepare(
             'SELECT u.usuario_id, u.correo, u.rol_id, u.estatus, u.foto,
-                    u.nombre, u.apellido, r.nombre_rol
+                    u.nombre, u.apellido, u.cedula, r.nombre_rol
              FROM usuarios u
              JOIN roles_usuarios r ON r.rol_id = u.rol_id
              WHERE u.usuario_id = :id AND u.estatus = "Activo"

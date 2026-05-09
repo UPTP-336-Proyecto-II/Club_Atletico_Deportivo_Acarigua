@@ -76,7 +76,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= e(url('/admin/ajustes')) ?>" class="<?= $active === 'ajustes' ? 'active' : '' ?>">
+                    <a href="<?= e(url('/admin/configuracion')) ?>" class="<?= $active === 'configuracion' ? 'active' : '' ?>">
                         <span class="icon"><i class="ph ph-gear"></i></span>
                         <span class="nav-text">Configuración</span>
                     </a>

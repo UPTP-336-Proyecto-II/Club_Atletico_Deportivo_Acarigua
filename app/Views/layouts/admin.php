@@ -58,11 +58,12 @@ $breadcrumb = $breadcrumb ?? [$title];
                                 <span class="text-muted"><?= e(auth()['nombre_rol'] ?? '') ?></span>
                             </div>
                             <hr>
+                            <a href="<?= e(url('/admin/perfil')) ?>"><i class="ph ph-user-circle"></i> Mi Perfil</a>
                             <?php if (\App\Core\Auth::isAdmin()): ?>
                                 <a href="<?= e(url('/admin/usuarios')) ?>"><i class="ph ph-identification-card"></i> Gestión de Usuarios</a>
                                 <a href="<?= e(url('/admin/configuracion')) ?>"><i class="ph ph-gear"></i> Ajustes Generales</a>
-                                <hr>
                             <?php endif; ?>
+                            <hr>
                             
                             <a href="<?= e(url('/logout')) ?>"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-danger">

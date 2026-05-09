@@ -42,10 +42,15 @@ $router->post('/logout',    [AuthController::class, 'logout'], [CsrfMiddleware::
 $router->get('/recuperar',  [AuthController::class, 'showRecuperar']);
 $router->post('/recuperar', [AuthController::class, 'recuperar'], [CsrfMiddleware::class]);
 
+use App\Controllers\Web\PerfilController;
+
 // ---------------------------------------------------------------------------
 // Panel admin (requiere autenticación)
 // ---------------------------------------------------------------------------
 $router->group('/admin', [AuthMiddleware::class], function ($r) {
+    // Configuración inicial de seguridad obligatoria
+    $r->get('/setup',             [PerfilController::class, 'setup']);
+    $r->post('/setup/save',       [PerfilController::class, 'saveSetup'], [CsrfMiddleware::class]);
     $r->get('',                   [DashboardController::class, 'index']);
     $r->get('/',                  [DashboardController::class, 'index']);
 
@@ -99,10 +104,13 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/reportes/asistencia',       [ReportesController::class, 'asistencia']);
     $r->get('/reportes/categoria/{id}',   [ReportesController::class, 'categoria']);
 
+    // Mi Perfil (todos los usuarios autenticados)
+    $r->get('/perfil',              [PerfilController::class, 'index']);
+    $r->post('/perfil',             [PerfilController::class, 'updatePerfil'], [CsrfMiddleware::class]);
+    $r->post('/perfil/seguridad',   [PerfilController::class, 'updateSeguridad'], [CsrfMiddleware::class]);
+
     // Configuración (sólo admin)
     $r->get('/configuracion',         [ConfiguracionController::class, 'index'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
-    $r->get('/configuracion/usuarios', [ConfiguracionController::class, 'usuarios'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
-    $r->post('/configuracion/usuarios', [ConfiguracionController::class, 'guardarUsuario'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 });
 
 // ---------------------------------------------------------------------------

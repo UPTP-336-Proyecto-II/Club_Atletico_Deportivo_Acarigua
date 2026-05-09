@@ -31,9 +31,9 @@ final class UsuarioService
                 'telefono'     => $data['telefono'],
                 'fecha_nac'    => $data['fecha_nac'] ?: null,
                 'correo'       => $data['correo'],
-                'contrasena'   => password_hash($data['cedula'], PASSWORD_BCRYPT, ['cost' => 12]),
+                'contrasena'   => password_hash(preg_replace('/[^0-9]/', '', $data['cedula']), PASSWORD_BCRYPT, ['cost' => 12]),
                 'rol_id'       => $data['rol_id'],
-                'estatus'      => 'Activo',
+                'estatus'      => $data['estatus'] ?? 'Activo',
                 'direccion_id' => $direccionId,
                 'foto'         => $fotoPath,
             ]);
@@ -78,6 +78,7 @@ final class UsuarioService
                 'fecha_nac'    => $data['fecha_nac'] ?: null,
                 'correo'       => $data['correo'],
                 'rol_id'       => $data['rol_id'],
+                'estatus'      => $data['estatus'] ?? 'Activo',
                 'direccion_id' => $direccionId,
             ];
             $nuevaFoto = $this->guardarFoto($fotoFile);

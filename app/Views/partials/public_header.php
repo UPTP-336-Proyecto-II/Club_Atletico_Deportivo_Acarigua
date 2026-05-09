@@ -20,7 +20,7 @@
             <button type="button" class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.38 5.38 0 0 1-4.4 2.26 5.38 5.38 0 0 1-5.38-5.38A5.38 5.38 0 0 1 13.38 3.1c-.44-.06-.9-.1-1.38-.1z"/></svg>
             </button>
-            <?php if (auth()): ?>
+            <?php if (auth() && empty($_SESSION['must_change_password'])): ?>
                 <a href="<?= e(url('/admin')) ?>" class="btn btn-outline btn-sm">Panel</a>
             <?php else: ?>
                 <a href="<?= e(url('/login')) ?>" class="btn btn-outline btn-sm">Acceder</a>

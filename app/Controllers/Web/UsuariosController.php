@@ -101,10 +101,14 @@ final class UsuariosController extends Controller
     {
         $id = (int) $request->param('id');
         try {
+            // Eliminar dependencias primero
+            $respModel = new \App\Models\RespuestaSeguridad();
+            $respModel->deleteByUser($id);
+
             (new Usuario())->delete($id);
             flash('success', 'Usuario eliminado.');
-        } catch (\Throwable $e) {
-            flash('error', 'No se pudo eliminar (tiene categorías o actividades asociadas).');
+        } catch (Throwable $e) {
+            flash('error', 'No se pudo eliminar: El usuario tiene datos vinculados (atletas, categorías o actividades) que impiden borrarlo por seguridad.');
         }
         return $this->redirect('/admin/usuarios');
     }
@@ -126,6 +130,7 @@ final class UsuariosController extends Controller
             'localidad'          => trim((string) $request->input('localidad', '')),
             'tipo_vivienda'      => trim((string) $request->input('tipo_vivienda', '')),
             'ubicacion_vivienda' => trim((string) $request->input('ubicacion_vivienda', '')),
+            'estatus'            => $request->input('estatus') ?: 'Activo',
         ];
     }
 
@@ -146,8 +151,8 @@ final class UsuariosController extends Controller
         }
 
         $v = Validator::make($data, [
-            'nombre'    => 'required|min:2|max:30',
-            'apellido'  => 'required|min:2|max:30',
+            'nombre'    => 'required|min:3|max:30',
+            'apellido'  => 'required|min:3|max:30',
             'cedula'    => $cedulaRule,
             'telefono'  => 'required|min:7|max:15|regex:/^[0-9]+$/',
             'correo'    => $correoRule,

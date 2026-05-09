@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-05-2026 a las 20:08:11
+-- Tiempo de generación: 09-05-2026 a las 05:54:04
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -101,6 +101,34 @@ CREATE TABLE `categorias` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `configuraciones`
+--
+
+CREATE TABLE `configuraciones` (
+  `configuracion_id` int(11) NOT NULL,
+  `clave` varchar(50) NOT NULL,
+  `valor` text DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `configuraciones`
+--
+
+INSERT INTO `configuraciones` (`configuracion_id`, `clave`, `valor`, `descripcion`, `actualizado_en`) VALUES
+(1, 'tiempo_sesion', '120', 'Tiempo de expiración de sesión en minutos', '2026-05-09 03:51:59'),
+(2, 'mision', 'El Club Atlético Deportivo Acarigua, pretende la formación de atletas profesionales, altamente capacitados; física, motriz y cognitivamente en el balón pies, proactivos y capaces de aportar valores agregados a través de los Principios Cristianos que gerencien su desarrollo humanístico para la excelencia de su carrera futbolística.', 'Misión de la comunidad/club', '2026-05-09 03:51:59'),
+(3, 'vision', 'Ser una institución competitiva con fundamentos cristianos, profesionalmente capacitada para ejercer una academia modelo de impacto para la sociedad venezolana, inspirando a los atletas en su desarrollo integral, en el ámbito deportivo y recreativo, validando su potencial e identidad para proporcionarles un nivel de seguridad a cada uno de ellos.', 'Visión de la comunidad/club', '2026-05-09 03:51:59'),
+(4, 'correo_contacto', 'clubatleticodeportivoacarigua@gmail.com', 'Correo electrónico oficial del club', '2026-05-09 03:51:59'),
+(5, 'google_maps_url', 'https://goo.gl/maps/...', 'URL de ubicación en Google Maps', '2026-05-09 03:51:59'),
+(6, 'facebook_url', 'https://facebook.com/club', 'Enlace al perfil de Facebook', '2026-05-09 03:51:59'),
+(7, 'instagram_url', 'https://instagram.com/club', 'Enlace al perfil de Instagram', '2026-05-09 03:51:59'),
+(8, 'telefono_whatsapp', '+584120000000', 'Número de contacto con WhatsApp', '2026-05-09 03:51:59');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `direcciones`
 --
 
@@ -117,7 +145,7 @@ CREATE TABLE `direcciones` (
 --
 
 INSERT INTO `direcciones` (`direccion_id`, `parroquias_id`, `localidad`, `tipo_vivienda`, `ubicacion_vivienda`) VALUES
-(1, 722, 'Urb. Villas del Pilar', 'casa', 'Calle 15A, Casa 412');
+(1, 722, 'Sin localidad', 'casa', 'Sin ubicacion');
 
 -- --------------------------------------------------------
 
@@ -1783,7 +1811,7 @@ INSERT INTO `posiciones_juegos` (`posicion_id`, `nombre_posicion`, `descripcion`
 
 CREATE TABLE `preguntas_seguridad` (
   `pregunta_id` smallint(6) NOT NULL,
-  `preguntas` varchar(50) NOT NULL,
+  `preguntas` varchar(100) NOT NULL,
   `grupo` tinyint(4) NOT NULL COMMENT 'Define a qué select pertenece (1, 2, 3 o 4)',
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
   `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -1794,46 +1822,16 @@ CREATE TABLE `preguntas_seguridad` (
 --
 
 INSERT INTO `preguntas_seguridad` (`pregunta_id`, `preguntas`, `grupo`, `creado_en`, `actualizado_en`) VALUES
-(5, '¿Cómo se llamaba tu primera mascota?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(6, '¿En qué ciudad se conocieron tus padres?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(7, '¿Cuál es el nombre de la calle donde creciste?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(8, '¿Cómo se llamaba tu primer profesor de primaria?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(9, '¿Cuál era tu apodo cuando eras niño/a?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(10, '¿Cuál fue el primer modelo de coche que condujiste', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(11, '¿En qué hospital naciste?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(12, '¿A donde fue tu primer viaje en avión?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(13, '¿Cómo se llamaba tu peluche o juguete favorito?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(14, '¿Cuál fue el nombre de tu primera escuela?', 1, '2026-02-10 17:11:21', '2026-02-10 17:11:21'),
-(15, '¿Cuál es tu película favorita de todos los tiempos', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(16, '¿Cuál es el nombre de tu banda o artista musical f', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(17, '¿Cuál es el nombre de tu libro preferido?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(18, '¿Cuál es tu plato de comida favorito para cocinar?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(19, '¿Cuál es tu destino de vacaciones soñado?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(20, '¿Cuál es tu color favorito de la infancia?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(21, '¿Cuál es el nombre de tu personaje de ficción favo', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(22, '¿Qué marca era tu primer teléfono móvil?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(23, '¿Cuál es tu estación del año favorita?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(24, '¿Cuál es el nombre de tu restaurante preferido?', 2, '2026-02-10 17:14:32', '2026-02-10 17:14:32'),
-(25, '¿Cuál es el segundo nombre de tu abuelo paterno?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(26, '¿En qué ciudad nació tu madre?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(27, '¿Cómo se llama tu mejor amigo/a de la infancia?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(28, '¿Cuál es el nombre de tu primo/a más cercano/a?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(29, '¿En qué ciudad te casaste o tuviste tu primera cit', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(30, '¿Cuál es el apellido de soltera de tu abuela mater', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(31, '¿Cuál es el segundo nombre de tu hermano/a mayor?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(32, '¿Cómo se llamaba el jefe de tu primer trabajo?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(33, '¿Cuál es el nombre de tu padrino o madrina?', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(34, '¿Cuál es el nombre de la empresa donde tuviste tu ', 3, '2026-02-10 17:17:46', '2026-02-10 17:17:46'),
-(35, '¿Cuál es el nombre del primer equipo de fútbol en ', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(36, '¿Cuál fue el primer estadio de fútbol que visitast', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(37, '¿Cuál era el número de tu primera camiseta deporti', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(38, '¿Cómo se llamaba tu primer entrenador de fútbol?', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(39, '¿Cuál es tu deportista profesional favorito?', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(40, '¿Cuál fue el primer deporte que aprendiste a pract', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(41, '¿Cuál es el nombre de tu equipo de fútbol favorito', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(42, '¿En qué año asististe a tu primer partido profesio', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(43, '¿Cuál es tu marca de calzado deportivo preferida?', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39'),
-(44, '¿Cuál es el nombre de la liga o torneo que más te ', 4, '2026-02-10 17:20:39', '2026-02-10 17:20:39');
+(1, '¿Nombre de tu primera mascota?', 1, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(2, '¿Ciudad donde naciste?', 1, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(3, '¿Tu apodo de infancia?', 1, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(4, '¿Color favorito?', 2, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(5, '¿Tu plato de comida favorito?', 2, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(6, '¿Marca de tu primer teléfono?', 2, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(7, '¿Nombre de tu madre?', 3, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(8, '¿Nombre de tu mejor amigo?', 3, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(9, '¿Tu equipo de fútbol favorito?', 4, '2026-05-05 17:44:47', '2026-05-05 17:44:47'),
+(10, '¿Nombre de tu primera escuela?', 4, '2026-05-05 17:44:47', '2026-05-05 17:44:47');
 
 -- --------------------------------------------------------
 
@@ -1864,7 +1862,7 @@ CREATE TABLE `respuestas_seguridad` (
   `respuesta_id` int(11) NOT NULL,
   `usuario_id` int(11) UNSIGNED NOT NULL,
   `pregunta_id` smallint(6) NOT NULL,
-  `respuesta` varchar(50) NOT NULL,
+  `respuesta` varchar(255) NOT NULL,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
   `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1921,6 +1919,22 @@ CREATE TABLE `tipos_discapacidades` (
   `descripcion` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `tipos_discapacidades`
+--
+
+INSERT INTO `tipos_discapacidades` (`tipo_discapacidad_id`, `nombre_tipo`, `descripcion`) VALUES
+(1, 'Física Motora', 'Limitación en movimiento o control muscular'),
+(2, 'Visual', 'Ceguera total o baja visión'),
+(3, 'Auditiva', 'Sordera total o hipoacusia'),
+(4, 'Intelectual', 'Limitaciones en habilidades cognitivas'),
+(5, 'Psicosocial', 'Trastornos mentales o del comportamiento'),
+(6, 'Lenguaje y Habla', 'Dificultades en comunicación verbal'),
+(7, 'Múltiple', 'Combinación de dos o más discapacidades'),
+(8, 'Visceral', 'Afecciones de órganos internos'),
+(9, 'Neurológica', 'Trastornos del sistema nervioso central'),
+(10, 'Otra', 'Otras condiciones no clasificadas');
+
 -- --------------------------------------------------------
 
 --
@@ -1951,7 +1965,9 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`usuario_id`, `correo`, `contrasena`, `token`, `rol_id`, `estatus`, `nombre`, `apellido`, `cedula`, `telefono`, `fecha_nac`, `direccion_id`, `foto`, `ultimo_acceso`, `creado_en`, `actualizado_en`) VALUES
-(1, 'superusuario@gmail.com', '$2y$12$FvJOqLYmN65k.5Rznkj/l.b1vf2bMBjJYntOzoqgCIgbO1J052LrG', NULL, 1, 'Activo', 'Robert', 'Legon', '31492108', '04145231462', '1990-01-01', 1, NULL, NULL, '2026-05-04 18:05:28', '2026-05-04 18:05:28');
+(1, 'superusuario@gmail.com', '$2y$12$wMBzc.XRrx1xM7WN/FegZecwqkX3SkJmLhoizVlh80683QZVMrSbm', NULL, 1, 'Activo', 'Super', 'Usuario', '11111111', '', '0000-00-00', 1, NULL, NULL, '2026-05-09 03:17:04', '2026-05-09 03:17:04'),
+(2, 'administrador@gmail.com', '$2y$12$v7QAqGZo03q4/lfL6LrO9u1NsNFItWBUANyAa4gpZ81UQzVdyjeii', NULL, 2, 'Activo', 'Administrador', 'Prueba', '22222222', '', '0000-00-00', 1, NULL, NULL, '2026-05-09 03:17:04', '2026-05-09 03:17:04'),
+(3, 'entrenador@gmail.com', '$2y$12$VTjod2tBSgA42iWu6iXI.OhkpST/kRllpR1Y8ASg4iPWgCYoE3Dci', NULL, 3, 'Activo', 'Entrenador', 'Prueba', '33333333', '', '0000-00-00', 1, NULL, NULL, '2026-05-09 03:17:04', '2026-05-09 03:17:04');
 
 --
 -- Índices para tablas volcadas
@@ -1989,6 +2005,13 @@ ALTER TABLE `categorias`
   ADD PRIMARY KEY (`categoria_id`),
   ADD UNIQUE KEY `nombre_categoria` (`nombre_categoria`,`sexo_categoria`),
   ADD KEY `usuario_id` (`usuario_id`);
+
+--
+-- Indices de la tabla `configuraciones`
+--
+ALTER TABLE `configuraciones`
+  ADD PRIMARY KEY (`configuracion_id`),
+  ADD UNIQUE KEY `clave` (`clave`);
 
 --
 -- Indices de la tabla `direcciones`
@@ -2134,6 +2157,12 @@ ALTER TABLE `categorias`
   MODIFY `categoria_id` smallint(6) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `configuraciones`
+--
+ALTER TABLE `configuraciones`
+  MODIFY `configuracion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT de la tabla `direcciones`
 --
 ALTER TABLE `direcciones`
@@ -2221,13 +2250,13 @@ ALTER TABLE `roles_usuarios`
 -- AUTO_INCREMENT de la tabla `tipos_discapacidades`
 --
 ALTER TABLE `tipos_discapacidades`
-  MODIFY `tipo_discapacidad_id` smallint(6) NOT NULL AUTO_INCREMENT;
+  MODIFY `tipo_discapacidad_id` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `usuario_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `usuario_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Restricciones para tablas volcadas
