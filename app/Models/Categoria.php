@@ -6,23 +6,23 @@ namespace App\Models;
 use App\Core\Model;
 
 /**
- * Modelo para la tabla `categoria` de cada_db.
+ * Modelo para la tabla `categorias` de cada_db.
  *
- * La FK entrenador_id apunta a personal.personal_id (no a plantel).
+ * La FK usuario_id apunta a usuarios.usuario_id (entrenador asignado).
  */
 final class Categoria extends Model
 {
-    protected string $table = 'categoria';
+    protected string $table = 'categorias';
     protected string $primaryKey = 'categoria_id';
 
     public function allWithEntrenador(): array
     {
         return $this->query(
             "SELECT c.*,
-                    CONCAT_WS(' ', p.nombre, p.apellido) AS entrenador,
+                    CONCAT_WS(' ', u.nombre, u.apellido) AS entrenador,
                     (SELECT COUNT(*) FROM atletas a WHERE a.categoria_id = c.categoria_id) AS total_atletas
-             FROM categoria c
-             LEFT JOIN personal p ON p.personal_id = c.entrenador_id
+             FROM categorias c
+             LEFT JOIN usuarios u ON u.usuario_id = c.usuario_id
              ORDER BY c.edad_min"
         );
     }
@@ -30,7 +30,7 @@ final class Categoria extends Model
     public function activas(): array
     {
         return $this->query(
-            "SELECT categoria_id, nombre_categoria FROM categoria WHERE estatus = 'Activa' ORDER BY edad_min"
+            "SELECT categoria_id, nombre_categoria FROM categorias WHERE estatus = 'activa' ORDER BY edad_min"
         );
     }
 }

@@ -13,6 +13,7 @@
 
     <link rel="stylesheet" href="<?= e(asset('css/main.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/landing.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/phosphor/style.css')) ?>">
     <script src="<?= e(asset('js/core/theme.js')) ?>"></script>
 </head>
 <body>

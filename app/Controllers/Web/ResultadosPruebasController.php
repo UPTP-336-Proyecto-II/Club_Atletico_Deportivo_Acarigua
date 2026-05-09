@@ -14,7 +14,7 @@ final class ResultadosPruebasController extends Controller
 {
     public function index(Request $request): Response
     {
-        $pag = (new Atleta())->paginate(['estatus' => 'Activo'], (int) $request->query('page', 1), 20);
+        $pag = (new Atleta())->paginate(['estatus' => 1], (int) $request->query('page', 1), 20);
         return $this->view('resultados_pruebas.index', [
             'title' => 'Pruebas físicas',
             'active' => 'pruebas',
@@ -47,11 +47,11 @@ final class ResultadosPruebasController extends Controller
             $db = Database::connection();
             $entrenadorId = (int) $request->input('entrenador_id', 0);
             if (!$entrenadorId) {
-                $entrenadorId = (int) $db->query("SELECT plantel_id FROM plantel LIMIT 1")->fetchColumn();
+                $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
             }
             if ($entrenadorId) {
-                $stmt = $db->prepare("INSERT INTO evento_deportivo (entrenador_id, tipo_evento, fecha_evento)
-                                      VALUES (:e, 'Pruebas', :f)");
+                $stmt = $db->prepare("INSERT INTO actividades (usuario_id, tipo_actividad, fecha)
+                                      VALUES (:e, 1, :f)"); // 1: Entrenamiento/Pruebas
                 $stmt->execute([':e' => $entrenadorId, ':f' => date('Y-m-d')]);
                 $eventoId = (int) $db->lastInsertId();
             }
@@ -62,7 +62,7 @@ final class ResultadosPruebasController extends Controller
         }
 
         $data = [
-            'evento_id'         => $eventoId,
+            'actividad_id'      => $eventoId,
             'atleta_id'         => $id,
             'test_de_fuerza'    => $this->num($request->input('test_de_fuerza')),
             'test_resistencia'  => $this->num($request->input('test_resistencia')),

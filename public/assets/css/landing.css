@@ -263,8 +263,8 @@
     position: absolute;
     top: 24px; left: 24px;
     background: rgba(255,255,255,0.9);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
+    color: #1E293B;
+    border: 1px solid rgba(0,0,0,0.1);
     padding: 8px 16px;
     border-radius: var(--radius-sm);
     font-size: 14px;
@@ -272,7 +272,7 @@
     align-items: center;
     gap: 6px;
 }
-.login-back:hover { background: #fff; text-decoration: none; }
+.login-back:hover { background: #fff; color: #1E293B; text-decoration: none; }
 
 .login-card {
     background: var(--color-bg);

@@ -14,7 +14,7 @@ final class MedidasAntropometricasController extends Controller
 {
     public function index(Request $request): Response
     {
-        $pag = (new Atleta())->paginate(['estatus' => 'Activo'], (int) $request->query('page', 1), 20);
+        $pag = (new Atleta())->paginate(['estatus' => 1], (int) $request->query('page', 1), 20);
         return $this->view('medidas.index', [
             'title' => 'Antropometría',
             'active' => 'antropometria',

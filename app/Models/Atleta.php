@@ -9,10 +9,10 @@ use App\Core\Model;
  * Modelo para la tabla `atletas` de cada_db.
  *
  * Relaciones clave:
- *   - representante_id → representante.representante_id
+ *   - representante_id → representantes.representante_id
  *   - direccion_id     → direcciones.direccion_id
- *   - categoria_id     → categoria.categoria_id
- *   - posicion_de_juego→ posicion_juego.posicion_id
+ *   - categoria_id     → categorias.categoria_id
+ *   - posicion_juego_id→ posiciones_juegos.posicion_id
  */
 final class Atleta extends Model
 {
@@ -50,12 +50,12 @@ final class Atleta extends Model
         $offset = max(0, ($page - 1) * $perPage);
         $sql = "
             SELECT a.atleta_id, a.nombre, a.apellido, a.cedula, a.telefono, a.foto,
-                   a.fecha_nacimiento, a.estatus,
+                   a.fecha_nac, a.estatus,
                    c.nombre_categoria,
                    p.nombre_posicion
             FROM atletas a
-            LEFT JOIN categoria c ON c.categoria_id = a.categoria_id
-            LEFT JOIN posicion_juego p ON p.posicion_id = a.posicion_de_juego
+            LEFT JOIN categorias c ON c.categoria_id = a.categoria_id
+            LEFT JOIN posiciones_juegos p ON p.posicion_id = a.posicion_juego_id
             $whereSql
             ORDER BY a.apellido, a.nombre
             LIMIT $perPage OFFSET $offset
@@ -94,14 +94,14 @@ final class Atleta extends Model
                    f.ficha_id, f.grupo_sanguineo, f.alergias, f.antecedentes_familiares,
                    f.antecedentes_quirurgicos, f.condicion_cronica, f.medicacion_actual
             FROM atletas a
-            LEFT JOIN categoria c ON c.categoria_id = a.categoria_id
-            LEFT JOIN posicion_juego p ON p.posicion_id = a.posicion_de_juego
-            LEFT JOIN representante rep ON rep.representante_id = a.representante_id
+            LEFT JOIN categorias c ON c.categoria_id = a.categoria_id
+            LEFT JOIN posiciones_juegos p ON p.posicion_id = a.posicion_juego_id
+            LEFT JOIN representantes rep ON rep.representante_id = a.representante_id
             LEFT JOIN direcciones d ON d.direccion_id = a.direccion_id
             LEFT JOIN parroquias pa ON pa.parroquia_id = d.parroquias_id
             LEFT JOIN municipios m ON m.municipio_id = pa.municipio_id
             LEFT JOIN estados e ON e.estado_id = m.estado_id
-            LEFT JOIN ficha_medica f ON f.atleta_id = a.atleta_id
+            LEFT JOIN fichas_medicas f ON f.atleta_id = a.atleta_id
             WHERE a.atleta_id = :id
             LIMIT 1
         ";

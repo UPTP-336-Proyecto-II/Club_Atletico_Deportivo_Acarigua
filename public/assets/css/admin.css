@@ -28,6 +28,11 @@ body.admin-body {
     top: 0;
     height: 100vh;
     overflow-y: auto;
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* IE/Edge */
+}
+.sidebar::-webkit-scrollbar {
+    display: none;                  /* Chrome/Safari */
 }
 .sidebar__brand {
     display: flex;
@@ -517,4 +522,10 @@ body.admin-body {
     background: var(--color-primary);
     color: #fff;
     border-color: var(--color-primary);
+}
+
+/* Phone field dark mode fix */
+.phone-field .phone-prefix,
+.phone-field .phone-number {
+    color: var(--color-text);
 }

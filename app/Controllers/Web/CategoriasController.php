@@ -8,7 +8,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Validator;
 use App\Models\Categoria;
-use App\Models\Personal;
+use App\Models\Usuario;
 
 final class CategoriasController extends Controller
 {
@@ -29,7 +29,7 @@ final class CategoriasController extends Controller
             'active' => 'categorias',
             'breadcrumb' => ['Inicio', 'Categorías', 'Nueva'],
             'item' => null,
-            'entrenadores' => (new Personal())->entrenadores(),
+            'entrenadores' => (new Usuario())->entrenadores(),
             'action' => url('/admin/categorias'),
         ], 'admin');
     }
@@ -41,7 +41,7 @@ final class CategoriasController extends Controller
             'nombre_categoria' => 'required|min:2|max:50',
             'edad_min'         => 'required|integer|min:3|max:100',
             'edad_max'         => 'required|integer|min:3|max:100',
-            'estatus'          => 'required|in:Activa,Inactiva',
+            'estatus'          => 'required|in:activa,inactiva',
         ]);
         if (!$v->validate()) {
             $this->withOld($data)->withErrors($v->errors());
@@ -62,7 +62,7 @@ final class CategoriasController extends Controller
             'active' => 'categorias',
             'breadcrumb' => ['Inicio', 'Categorías', 'Editar'],
             'item' => $item,
-            'entrenadores' => (new Personal())->entrenadores(),
+            'entrenadores' => (new Usuario())->entrenadores(),
             'action' => url("/admin/categorias/$id"),
         ], 'admin');
     }
@@ -94,8 +94,8 @@ final class CategoriasController extends Controller
             'nombre_categoria' => trim((string) $request->input('nombre_categoria')),
             'edad_min'         => (int) $request->input('edad_min', 0),
             'edad_max'         => (int) $request->input('edad_max', 0),
-            'entrenador_id'    => $request->input('entrenador_id') ?: null,
-            'estatus'          => $request->input('estatus', 'Activa'),
+            'usuario_id'    => $request->input('usuario_id') ?: null,
+            'estatus'          => strtolower((string)$request->input('estatus', 'activa')),
         ];
     }
 }

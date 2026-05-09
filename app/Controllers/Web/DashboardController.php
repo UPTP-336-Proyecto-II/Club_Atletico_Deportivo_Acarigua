@@ -15,15 +15,15 @@ final class DashboardController extends Controller
         $db = Database::connection();
 
         $atletas   = (int) $db->query('SELECT COUNT(*) FROM atletas')->fetchColumn();
-        $activos   = (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus = 'Activo'")->fetchColumn();
-        $categorias = (int) $db->query("SELECT COUNT(*) FROM categoria WHERE estatus = 'Activa'")->fetchColumn();
-        $personal    = (int) $db->query('SELECT COUNT(*) FROM personal')->fetchColumn();
+        $activos   = (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus = 1")->fetchColumn();
+        $categorias = (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus = 'activa'")->fetchColumn();
+        $usuarios  = (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
 
         return $this->view('dashboard.index', [
             'title'      => 'Inicio',
             'active'     => 'inicio',
             'breadcrumb' => ['Inicio'],
-            'stats'      => ['atletas' => $atletas, 'activos' => $activos, 'categorias' => $categorias, 'plantel' => $personal],
+            'stats'      => ['atletas' => $atletas, 'activos' => $activos, 'categorias' => $categorias, 'usuarios' => $usuarios],
         ], 'admin');
     }
 }

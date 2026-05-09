@@ -49,20 +49,21 @@ $breadcrumb = $breadcrumb ?? [$title];
                     </button>
                     <div class="user-menu" id="user-menu">
                         <button type="button" class="user-menu__btn">
-                            <div class="user-menu__avatar"><?= strtoupper(mb_substr($user['email'] ?? '?', 0, 1)) ?></div>
+                            <div class="user-menu__avatar"><?= strtoupper(mb_substr(auth()['nombre'] ?? '?', 0, 1, 'UTF-8')) ?></div>
                         </button>
                         <div class="user-menu__dropdown">
                             <div style="padding:8px 12px; font-size:13px;">
-                                <strong><?= e($user['email'] ?? '') ?></strong><br>
-                                <span class="text-muted"><?= e($user['nombre_rol'] ?? '') ?></span>
+                                <strong><?= e((auth()['nombre'] ?? '') . ' ' . (auth()['apellido'] ?? '')) ?></strong><br>
+                                <span class="text-muted" style="font-size:11px;"><?= e(auth()['correo'] ?? '') ?></span><br>
+                                <span class="text-muted"><?= e(auth()['nombre_rol'] ?? '') ?></span>
                             </div>
                             <hr>
-                            <?php if (can('admin')): ?>
-                                <a href="<?= e(url('/admin/personal')) ?>"><i class="ph ph-identification-card"></i> Control de Personal</a>
-                                <a href="<?= e(url('/admin/configuracion/usuarios')) ?>"><i class="ph ph-users"></i> Usuarios y Permisos</a>
+                            <a href="<?= e(url('/admin/perfil')) ?>"><i class="ph ph-user-circle"></i> Mi Perfil</a>
+                            <?php if (\App\Core\Auth::isAdmin()): ?>
+                                <a href="<?= e(url('/admin/usuarios')) ?>"><i class="ph ph-identification-card"></i> Gestión de Usuarios</a>
                                 <a href="<?= e(url('/admin/configuracion')) ?>"><i class="ph ph-gear"></i> Ajustes Generales</a>
-                                <hr>
                             <?php endif; ?>
+                            <hr>
                             
                             <a href="<?= e(url('/logout')) ?>"
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-danger">
@@ -80,8 +81,8 @@ $breadcrumb = $breadcrumb ?? [$title];
 
 
             <div class="admin-content">
-                <?php include view_path('partials.flash'); ?>
                 <?= $_content ?? '' ?>
+                <?php include view_path('partials.flash'); ?>
             </div>
         </div>
     </div>

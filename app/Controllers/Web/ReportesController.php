@@ -16,9 +16,9 @@ final class ReportesController extends Controller
         $db = Database::connection();
         $stats = [
             'atletas'         => (int) $db->query('SELECT COUNT(*) FROM atletas')->fetchColumn(),
-            'activos'         => (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus='Activo'")->fetchColumn(),
-            'categorias'      => (int) $db->query("SELECT COUNT(*) FROM categoria WHERE estatus='Activa'")->fetchColumn(),
-            'personal'        => (int) $db->query('SELECT COUNT(*) FROM personal')->fetchColumn(),
+            'activos'         => (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus='1'")->fetchColumn(),
+            'categorias'      => (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus='activa'")->fetchColumn(),
+            'usuarios'        => (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn(),
             'eventos_30dias'  => (int) $db->query("SELECT COUNT(*) FROM actividades WHERE fecha >= (CURDATE() - INTERVAL 30 DAY)")->fetchColumn(),
         ];
         $atletas = $db->query("SELECT atleta_id, nombre, apellido, cedula FROM atletas ORDER BY apellido, nombre")->fetchAll();

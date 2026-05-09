@@ -11,7 +11,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Validator;
 use App\Models\Categoria;
-use App\Models\Personal;
+use App\Models\Usuario;
 use App\Services\AsistenciaService;
 use Throwable;
 
@@ -41,7 +41,7 @@ final class AsistenciasController extends Controller
     public function pase(Request $request): Response
     {
         $categorias = (new Categoria())->activas();
-        $entrenadores = (new Personal())->entrenadores();
+        $entrenadores = (new Usuario())->entrenadores();
         return $this->view('asistencias.pase_lista', [
             'title' => 'Pase de lista',
             'active' => 'asistencias',
@@ -77,7 +77,7 @@ final class AsistenciasController extends Controller
             if (!$aid) continue;
             $detalles[] = [
                 'atleta_id' => $aid,
-                'estatus' => $estatuses[$aid] ?? 'Ausente',
+                'estatus' => ($estatuses[$aid] ?? 'Ausente') === 'Presente' ? 1 : 0,
                 'observaciones' => $observaciones[$aid] ?? null,
             ];
         }
