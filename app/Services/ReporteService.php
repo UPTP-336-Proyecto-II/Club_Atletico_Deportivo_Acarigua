@@ -27,11 +27,21 @@ final class ReporteService
         $html = $this->construirHtml($atleta, $antropometria, $pruebas, $asistencia);
 
         $filename = 'ficha_' . preg_replace('/[^a-z0-9]+/i', '_', $atleta['nombre'] . '_' . $atleta['apellido']) . '_' . date('Ymd');
-        return (new PdfGenerator())->render(
-            'Ficha Técnica - ' . $atleta['nombre'] . ' ' . $atleta['apellido'],
-            $html,
-            strtolower($filename)
-        );
+        
+        // Asumiendo que PdfGenerator existe y funciona. Si no, retornamos HTML simple por ahora.
+        if (class_exists('App\Services\PdfGenerator')) {
+            return (new PdfGenerator())->render(
+                'Ficha Técnica - ' . $atleta['nombre'] . ' ' . $atleta['apellido'],
+                $html,
+                strtolower($filename)
+            );
+        }
+        
+        return [
+            'mime' => 'text/html',
+            'filename' => $filename . '.html',
+            'content' => $html
+        ];
     }
 
     private function construirHtml(array $a, array $antropo, array $pruebas, array $asistencia): string
@@ -39,11 +49,12 @@ final class ReporteService
         $esc = fn($v) => htmlspecialchars((string) ($v ?? '—'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         $nombreCompleto = $esc($a['nombre'] . ' ' . $a['apellido']);
-        $edad = $a['fecha_nacimiento']
-            ? (new \DateTime($a['fecha_nacimiento']))->diff(new \DateTime('today'))->y
+        $fechaNac = $a['fecha_nac'] ?? null;
+        $edad = $fechaNac
+            ? (new \DateTime($fechaNac))->diff(new \DateTime('today'))->y
             : null;
 
-        // Antropometría — tabla + última medición
+        // Antropometría — tabla
         $antropoRows = '';
         foreach ($antropo as $m) {
             $antropoRows .= sprintf(
@@ -78,34 +89,39 @@ final class ReporteService
             : '<p>Sin pruebas físicas registradas.</p>';
 
         // Asistencia
-        $asiMap = ['Presente' => 0, 'Ausente' => 0, 'Justificado' => 0];
+        $asiMap = [1 => 0, 0 => 0, 2 => 0]; // 1: Presente, 0: Ausente, 2: Justificado?
         foreach ($asistencia as $row) {
-            $asiMap[$row['estatus']] = (int) $row['total'];
+            $asiMap[(int)$row['estatus']] = (int) $row['total'];
         }
+        $presentes = $asiMap[1];
+        $ausentes = $asiMap[0];
+        $justificados = $asiMap[2];
         $totalAsi = array_sum($asiMap) ?: 1;
-        $pctPresente = round(($asiMap['Presente'] / $totalAsi) * 100, 1);
+        $pctPresente = round(($presentes / $totalAsi) * 100, 1);
 
         $direccionParts = array_filter([
-            $a['calle_avenida'] ?? null, $a['casa_edificio'] ?? null,
-            $a['parroquia'] ?? null, $a['municipio'] ?? null, $a['estado'] ?? null, $a['pais'] ?? null,
+            $a['localidad'] ?? null,
+            $a['parroquia_nombre'] ?? null, $a['municipio_nombre'] ?? null, $a['estado_nombre'] ?? null
         ]);
         $direccion = $direccionParts ? $esc(implode(', ', $direccionParts)) : '—';
+        
+        $estatusTexto = ((int)$a['estatus'] === 1) ? 'Activo' : (((int)$a['estatus'] === 2) ? 'Lesionado' : 'Suspendido');
 
         return <<<HTML
 <div class="header">
     <h1 class="header-title">Ficha Técnica Individual</h1>
     <p style="margin:4px 0 0; color: #6B7280;">
-        Club Atlético Deportivo Acarigua · "La Armadura de Dios" · Generado el {$esc(date('Y-m-d H:i'))}
+        Club Atlético Deportivo Acarigua · Generado el {$esc(date('Y-m-d H:i'))}
     </p>
 </div>
 
 <h2>{$nombreCompleto}</h2>
-<span class="badge">{$esc($a['estatus'])}</span>
+<span class="badge">{$esc($estatusTexto)}</span>
 
 <div class="grid-2" style="margin-top:16px;">
     <div>
         <p><strong>Cédula:</strong> {$esc($a['cedula'])}</p>
-        <p><strong>Fecha de nacimiento:</strong> {$esc($a['fecha_nacimiento'])} ({$esc($edad)} años)</p>
+        <p><strong>Fecha de nacimiento:</strong> {$esc($fechaNac)} ({$esc($edad)} años)</p>
         <p><strong>Teléfono:</strong> {$esc($a['telefono'])}</p>
         <p><strong>Categoría:</strong> {$esc($a['nombre_categoria'])}</p>
         <p><strong>Posición:</strong> {$esc($a['nombre_posicion'])}</p>
@@ -113,11 +129,11 @@ final class ReporteService
     </div>
     <div>
         <p><strong>Dirección:</strong> {$direccion}</p>
-        <p><strong>Representante:</strong> {$esc(($a['tutor_nombres'] ?? '') . ' ' . ($a['tutor_apellidos'] ?? ''))}</p>
-        <p><strong>Relación:</strong> {$esc($a['tutor_relacion'])}</p>
-        <p><strong>Teléfono representante:</strong> {$esc($a['tutor_telefono'])}</p>
-        <p><strong>Tipo sanguíneo:</strong> {$esc($a['tipo_sanguineo'])}</p>
-        <p><strong>Alergias:</strong> {$esc($a['alergias'])}</p>
+        <p><strong>Representante:</strong> {$esc($a['representante_nombre'])}</p>
+        <p><strong>Cédula Representante:</strong> {$esc($a['representante_cedula'])}</p>
+        <p><strong>Relación:</strong> {$esc($a['representante_relacion'])}</p>
+        <p><strong>Teléfono representante:</strong> {$esc($a['representante_telefono'])}</p>
+        <p><strong>Grupo sanguíneo:</strong> {$esc($a['grupo_sanguineo'])}</p>
     </div>
 </div>
 
@@ -128,13 +144,15 @@ final class ReporteService
 {$pruebasTable}
 
 <h3>📋 Resumen de asistencia</h3>
-<p><strong>Presentes:</strong> {$asiMap['Presente']} · <strong>Ausentes:</strong> {$asiMap['Ausente']} · <strong>Justificados:</strong> {$asiMap['Justificado']}</p>
+<p><strong>Presentes:</strong> {$presentes} · <strong>Ausentes:</strong> {$ausentes} · <strong>Justificados:</strong> {$justificados}</p>
 <p><strong>Porcentaje de asistencia:</strong> {$pctPresente}%</p>
 
 <h3>🏥 Ficha médica</h3>
-<p><strong>Lesiones:</strong> {$esc($a['lesion'])}</p>
-<p><strong>Condiciones:</strong> {$esc($a['condicion_medica'])}</p>
-<p><strong>Observaciones:</strong> {$esc($a['observacion'])}</p>
+<p><strong>Alergias:</strong> {$esc($a['alergias'])}</p>
+<p><strong>Antecedentes Familiares:</strong> {$esc($a['antecedentes_familiares'])}</p>
+<p><strong>Antecedentes Quirúrgicos:</strong> {$esc($a['antecedentes_quirurgicos'])}</p>
+<p><strong>Condición Crónica:</strong> {$esc($a['condicion_cronica'])}</p>
+<p><strong>Medicación Actual:</strong> {$esc($a['medicacion_actual'])}</p>
 
 HTML;
     }

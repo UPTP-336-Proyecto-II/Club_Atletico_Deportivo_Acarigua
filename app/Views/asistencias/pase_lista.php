@@ -36,7 +36,7 @@
         <select name="entrenador_id" class="form-control" required>
             <option value="">Selecciona...</option>
             <?php foreach ($entrenadores as $e): ?>
-                <option value="<?= (int) $e['plantel_id'] ?>"><?= e($e['nombre'] . ' ' . $e['apellido']) ?></option>
+                <option value="<?= (int) $e['usuario_id'] ?>"><?= e($e['nombre'] . ' ' . $e['apellido']) ?></option>
             <?php endforeach; ?>
         </select>
     </div>

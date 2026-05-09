@@ -21,3 +21,4 @@ foreach ($flashTypes as $type):
     </div>
     <?php unset($_SESSION['_errors']); ?>
 <?php endif; ?>
+<?php unset($_SESSION['_old']); ?>

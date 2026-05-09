@@ -15,15 +15,15 @@ final class ReportesApiController extends Controller
         $db = Database::connection();
         return $this->json([
             'atletas'         => (int) $db->query('SELECT COUNT(*) FROM atletas')->fetchColumn(),
-            'activos'         => (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus='Activo'")->fetchColumn(),
-            'categorias'      => (int) $db->query("SELECT COUNT(*) FROM categoria WHERE estatus='Activa'")->fetchColumn(),
-            'plantel'         => (int) $db->query('SELECT COUNT(*) FROM plantel')->fetchColumn(),
-            'eventos_30dias'  => (int) $db->query("SELECT COUNT(*) FROM evento_deportivo WHERE fecha_evento >= (CURDATE() - INTERVAL 30 DAY)")->fetchColumn(),
+            'activos'         => (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus='1'")->fetchColumn(),
+            'categorias'      => (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus='activa'")->fetchColumn(),
+            'usuarios'        => (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn(),
+            'eventos_30dias'  => (int) $db->query("SELECT COUNT(*) FROM actividades WHERE fecha >= (CURDATE() - INTERVAL 30 DAY)")->fetchColumn(),
             'por_estatus'     => $db->query("SELECT estatus, COUNT(*) AS total FROM atletas GROUP BY estatus")->fetchAll(),
             'por_categoria'   => $db->query("SELECT c.nombre_categoria, COUNT(a.atleta_id) AS total
-                                             FROM categoria c
+                                             FROM categorias c
                                              LEFT JOIN atletas a ON a.categoria_id = c.categoria_id
-                                             WHERE c.estatus='Activa'
+                                             WHERE c.estatus='activa'
                                              GROUP BY c.categoria_id ORDER BY c.edad_min")->fetchAll(),
         ]);
     }

@@ -44,6 +44,7 @@
             </div>
 
             <div class="login-links">
+                <!-- <a href="<?= e(url('/registro')) ?>">Registrarse</a> -->
                 <span></span>
                 <a href="<?= e(url('/recuperar')) ?>">¿Olvidaste tu contraseña?</a>
             </div>

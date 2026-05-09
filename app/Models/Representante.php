@@ -13,13 +13,13 @@ use App\Core\Model;
  */
 final class Representante extends Model
 {
-    protected string $table = 'representante';
+    protected string $table = 'representantes';
     protected string $primaryKey = 'representante_id';
 
     public function findByCedula(string $cedula): ?array
     {
         return $this->queryOne(
-            'SELECT * FROM representante WHERE cedula = :c LIMIT 1',
+            'SELECT * FROM representantes WHERE cedula = :c LIMIT 1',
             [':c' => $cedula]
         );
     }

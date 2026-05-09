@@ -78,7 +78,17 @@ final class AuthController extends Controller
         session_regenerate_id(true);
         Logger::audit('login.ok', ['email' => $email]);
 
-        flash('success', 'Bienvenido, ' . ($user['email'] ?? ''));
+        $cedula = (string) ($user['cedula'] ?? '');
+        $pwdNum = preg_replace('/[^0-9]/', '', $password);
+        $cedNum = preg_replace('/[^0-9]/', '', $cedula);
+
+        if ($cedNum !== '' && $pwdNum === $cedNum) {
+            $_SESSION['must_change_password'] = true;
+            flash('warning', 'Bienvenido. Por seguridad, debes configurar tu cuenta antes de continuar.');
+            return $this->redirect('/admin/setup');
+        }
+
+        flash('success', 'Bienvenido, ' . ($user['correo'] ?? ''));
         return $this->redirect('/admin');
     }
 
