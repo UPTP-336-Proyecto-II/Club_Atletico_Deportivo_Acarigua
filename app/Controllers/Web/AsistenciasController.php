@@ -40,11 +40,11 @@ final class AsistenciasController extends Controller
         ], 'admin');
     }
 
-    public function pase(Request $request): Response
+    public function crear(Request $request): Response
     {
         $categorias = (new Categoria())->activas();
         $entrenadores = (new Usuario())->entrenadores();
-        return $this->view('asistencias.pase_lista', [
+        return $this->view('asistencias.crear', [
             'title' => 'Asistencia',
             'active' => 'asistencias',
             'breadcrumb' => ['Inicio', 'Evaluaciones', 'Asistencia'],
@@ -53,21 +53,32 @@ final class AsistenciasController extends Controller
         ], 'admin');
     }
 
-    public function guardarPase(Request $request): Response
+    public function guardar(Request $request): Response
     {
         $data = [
-            'tipo_evento'   => $request->input('tipo_evento', 'Entrenamiento'),
-            'fecha_evento'  => (string) $request->input('fecha_evento', date('Y-m-d')),
+            'tipo_evento' => $request->input('tipo_evento', 'Entrenamiento'),
+            'fecha_evento' => (string) $request->input('fecha_evento', date('Y-m-d')),
             'entrenador_id' => (int) $request->input('entrenador_id', 0),
+            'categoria_id' => (int) $request->input('categoria_id', 0),
+            'ubicacion' => $request->input('ubicacion') ?: 'Cancha UPTP',
+            'clima' => $request->input('clima') !== '' ? (int) $request->input('clima') : null,
+            'hora_inicio' => $request->input('hora_inicio') ?: null,
+            'hora_fin' => $request->input('hora_fin') ?: null,
         ];
         $v = Validator::make($data, [
-            'tipo_evento'   => 'required|in:Entrenamiento,Partido,Pruebas,Evento especial',
-            'fecha_evento'  => 'required|date',
+            'tipo_evento' => 'required',
+            'fecha_evento' => 'required|date',
             'entrenador_id' => 'required|integer',
+            'categoria_id' => 'required|integer',
         ]);
         if (!$v->validate()) {
             $this->withErrors($v->errors());
-            return $this->redirect('/admin/asistencias/pase');
+            return $this->redirect('/admin/asistencias/crear');
+        }
+
+        if (strtotime($data['fecha_evento']) > strtotime(date('Y-m-d'))) {
+            flash('error', 'No se pueden registrar asistencias en fechas futuras.');
+            return $this->redirect('/admin/asistencias/crear');
         }
 
         $atletaIds = (array) ($request->body('atletas') ?? []);
@@ -76,7 +87,8 @@ final class AsistenciasController extends Controller
         $detalles = [];
         foreach ($atletaIds as $aid) {
             $aid = (int) $aid;
-            if (!$aid) continue;
+            if (!$aid)
+                continue;
             $detalles[] = [
                 'atleta_id' => $aid,
                 'estatus' => ($estatuses[$aid] ?? 'Ausente') === 'Presente' ? 1 : 0,
@@ -85,18 +97,23 @@ final class AsistenciasController extends Controller
         }
 
         try {
-            (new AsistenciaService())->registrarPase(
+            (new AsistenciaService())->registrar(
                 $data['entrenador_id'],
                 $data['tipo_evento'],
                 $data['fecha_evento'],
-                $detalles
+                $detalles,
+                $data['categoria_id'],
+                $data['hora_inicio'],
+                $data['hora_fin'],
+                $data['ubicacion'],
+                $data['clima']
             );
             flash('success', 'Asistencia registrada correctamente.');
             return $this->redirect('/admin/asistencias');
         } catch (Throwable $e) {
             Logger::error($e);
             flash('error', 'Error al guardar: ' . $e->getMessage());
-            return $this->redirect('/admin/asistencias/pase');
+            return $this->redirect('/admin/asistencias/crear');
         }
     }
 
@@ -104,7 +121,7 @@ final class AsistenciasController extends Controller
     {
         $id = (int) $request->param('id');
         $db = Database::connection();
-        
+
         $actividad = $db->prepare(
             "SELECT a.*, CONCAT(u.nombre, ' ', u.apellido) AS entrenador
              FROM actividades a
@@ -141,7 +158,7 @@ final class AsistenciasController extends Controller
     {
         $id = (int) $request->param('id');
         $db = Database::connection();
-        
+
         $actividad = $db->prepare("SELECT * FROM actividades WHERE actividad_id = ?");
         $actividad->execute([$id]);
         $actividad = $actividad->fetch();
@@ -149,6 +166,16 @@ final class AsistenciasController extends Controller
         if (!$actividad) {
             flash('error', 'Registro no encontrado.');
             return $this->redirect('/admin/asistencias');
+        }
+
+        // Restricción de 48 horas para entrenadores
+        if (Auth::user()['rol_id'] == ROL_ENTRENADOR) {
+            $fechaActividad = strtotime($actividad['fecha']);
+            $limite = strtotime('+48 hours', $fechaActividad);
+            if (time() > $limite) {
+                flash('error', 'El tiempo permitido para editar esta asistencia (48 horas) ha expirado.');
+                return $this->redirect('/admin/asistencias');
+            }
         }
 
         $asistencias = $db->prepare(
@@ -176,14 +203,18 @@ final class AsistenciasController extends Controller
     {
         $id = (int) $request->param('id');
         $data = [
-            'tipo_evento'   => $request->input('tipo_evento', 'Entrenamiento'),
-            'fecha_evento'  => (string) $request->input('fecha_evento', date('Y-m-d')),
+            'tipo_evento' => $request->input('tipo_evento', 'Entrenamiento'),
+            'fecha_evento' => (string) $request->input('fecha_evento', date('Y-m-d')),
             'entrenador_id' => (int) $request->input('entrenador_id', 0),
+            'ubicacion' => $request->input('ubicacion') ?: 'Cancha UPTP',
+            'clima' => $request->input('clima') !== '' ? (int) $request->input('clima') : null,
+            'hora_inicio' => $request->input('hora_inicio') ?: null,
+            'hora_fin' => $request->input('hora_fin') ?: null,
         ];
-        
+
         $v = Validator::make($data, [
-            'tipo_evento'   => 'required|in:Entrenamiento,Partido,Pruebas,Evento especial',
-            'fecha_evento'  => 'required|date',
+            'tipo_evento' => 'required',
+            'fecha_evento' => 'required|date',
             'entrenador_id' => 'required|integer',
         ]);
 
@@ -192,14 +223,20 @@ final class AsistenciasController extends Controller
             return $this->redirect("/admin/asistencias/{$id}/editar");
         }
 
+        if (strtotime($data['fecha_evento']) > strtotime(date('Y-m-d'))) {
+            flash('error', 'No se pueden registrar asistencias en fechas futuras.');
+            return $this->redirect("/admin/asistencias/{$id}/editar");
+        }
+
         $atletaIds = (array) ($request->body('atletas') ?? []);
         $estatuses = (array) ($request->body('estatus') ?? []);
         $observaciones = (array) ($request->body('observaciones') ?? []);
         $detalles = [];
-        
+
         foreach ($atletaIds as $aid) {
             $aid = (int) $aid;
-            if (!$aid) continue;
+            if (!$aid)
+                continue;
             $detalles[] = [
                 'atleta_id' => $aid,
                 'estatus' => $estatuses[$aid] ?? 'Ausente',
@@ -208,12 +245,16 @@ final class AsistenciasController extends Controller
         }
 
         try {
-            (new AsistenciaService())->actualizarPase(
+            (new AsistenciaService())->actualizar(
                 $id,
                 $data['entrenador_id'],
                 $data['tipo_evento'],
                 $data['fecha_evento'],
-                $detalles
+                $detalles,
+                $data['hora_inicio'],
+                $data['hora_fin'],
+                $data['ubicacion'],
+                $data['clima']
             );
             flash('success', 'Asistencia actualizada correctamente.');
             return $this->redirect('/admin/asistencias');
@@ -242,7 +283,8 @@ final class AsistenciasController extends Controller
             $db->commit();
             flash('success', 'Registro de asistencia eliminado correctamente.');
         } catch (Throwable $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if ($db->inTransaction())
+                $db->rollBack();
             Logger::error($e);
             flash('error', 'No se pudo eliminar el registro.');
         }

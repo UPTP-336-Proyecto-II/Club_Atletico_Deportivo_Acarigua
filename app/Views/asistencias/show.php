@@ -67,12 +67,7 @@
                 <div>
                     <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Tipo de Actividad</label>
                     <?php 
-                        $tipoLabel = match ((int)($actividad['tipo_actividad'] ?? 1)) {
-                            0 => 'Partido',
-                            1 => 'Entrenamiento',
-                            3 => 'Evento Especial',
-                            default => 'General'
-                        };
+                        $tipoLabel = TIPO_ACTIVIDAD[(int)($actividad['tipo_actividad'] ?? 1)] ?? 'General';
                     ?>
                     <div style="font-weight: 600; color: var(--color-primary);"><?= e($tipoLabel) ?></div>
                 </div>
@@ -84,6 +79,25 @@
                     <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Fecha de Registro</label>
                     <div style="font-weight: 500;"><?= e(date('d/m/Y', strtotime($actividad['fecha']))) ?></div>
                 </div>
+                <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Ubicación</label>
+                    <div style="font-weight: 500;"><?= e($actividad['ubicacion'] ?? '—') ?></div>
+                </div>
+                <?php if (isset($actividad['clima']) && isset(CLIMA_TIPO[(int)$actividad['clima']])): ?>
+                <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Clima</label>
+                    <div style="font-weight: 500;"><?= e(CLIMA_TIPO[(int)$actividad['clima']]) ?></div>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($actividad['hora_inicio']) || !empty($actividad['hora_fin'])): ?>
+                <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Horario</label>
+                    <div style="font-weight: 500;">
+                        <?= e(date('h:i A', strtotime($actividad['hora_inicio'] ?? '00:00'))) ?> 
+                        - <?= e(date('h:i A', strtotime($actividad['hora_fin'] ?? '00:00'))) ?>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 

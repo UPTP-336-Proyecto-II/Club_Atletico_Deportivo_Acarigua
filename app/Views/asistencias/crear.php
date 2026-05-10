@@ -9,7 +9,7 @@
     </a>
 </div>
 
-<form method="POST" action="<?= e(url('/admin/asistencias/pase')) ?>" id="form-asistencia">
+<form method="POST" action="<?= e(url('/admin/asistencias/crear')) ?>" id="form-asistencia">
     <?= csrf_field() ?>
 
     <div class="card" style="margin-bottom: 24px;">
@@ -25,7 +25,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e(date('Y-m-d')) ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e(date('Y-m-d')) ?>" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Tipo de Actividad</label>
@@ -34,6 +34,30 @@
                         <option value="<?= e($op) ?>"><?= e($op) ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+            <div class="form-group">
+                <label class="form-label">Ubicación</label>
+                <input type="text" name="ubicacion" class="form-control" placeholder="Cancha UPTP" value="Cancha UPTP">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Clima</label>
+                <select name="clima" class="form-control">
+                    <option value="">Selecciona...</option>
+                    <?php foreach (CLIMA_TIPO as $k => $v): ?>
+                        <option value="<?= $k ?>"><?= e($v) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hora Inicio</label>
+                <input type="time" name="hora_inicio" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hora Fin</label>
+                <input type="time" name="hora_fin" class="form-control">
             </div>
         </div>
 

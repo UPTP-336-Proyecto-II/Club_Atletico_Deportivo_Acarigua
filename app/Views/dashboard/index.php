@@ -36,8 +36,8 @@
             <div class="qc-desc">Gestión del equipo</div>
         </div>
     </a>
-    
-    <a href="<?= e(url('/admin/asistencias/pase')) ?>" class="quick-card">
+
+    <a href="<?= e(url('/admin/asistencias/crear')) ?>" class="quick-card">
         <div class="qc-icon blue"><i class="ph ph-clipboard-text"></i></div>
         <div>
             <div class="qc-title">Asistencia</div>

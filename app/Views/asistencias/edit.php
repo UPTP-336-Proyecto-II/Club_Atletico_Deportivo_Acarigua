@@ -16,7 +16,7 @@
         <div class="af-grid af-grid--2">
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Tipo de Actividad</label>
@@ -33,6 +33,30 @@
                         <option value="<?= e($op) ?>" <?= $op === $currentTipo ? 'selected' : '' ?>><?= e($op) ?></option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+            <div class="form-group">
+                <label class="form-label">Ubicación</label>
+                <input type="text" name="ubicacion" class="form-control" placeholder="Cancha UPTP" value="<?= e($actividad['ubicacion'] ?? 'Cancha UPTP') ?>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Clima</label>
+                <select name="clima" class="form-control">
+                    <option value="">Selecciona...</option>
+                    <?php foreach (CLIMA_TIPO as $k => $v): ?>
+                        <option value="<?= $k ?>" <?= (isset($actividad['clima']) && (int)$actividad['clima'] === $k) ? 'selected' : '' ?>><?= e($v) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hora Inicio</label>
+                <input type="time" name="hora_inicio" class="form-control" value="<?= e($actividad['hora_inicio'] ?? '') ?>">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hora Fin</label>
+                <input type="time" name="hora_fin" class="form-control" value="<?= e($actividad['hora_fin'] ?? '') ?>">
             </div>
         </div>
 
