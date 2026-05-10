@@ -46,6 +46,7 @@ final class RespuestaSeguridad extends Model
         );
     }
 
+
     public function deleteByUser(int $userId): void
     {
         $this->query('DELETE FROM respuestas_seguridad WHERE usuario_id = ?', [$userId]);

@@ -68,6 +68,7 @@ final class Usuario extends Model
         ";
         return $this->queryOne($sql, [':id' => $id]);
     }
+
     /**
      * Busca un usuario por correo electrónico (para recuperación de contraseña).
      */
