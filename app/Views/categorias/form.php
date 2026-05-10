@@ -7,15 +7,13 @@ $isEdit = !empty($c['categoria_id']);
 
 <div class="page-header">
     <div>
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-            <a href="<?= e(url('/admin/categorias')) ?>" class="btn btn-ghost btn-sm" style="padding: 8px;">
-                <i class="ph ph-arrow-left"></i>
-            </a>
-            <span class="badge badge-primary"><?= $isEdit ? 'ID: #' . $c['categoria_id'] : 'Nueva' ?></span>
-        </div>
+        <?php if ($isEdit): ?>
+            <!-- Elemento oculto intencionalmente -->
+        <?php endif; ?>
         <h1><?= $isEdit ? 'Editar' : 'Crear' ?> Categoría</h1>
         <div class="subtitle"><?= $isEdit ? 'Modifica los parámetros de la categoría' : 'Define un nuevo grupo por rango de edad' ?></div>
     </div>
+    <a href="<?= e(url('/admin/categorias')) ?>" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Volver</a>
 </div>
 
 <div class="card" style="max-width: 800px; margin: 0 auto; padding: 0; overflow: hidden;">
@@ -34,7 +32,7 @@ $isEdit = !empty($c['categoria_id']);
                 <i class="ph ph-tag" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
                 <input type="text" name="nombre_categoria" class="form-control" style="padding-left: 40px;" 
                        placeholder="Ej: Sub-12, Semillitas..." required maxlength="50" 
-                       value="<?= e($get('nombre_categoria')) ?>">
+                       value="<?= e($get('nombre_categoria', '')) ?>">
             </div>
             <div class="form-hint">El nombre debe identificar claramente al grupo.</div>
         </div>
@@ -64,20 +62,20 @@ $isEdit = !empty($c['categoria_id']);
                 <div style="position: relative;">
                     <i class="ph ph-gender-intersex" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); z-index: 10;"></i>
                     <select name="sexo_categoria" class="form-control" style="padding-left: 40px;">
-                        <option value="M" <?= $get('sexo_categoria') === 'M' ? 'selected' : '' ?>>Masculino</option>
-                        <option value="F" <?= $get('sexo_categoria') === 'F' ? 'selected' : '' ?>>Femenino</option>
-                        <option value="X" <?= $get('sexo_categoria') === 'X' ? 'selected' : '' ?>>Mixto</option>
+                        <option value="M" <?= $get('sexo_categoria', '') === 'M' ? 'selected' : '' ?>>Masculino</option>
+                        <option value="F" <?= $get('sexo_categoria', '') === 'F' ? 'selected' : '' ?>>Femenino</option>
+                        <option value="X" <?= $get('sexo_categoria', '') === 'X' ? 'selected' : '' ?>>Mixto</option>
                     </select>
                 </div>
             </div>
             <div class="form-group" style="margin: 0;">
-                <label class="form-label">Entrenador Responsable</label>
+                <label class="form-label"><span class="required">*</span> Entrenador Responsable</label>
                 <div style="position: relative;">
                     <i class="ph ph-user-gear" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); z-index: 10;"></i>
-                    <select name="usuario_id" class="form-control" style="padding-left: 40px;">
-                        <option value="">Sin asignar</option>
+                    <select name="usuario_id" class="form-control" style="padding-left: 40px;" required>
+                        <option value="">— Seleccione —</option>
                         <?php foreach ($entrenadores as $e): ?>
-                            <option value="<?= (int) $e['usuario_id'] ?>" <?= (int) $get('usuario_id') === (int) $e['usuario_id'] ? 'selected' : '' ?>>
+                            <option value="<?= (int) $e['usuario_id'] ?>" <?= (int) $get('usuario_id', '') === (int) $e['usuario_id'] ? 'selected' : '' ?>>
                                 <?= e($e['nombre'] . ' ' . $e['apellido']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -107,3 +105,31 @@ $isEdit = !empty($c['categoria_id']);
         </div>
     </form>
 </div>
+
+<style>
+/* Solucionar visibilidad de las flechitas de input number en modo oscuro */
+html.dark input[type="number"] {
+    color-scheme: dark;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const minInput = document.querySelector('input[name="edad_min"]');
+    const maxInput = document.querySelector('input[name="edad_max"]');
+    
+    const validarEdades = () => {
+        const min = parseInt(minInput.value);
+        const max = parseInt(maxInput.value);
+        if (!isNaN(min) && !isNaN(max) && min > max) {
+            minInput.setCustomValidity('La edad mínima no puede ser mayor a la máxima.');
+        } else {
+            minInput.setCustomValidity('');
+        }
+    };
+
+    minInput.addEventListener('input', validarEdades);
+    maxInput.addEventListener('input', validarEdades);
+    validarEdades(); // Validar al cargar
+});
+</script>

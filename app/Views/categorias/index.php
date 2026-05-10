@@ -46,7 +46,7 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
             </a>
         </div>
     <?php else: foreach ($items as $c): ?>
-        <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
+        <div class="card" style="margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
             <!-- Header Card -->
             <div style="padding: 24px; border-bottom: 1px solid var(--color-border); position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -92,9 +92,13 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
                     <div style="font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px;">Entrenador Responsable</div>
                     <?php if (!empty($c['entrenador'])): ?>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 32px; height: 32px; background: var(--color-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">
-                                <?= e(mb_substr($c['entrenador'], 0, 1)) ?>
-                            </div>
+                            <?php if (!empty($c['entrenador_foto'])): ?>
+                                <img src="<?= e(url($c['entrenador_foto'])) ?>" alt="" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                            <?php else: ?>
+                                <div style="width: 32px; height: 32px; background: var(--color-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">
+                                    <?= e(mb_substr($c['entrenador'], 0, 1)) ?>
+                                </div>
+                            <?php endif; ?>
                             <div style="font-weight: 600; font-size: 14px; color: var(--color-text);"><?= e($c['entrenador']) ?></div>
                         </div>
                     <?php else: ?>

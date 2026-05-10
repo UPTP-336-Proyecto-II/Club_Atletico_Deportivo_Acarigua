@@ -42,14 +42,29 @@ final class CategoriasController extends Controller
             'edad_min'         => 'required|integer|min:3|max:100',
             'edad_max'         => 'required|integer|min:3|max:100',
             'sexo_categoria'   => 'required|in:M,F,X',
+            'usuario_id'       => 'required|integer',
             'estatus'          => 'required|in:activa,inactiva',
         ]);
         if (!$v->validate()) {
             $this->withOld($data)->withErrors($v->errors());
             return $this->redirect('/admin/categorias/crear');
         }
-        (new Categoria())->insert($data);
-        flash('success', 'Categoría creada.');
+        if ($data['edad_min'] > $data['edad_max']) {
+            $this->withOld($data)->withErrors(['edad_min' => 'La edad mínima no puede ser mayor a la máxima.']);
+            return $this->redirect('/admin/categorias/crear');
+        }
+        try {
+            (new Categoria())->insert($data);
+            flash('success', 'Categoría creada.');
+        } catch (\Throwable $e) {
+            // Duplicate key (nombre_categoria + sexo_categoria)
+            if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), '1062')) {
+                flash('error', 'Ya existe una categoría con ese nombre y género.');
+                $this->withOld($data);
+                return $this->redirect('/admin/categorias/crear');
+            }
+            throw $e;
+        }
         return $this->redirect('/admin/categorias');
     }
 
@@ -72,8 +87,33 @@ final class CategoriasController extends Controller
     {
         $id = (int) $request->param('id');
         $data = $this->input($request);
-        (new Categoria())->update($id, $data);
-        flash('success', 'Categoría actualizada.');
+        $v = Validator::make($data, [
+            'nombre_categoria' => 'required|min:2|max:50',
+            'edad_min'         => 'required|integer|min:3|max:100',
+            'edad_max'         => 'required|integer|min:3|max:100',
+            'sexo_categoria'   => 'required|in:M,F,X',
+            'usuario_id'       => 'required|integer',
+            'estatus'          => 'required|in:activa,inactiva',
+        ]);
+        if (!$v->validate()) {
+            $this->withOld($data)->withErrors($v->errors());
+            return $this->redirect("/admin/categorias/$id/editar");
+        }
+        if ($data['edad_min'] > $data['edad_max']) {
+            $this->withOld($data)->withErrors(['edad_min' => 'La edad mínima no puede ser mayor a la máxima.']);
+            return $this->redirect("/admin/categorias/$id/editar");
+        }
+        try {
+            (new Categoria())->update($id, $data);
+            flash('success', 'Categoría actualizada.');
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), '1062')) {
+                flash('error', 'Ya existe una categoría con ese nombre y género.');
+                $this->withOld($data);
+                return $this->redirect("/admin/categorias/$id/editar");
+            }
+            throw $e;
+        }
         return $this->redirect('/admin/categorias');
     }
 
