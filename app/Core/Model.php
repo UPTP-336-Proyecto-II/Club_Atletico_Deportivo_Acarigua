@@ -23,7 +23,7 @@ abstract class Model
         return $row ?: null;
     }
 
-    public function all(string $orderBy = null): array
+    public function all(?string $orderBy = null): array
     {
         $sql = "SELECT * FROM `{$this->table}`";
         if ($orderBy) {

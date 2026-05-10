@@ -37,7 +37,7 @@
             <li>
                 <a href="<?= e(url('/admin/asistencias')) ?>" class="<?= $active === 'asistencias' ? 'active' : '' ?>">
                     <span class="icon"><i class="ph ph-clipboard-text"></i></span>
-                    <span class="nav-text">Pase de Lista</span>
+                    <span class="nav-text">Asistencia</span>
                 </a>
             </li>
             <li>

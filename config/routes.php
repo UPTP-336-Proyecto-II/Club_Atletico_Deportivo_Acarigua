@@ -87,11 +87,16 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/asistencias',            [AsistenciasController::class, 'index']);
     $r->get('/asistencias/pase',       [AsistenciasController::class, 'pase']);
     $r->post('/asistencias/pase',      [AsistenciasController::class, 'guardarPase'], [CsrfMiddleware::class]);
+    $r->get('/asistencias/{id}',       [AsistenciasController::class, 'show']);
+    $r->get('/asistencias/{id}/editar', [AsistenciasController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/asistencias/{id}/editar', [AsistenciasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/asistencias/{id}/eliminar', [AsistenciasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Medidas Antropometricas
     $r->get('/medidas',              [MedidasAntropometricasController::class, 'index']);
     $r->get('/medidas/atleta/{id}',  [MedidasAntropometricasController::class, 'atleta']);
     $r->post('/medidas/atleta/{id}', [MedidasAntropometricasController::class, 'store'], [CsrfMiddleware::class]);
+    $r->post('/medidas/{id}/eliminar', [MedidasAntropometricasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Pruebas físicas
     $r->get('/resultados-pruebas',                [ResultadosPruebasController::class, 'index']);

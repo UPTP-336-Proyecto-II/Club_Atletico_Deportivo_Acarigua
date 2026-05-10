@@ -88,9 +88,11 @@
             <tr>
                 <td style="padding-left: 24px;">
                     <?php if (!empty($a['foto'])): ?>
-                        <img src="<?= e(url($a['foto'])) ?>" class="avatar-thumb" alt="" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div style="position: relative; width: 44px; height: 44px; padding: 2px; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-bg);">
+                            <img src="<?= e(url($a['foto'])) ?>" class="avatar-thumb" alt="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
+                        </div>
                     <?php else: ?>
-                        <div class="avatar-placeholder" style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        <div class="avatar-placeholder" style="width: 44px; height: 44px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--color-primary-light);">
                             <?= e(mb_substr($a['nombre'], 0, 1) . mb_substr($a['apellido'], 0, 1)) ?>
                         </div>
                     <?php endif; ?>
@@ -134,6 +136,12 @@
                             <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/editar')) ?>" class="btn btn-sm btn-outline" title="Editar">
                                 <i class="ph ph-pencil-simple"></i>
                             </a>
+                            <form action="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/eliminar')) ?>" method="POST" class="delete-form" style="display:inline;">
+                                <?= csrf_field() ?>
+                                <button type="button" class="btn btn-sm btn-outline btn-delete" title="Eliminar Atleta" data-id="<?= $a['atleta_id'] ?>" data-name="<?= e($a['nombre'] . ' ' . $a['apellido']) ?>">
+                                    <i class="ph ph-trash" style="color: var(--color-danger);"></i>
+                                </button>
+                            </form>
                         <?php endif; ?>
                     </div>
                 </td>
@@ -142,6 +150,31 @@
         </tbody>
     </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+    
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const form = this.closest('form');
+            const name = this.getAttribute('data-name');
+            
+            CadaModal.confirm({
+                title: '¿Eliminar Atleta?',
+                text: `Estás a punto de eliminar a <strong>${name}</strong>. Esta acción no se puede deshacer.`,
+                type: 'danger',
+                confirmText: 'Sí, Eliminar',
+                cancelText: 'Cancelar'
+            }).then((confirmed) => {
+                if (confirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+</script>
 
 <?php if (($pag['last_page'] ?? 1) > 1): ?>
     <div style="display: flex; justify-content: center; margin-top: 24px;">

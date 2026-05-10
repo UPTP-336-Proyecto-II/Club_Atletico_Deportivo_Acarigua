@@ -66,4 +66,56 @@ final class AsistenciaService
             throw $e;
         }
     }
+
+    public function actualizarPase(
+        int $eventoId,
+        int $entrenadorId,
+        string $tipoEvento,
+        string $fechaEvento,
+        array $detalles
+    ): void {
+        $tipoMap = [
+            'Partido'         => 0,
+            'Entrenamiento'   => 1,
+            'Pruebas'         => 1,
+            'Evento especial' => 3
+        ];
+        $tipoId = $tipoMap[$tipoEvento] ?? 1;
+
+        Database::beginTransaction();
+        try {
+            // Actualizar actividad
+            (new Actividad())->update($eventoId, [
+                'usuario_id'     => $entrenadorId,
+                'tipo_actividad' => $tipoId,
+                'fecha'          => $fechaEvento,
+            ]);
+
+            // Eliminar asistencias anteriores
+            $db = Database::connection();
+            $stmt = $db->prepare("DELETE FROM asistencias WHERE actividad_id = ?");
+            $stmt->execute([$eventoId]);
+
+            // Insertar nuevas
+            $stmt = $db->prepare(
+                'INSERT INTO asistencias (actividad_id, atleta_id, estatus, observaciones)
+                 VALUES (:e, :a, :s, :o)'
+            );
+            foreach ($detalles as $d) {
+                $est = ($d['estatus'] === 'Presente' || $d['estatus'] === 1 || $d['estatus'] === '1') ? 1 : 0;
+                $stmt->execute([
+                    ':e' => $eventoId,
+                    ':a' => (int) $d['atleta_id'],
+                    ':s' => $est,
+                    ':o' => $d['observaciones'] ?? null,
+                ]);
+            }
+
+            Database::commit();
+            Logger::audit('asistencia.update', ['actividad_id' => $eventoId, 'total' => count($detalles)]);
+        } catch (Throwable $e) {
+            Database::rollBack();
+            throw $e;
+        }
+    }
 }

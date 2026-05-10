@@ -124,23 +124,23 @@ final class AtletaService
         $representanteModel = new Representante(); // Apunta a representante
         $existente = !empty($data['tutor_cedula']) ? $representanteModel->findByCedula($data['tutor_cedula']) : null;
         
-        $nombreCompleto = !empty($data['tutor_nombres']) ? ($data['tutor_nombres'] . ' ' . ($data['tutor_apellidos'] ?? '')) : 'Sin Nombre';
-
         if ($existente) {
             $representanteModel->update((int) $existente['representante_id'], [
-                'nombre_completo' => $nombreCompleto,
-                'telefono'        => $data['tutor_telefono'] ?? $existente['telefono'],
-                'tipo_relacion'   => $data['tutor_relacion'] ?? $existente['tipo_relacion'],
-                'direccion_id'    => $direccionId,
+                'nombre'        => $data['tutor_nombres'] ?? $existente['nombre'],
+                'apellido'      => $data['tutor_apellidos'] ?? $existente['apellido'],
+                'telefono'      => $data['tutor_telefono'] ?? $existente['telefono'],
+                'tipo_relacion' => $data['tutor_relacion'] ?? $existente['tipo_relacion'],
+                'direccion_id'  => $direccionId,
             ]);
             return (int) $existente['representante_id'];
         }
         return $representanteModel->insert([
-            'nombre_completo' => $nombreCompleto,
-            'cedula'          => $data['tutor_cedula'] ?? 'S/N',
-            'telefono'        => $data['tutor_telefono'] ?? '',
-            'tipo_relacion'   => $data['tutor_relacion'] ?? 'representante',
-            'direccion_id'    => $direccionId,
+            'nombre'        => $data['tutor_nombres'] ?? 'Sin Nombre',
+            'apellido'      => $data['tutor_apellidos'] ?? '',
+            'cedula'        => $data['tutor_cedula'] ?? 'S/N',
+            'telefono'      => $data['tutor_telefono'] ?? '',
+            'tipo_relacion' => $data['tutor_relacion'] ?? 'representante',
+            'direccion_id'  => $direccionId,
         ]);
     }
 

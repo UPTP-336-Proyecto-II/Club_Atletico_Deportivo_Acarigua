@@ -44,7 +44,7 @@
         <div class="feature-card">
             <div class="feature-card__icon">📋</div>
             <h3>Control de Asistencias</h3>
-            <p>Pase de lista diario por categoría con observaciones y estadísticas por atleta.</p>
+            <p>Control de asistencia diario por categoría con observaciones y estadísticas por atleta.</p>
         </div>
         <div class="feature-card">
             <div class="feature-card__icon">📄</div>

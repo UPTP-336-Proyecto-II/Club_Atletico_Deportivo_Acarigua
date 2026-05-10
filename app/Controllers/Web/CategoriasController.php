@@ -41,6 +41,7 @@ final class CategoriasController extends Controller
             'nombre_categoria' => 'required|min:2|max:50',
             'edad_min'         => 'required|integer|min:3|max:100',
             'edad_max'         => 'required|integer|min:3|max:100',
+            'sexo_categoria'   => 'required|in:M,F,X',
             'estatus'          => 'required|in:activa,inactiva',
         ]);
         if (!$v->validate()) {
@@ -95,6 +96,7 @@ final class CategoriasController extends Controller
             'edad_min'         => (int) $request->input('edad_min', 0),
             'edad_max'         => (int) $request->input('edad_max', 0),
             'usuario_id'    => $request->input('usuario_id') ?: null,
+            'sexo_categoria'   => strtoupper((string) $request->input('sexo_categoria', 'M')),
             'estatus'          => strtolower((string)$request->input('estatus', 'activa')),
         ];
     }
