@@ -100,6 +100,13 @@ final class UsuariosController extends Controller
     public function destroy(Request $request): Response
     {
         $id = (int) $request->param('id');
+
+        // Proteger al superusuario (cuenta del equipo de desarrollo)
+        if ($id === 1) {
+            flash('error', 'La cuenta de soporte técnico no puede ser eliminada.');
+            return $this->redirect('/admin/usuarios');
+        }
+
         try {
             // Eliminar dependencias primero
             $respModel = new \App\Models\RespuestaSeguridad();

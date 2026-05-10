@@ -31,6 +31,21 @@ final class RespuestaSeguridad extends Model
         );
     }
 
+    /**
+     * Obtiene las preguntas con sus respuestas hasheadas (para verificación en recuperación).
+     */
+    public function getByUserWithAnswers(int $userId): array
+    {
+        return $this->query(
+            'SELECT rs.respuesta_id, rs.pregunta_id, ps.preguntas, rs.respuesta
+             FROM respuestas_seguridad rs
+             JOIN preguntas_seguridad ps ON ps.pregunta_id = rs.pregunta_id
+             WHERE rs.usuario_id = ?
+             ORDER BY rs.respuesta_id',
+            [$userId]
+        );
+    }
+
     public function deleteByUser(int $userId): void
     {
         $this->query('DELETE FROM respuestas_seguridad WHERE usuario_id = ?', [$userId]);

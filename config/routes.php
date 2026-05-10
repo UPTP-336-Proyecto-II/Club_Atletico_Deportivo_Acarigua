@@ -41,6 +41,10 @@ $router->get('/logout',     [AuthController::class, 'logout']);
 $router->post('/logout',    [AuthController::class, 'logout'], [CsrfMiddleware::class]);
 $router->get('/recuperar',  [AuthController::class, 'showRecuperar']);
 $router->post('/recuperar', [AuthController::class, 'recuperar'], [CsrfMiddleware::class]);
+$router->get('/recuperar/preguntas',  [AuthController::class, 'showPreguntas']);
+$router->post('/recuperar/preguntas', [AuthController::class, 'verificarPreguntas'], [CsrfMiddleware::class]);
+$router->get('/recuperar/nueva-clave',  [AuthController::class, 'showNuevaClave']);
+$router->post('/recuperar/nueva-clave', [AuthController::class, 'cambiarClave'], [CsrfMiddleware::class]);
 
 use App\Controllers\Web\PerfilController;
 
