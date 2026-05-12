@@ -1,24 +1,52 @@
 <?php
 $flashTypes = ['success', 'danger', 'warning', 'info', 'error'];
+$flashFound = false;
+
 foreach ($flashTypes as $type):
     $message = flash($type);
     if (!$message) continue;
-    $css = $type === 'error' ? 'danger' : $type;
+    
+    $flashFound = true;
+    $typeMod = ($type === 'danger' || $type === 'error') ? 'error' : $type;
+    $title = match($typeMod) {
+        'success' => '¡Éxito!',
+        'error'   => '¡Error!',
+        'warning' => 'Atención',
+        default   => 'Información'
+    };
 ?>
-    <div class="alert alert-<?= e($css) ?>" style="max-width:1100px; margin:16px auto;">
-        <?= e($message) ?>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof CadaModal !== 'undefined') {
+                CadaModal.alert({
+                    title: '<?= e($title) ?>',
+                    text: '<?= e($message) ?>',
+                    type: '<?= e($typeMod) ?>',
+                    confirmText: 'Aceptar'
+                });
+            }
+        });
+    </script>
 <?php endforeach; ?>
 
-<?php if (!empty($_SESSION['_errors'])): ?>
-    <div class="alert alert-danger" style="max-width:1100px; margin:16px auto;">
-        <strong>Por favor, corrige los siguientes errores:</strong>
-        <ul style="margin:8px 0 0 20px;">
-        <?php foreach ($_SESSION['_errors'] as $field => $msg): ?>
-            <li><?= e($msg) ?></li>
-        <?php endforeach; ?>
-        </ul>
-    </div>
+<?php if (!empty($_SESSION['_errors'])): 
+    $flashFound = true;
+    $errors = array_values($_SESSION['_errors']);
+    $errorMsg = implode('\n• ', $errors);
+?>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof CadaModal !== 'undefined') {
+                CadaModal.alert({
+                    title: '¡Errores de Validación!',
+                    text: '• <?= e($errorMsg) ?>',
+                    type: 'error',
+                    confirmText: 'Corregir ahora'
+                });
+            }
+        });
+    </script>
     <?php unset($_SESSION['_errors']); ?>
 <?php endif; ?>
+
 <?php unset($_SESSION['_old']); ?>

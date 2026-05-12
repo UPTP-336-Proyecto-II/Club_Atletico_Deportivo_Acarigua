@@ -102,6 +102,12 @@ if (!function_exists('can')) {
         if ($user === null) {
             return false;
         }
+
+        // El super_usuario (ID 1) siempre tiene permiso
+        if ((int) ($user['rol_id'] ?? 0) === 1) {
+            return true;
+        }
+
         if (is_string($role)) {
             $map = config('auth.roles') ?? [];
             $role = $map[$role] ?? 0;

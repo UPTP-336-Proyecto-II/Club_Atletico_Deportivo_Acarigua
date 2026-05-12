@@ -29,6 +29,10 @@
         <div class="stat-number" style="color: #EF4444;"><?= (int) ($stats['suspendido'] ?? 0) ?></div>
         <div class="stat-label">Suspendidos</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color: #9CA3AF;"><?= (int) ($stats['inactivo'] ?? 0) ?></div>
+        <div class="stat-label">Inactivos</div>
+    </div>
 </div>
 
 <form method="GET" class="table-filters card" style="display: flex; gap: 16px; align-items: flex-end; padding: 16px; margin-bottom: 24px; flex-wrap: wrap;">
@@ -88,16 +92,18 @@
             <tr>
                 <td style="padding-left: 24px;">
                     <?php if (!empty($a['foto'])): ?>
-                        <img src="<?= e(url($a['foto'])) ?>" class="avatar-thumb" alt="" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div style="position: relative; width: 44px; height: 44px; padding: 2px; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-bg);">
+                            <img src="<?= e(url($a['foto'])) ?>" class="avatar-thumb" alt="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
+                        </div>
                     <?php else: ?>
-                        <div class="avatar-placeholder" style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        <div class="avatar-placeholder" style="width: 44px; height: 44px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--color-primary-light);">
                             <?= e(mb_substr($a['nombre'], 0, 1) . mb_substr($a['apellido'], 0, 1)) ?>
                         </div>
                     <?php endif; ?>
                 </td>
                 <td>
                     <div style="font-weight: 600; color: var(--color-text);"><?= e($a['nombre'] . ' ' . $a['apellido']) ?></div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= e($a['cedula'] ?? 'N/A') ?></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= !empty($a['cedula']) ? e($a['cedula']) : 'Sin Cédula' ?></div>
                 </td>
                 <td>
                     <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--color-bg-alt); border-radius: 12px; font-size: 13px; font-weight: 500;">
@@ -115,8 +121,8 @@
                         [$label, $badge] = match ($val) {
                             1 => ['Activo', 'success'],
                             2 => ['Lesionado', 'warning'],
-                            3 => ['Suspendido', 'danger'],
-                            0 => ['Inactivo', 'outline'],
+                            0 => ['Suspendido', 'danger'],
+                            3 => ['Inactivo', 'outline'],
                             default => ['Desconocido', 'primary']
                         }; 
                     ?>
@@ -127,11 +133,11 @@
                 </td>
                 <td style="text-align: right; padding-right: 24px;">
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Ver Perfil">
-                            <i class="ph ph-eye"></i> Perfil
+                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Ver Perfil" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-eye"></i>
                         </a>
                         <?php if (can('admin')): ?>
-                            <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/editar')) ?>" class="btn btn-sm btn-outline" title="Editar">
+                            <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/editar')) ?>" class="btn btn-sm btn-outline" title="Editar" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
                                 <i class="ph ph-pencil-simple"></i>
                             </a>
                         <?php endif; ?>
@@ -142,6 +148,8 @@
         </tbody>
     </table>
 </div>
+
+
 
 <?php if (($pag['last_page'] ?? 1) > 1): ?>
     <div style="display: flex; justify-content: center; margin-top: 24px;">

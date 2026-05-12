@@ -30,18 +30,19 @@ final class FichaMedicaController extends Controller
         $model = new FichaMedica();
         $existente = $model->byAtleta($id);
         $payload = [
-            'alergias'        => trim((string) $request->input('alergias')),
-            'tipo_sanguineo'  => trim((string) $request->input('tipo_sanguineo')),
-            'lesion'          => trim((string) $request->input('lesion')),
-            'condicion_medica' => trim((string) $request->input('condicion_medica')),
-            'observacion'     => trim((string) $request->input('observacion')),
+            'alergias'                 => trim((string) $request->input('alergias', '')),
+            'grupo_sanguineo'          => trim((string) $request->input('grupo_sanguineo', '')),
+            'antecedentes_familiares'  => trim((string) $request->input('antecedentes_familiares', '')),
+            'antecedentes_quirurgicos' => trim((string) $request->input('antecedentes_quirurgicos', '')),
+            'condicion_cronica'        => trim((string) $request->input('condicion_cronica', '')),
+            'medicacion_actual'        => trim((string) $request->input('medicacion_actual', '')),
         ];
         if ($existente) {
             $model->update((int) $existente['ficha_id'], $payload);
         } else {
             $model->insert(['atleta_id' => $id] + $payload);
         }
-        flash('success', 'Ficha médica guardada.');
-        return $this->redirect("/admin/ficha-medica/$id");
+        flash('success', 'Ficha médica guardada correctamente.');
+        return $this->redirect("/admin/atletas/$id");
     }
 }
