@@ -37,7 +37,7 @@
             <li>
                 <a href="<?= e(url('/admin/asistencias')) ?>" class="<?= $active === 'asistencias' ? 'active' : '' ?>">
                     <span class="icon"><i class="ph ph-clipboard-text"></i></span>
-                    <span class="nav-text">Pase de Lista</span>
+                    <span class="nav-text">Asistencias</span>
                 </a>
             </li>
             <li>
@@ -47,7 +47,8 @@
                 </a>
             </li>
             <li>
-                <a href="<?= e(url('/admin/resultados-pruebas')) ?>" class="<?= $active === 'resultados_pruebas' ? 'active' : '' ?>">
+                <a href="<?= e(url('/admin/resultados-pruebas')) ?>"
+                    class="<?= $active === 'resultados_pruebas' ? 'active' : '' ?>">
                     <span class="icon"><i class="ph ph-timer"></i></span>
                     <span class="nav-text">Pruebas Físicas</span>
                 </a>
@@ -76,7 +77,8 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<?= e(url('/admin/configuracion')) ?>" class="<?= $active === 'configuracion' ? 'active' : '' ?>">
+                    <a href="<?= e(url('/admin/configuracion')) ?>"
+                        class="<?= $active === 'configuracion' ? 'active' : '' ?>">
                         <span class="icon"><i class="ph ph-gear"></i></span>
                         <span class="nav-text">Configuración</span>
                     </a>

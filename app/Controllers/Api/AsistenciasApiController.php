@@ -16,7 +16,7 @@ final class AsistenciasApiController extends Controller
         $stmt = Database::connection()->prepare(
             "SELECT atleta_id, nombre, apellido, cedula, foto
              FROM atletas
-             WHERE categoria_id = :c AND estatus = 'Activo'
+             WHERE categoria_id = :c AND estatus = 1
              ORDER BY apellido, nombre"
         );
         $stmt->execute([':c' => $categoriaId]);

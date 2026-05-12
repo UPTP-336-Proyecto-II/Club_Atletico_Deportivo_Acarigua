@@ -34,10 +34,6 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                     <div class="ft-tab__icon"><i class="ph ph-users-three"></i></div>
                     <div class="ft-tab__text">Representante</div>
                 </button>
-                <button type="button" class="ft-tab" data-tab="tab-medica">
-                    <div class="ft-tab__icon"><i class="ph ph-heartbeat"></i></div>
-                    <div class="ft-tab__text">Ficha M&eacute;dica</div>
-                </button>
             </div>
         </div>
 
@@ -102,7 +98,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Fecha de nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nacimiento')) ?>">
+                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nac', $get('fecha_nacimiento'))) ?>" max="<?= date('Y-m-d', strtotime('-4 years')) ?>">
                     </div>
                 </div>
 
@@ -116,8 +112,8 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Categoría</label>
-                        <select name="categoria_id" class="form-control">
+                        <label class="form-label"><span class="required">*</span> Categoría</label>
+                        <select name="categoria_id" class="form-control" required>
                             <option value="">Sin asignar</option>
                             <?php foreach ($categorias as $c): ?>
                                 <option value="<?= (int) $c['categoria_id'] ?>" <?= ((int) $get('categoria_id') === (int) $c['categoria_id']) ? 'selected' : '' ?>>
@@ -131,7 +127,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                         <select name="posicion_de_juego" class="form-control">
                             <option value="">Sin definir</option>
                             <?php foreach ($posiciones as $p): ?>
-                                <option value="<?= (int) $p['posicion_id'] ?>" <?= ((int) $get('posicion_de_juego') === (int) $p['posicion_id']) ? 'selected' : '' ?>>
+                                <option value="<?= (int) $p['posicion_id'] ?>" <?= ((int) $get('posicion_juego_id', $get('posicion_de_juego')) === (int) $p['posicion_id']) ? 'selected' : '' ?>>
                                     <?= e($p['nombre_posicion']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -143,7 +139,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                     <div class="form-group">
                         <label class="form-label">Pierna dominante</label>
                         <select name="pierna_dominante" class="form-control">
-                            <option value="">Selecciona...</option>
+                            <option value="">Sin definir</option>
                             <?php foreach (PIERNA_DOMINANTE as $op): ?>
                                 <option value="<?= e($op) ?>" <?= $get('pierna_dominante') === $op ? 'selected' : '' ?>><?= e(ucfirst($op)) ?></option>
                             <?php endforeach; ?>
@@ -188,16 +184,14 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Estado</label>
-                        <select id="sel-estado" name="estado_id" class="form-control" data-current="<?= (int) ($a['estado_id'] ?? 0) ?>">
+                        <select id="sel-estado" name="estado_id" class="form-control" required data-current="<?= (int) ($a['estado_id'] ?? 0) ?>">
                             <option value="">Selecciona Estado...</option>
-                            <option value="17" selected>Portuguesa</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Municipio</label>
-                        <select id="sel-municipio" name="municipio_id" class="form-control" data-current="<?= (int) ($a['municipio_id'] ?? 0) ?>">
+                        <select id="sel-municipio" name="municipio_id" class="form-control" required data-current="<?= (int) ($a['municipio_id'] ?? 0) ?>" disabled>
                             <option value="">Selecciona Municipio...</option>
-                            <option value="283" selected>Páez</option>
                         </select>
                     </div>
                 </div>
@@ -205,9 +199,8 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Parroquia</label>
-                        <select id="sel-parroquia" name="parroquia_id" class="form-control" data-current="<?= (int) ($a['parroquia_id'] ?? 0) ?>">
+                        <select id="sel-parroquia" name="parroquia_id" class="form-control" required data-current="<?= (int) ($a['parroquias_id'] ?? 0) ?>" disabled>
                             <option value="">Selecciona Parroquia...</option>
-                            <option value="723" selected>Acarigua</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -223,11 +216,11 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Localidad (Barrio / Urbanización)</label>
-                        <input type="text" name="localidad" class="form-control" maxlength="100" value="<?= e($get('localidad')) ?>" placeholder="Ej: Urb. La Goajira">
+                        <input type="text" name="localidad" class="form-control" required maxlength="100" value="<?= e($get('localidad')) ?>" placeholder="Ej: Urb. La Goajira">
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Dirección Exacta</label>
-                        <input type="text" name="ubicacion_vivienda" class="form-control" maxlength="100" value="<?= e($get('ubicacion_vivienda')) ?>" placeholder="Ej: Calle 3, Vereda 5, Casa 12">
+                        <input type="text" name="ubicacion_vivienda" class="form-control" required maxlength="100" value="<?= e($get('ubicacion_vivienda')) ?>" placeholder="Ej: Calle 3, Vereda 5, Casa 12">
                     </div>
                 </div>
             </div>
@@ -245,18 +238,18 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Nombres</label>
-                        <input type="text" name="tutor_nombres" class="form-control" maxlength="100" value="<?= e($get('tutor_nombres', $a['tutor_nombres'] ?? '')) ?>" placeholder="Nombres del representante">
+                        <input type="text" name="tutor_nombres" class="form-control" required maxlength="100" value="<?= e($get('tutor_nombres', $a['tutor_nombres'] ?? '')) ?>" placeholder="Nombres del representante">
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Apellidos</label>
-                        <input type="text" name="tutor_apellidos" class="form-control" maxlength="100" value="<?= e($get('tutor_apellidos', $a['tutor_apellidos'] ?? '')) ?>" placeholder="Apellidos del representante">
+                        <input type="text" name="tutor_apellidos" class="form-control" required maxlength="100" value="<?= e($get('tutor_apellidos', $a['tutor_apellidos'] ?? '')) ?>" placeholder="Apellidos del representante">
                     </div>
                 </div>
 
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Cédula</label>
-                        <input type="text" id="tutor_cedula" name="tutor_cedula" class="form-control" maxlength="13"
+                        <input type="text" id="tutor_cedula" name="tutor_cedula" class="form-control" required maxlength="13"
                                placeholder="V-12.345.678"
                                autocomplete="off"
                                value="<?= e($get('tutor_cedula', $a['tutor_cedula'] ?? '')) ?>">
@@ -282,7 +275,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                                 <option value="0426" <?= $repTelPref==='0426'?'selected':'' ?>>0426</option>
                             </select>
                             <span class="phone-sep">-</span>
-                            <input type="text" class="phone-number" id="tutor_telefono_number"
+                            <input type="text" class="phone-number" id="tutor_telefono_number" required
                                    maxlength="7" placeholder="1234567"
                                    autocomplete="off" inputmode="numeric"
                                    value="<?= e($repTelNum) ?>">
@@ -305,67 +298,12 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 </div>
             </div>
 
-            <!-- Ficha médica -->
-            <div id="tab-medica" class="form-tab-panel">
-                <div class="af-section-header">
-                    <div class="af-section-icon"><i class="ph ph-first-aid"></i></div>
-                    <div class="af-section-info">
-                        <h3>Registro Médico Inicial</h3>
-                        <p>Información relevante para la salud del deportista</p>
-                    </div>
-                </div>
-                
-                <?php if (!can('admin') && !can('medico')): ?>
-                    <div class="alert alert-info"><i class="ph ph-info"></i> Solo personal médico puede editar estos campos.</div>
-                    <fieldset disabled>
-                <?php endif; ?>
-
-                <div class="af-grid af-grid--2">
-                    <div class="form-group">
-                        <label class="form-label">Grupo Sanguíneo</label>
-                        <select name="grupo_sanguineo" class="form-control">
-                            <option value="">Selecciona...</option>
-                            <?php foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $t):
-                                $cur = $get('grupo_sanguineo'); ?>
-                                <option value="<?= e($t) ?>" <?= $cur === $t ? 'selected' : '' ?>><?= e($t) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Alergias Conocidas</label>
-                        <input type="text" name="alergias" class="form-control" value="<?= e($get('alergias')) ?>" placeholder="Medicamentos, alimentos, etc.">
-                    </div>
-                </div>
-
-                <div class="af-grid af-grid--2">
-                    <div class="form-group">
-                        <label class="form-label">Antecedentes Familiares</label>
-                        <textarea name="antecedentes_familiares" class="form-control" rows="2" placeholder="Enfermedades hereditarias..."><?= e($get('antecedentes_familiares')) ?></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Antecedentes Quirúrgicos</label>
-                        <textarea name="antecedentes_quirurgicos" class="form-control" rows="2" placeholder="Operaciones previas..."><?= e($get('antecedentes_quirurgicos')) ?></textarea>
-                    </div>
-                </div>
-
-                <div class="af-grid af-grid--2">
-                    <div class="form-group">
-                        <label class="form-label">Condición Crónica</label>
-                        <textarea name="condicion_cronica" class="form-control" rows="2" placeholder="Asma, diabetes, etc."><?= e($get('condicion_cronica')) ?></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Medicamento Actual</label>
-                        <textarea name="medicacion_actual" class="form-control" rows="2" placeholder="Si toma algún medicamento actualmente..."><?= e($get('medicacion_actual')) ?></textarea>
-                    </div>
-                </div>
-
-                <?php if (!can('admin') && !can('medico')): ?></fieldset><?php endif; ?>
             </div>
         </div>
 
         <div class="af-footer">
             <div class="af-footer-info">
-                <i class="ph ph-info"></i> Paso <span id="current-step-num">1</span> de 4
+                <i class="ph ph-info"></i> Paso <span id="current-step-num">1</span> de 3
             </div>
             <div class="af-actions">
                 <button type="button" class="btn btn-ghost" id="btn-reset" title="Borrar todo"><i class="ph ph-trash"></i> Limpiar</button>
@@ -410,7 +348,6 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 }
 
 .af-back-btn {
-    border-radius: 50px;
     padding: 8px 20px;
 }
 
@@ -453,7 +390,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     padding: 16px 10px;
     border: none;
     background: transparent;
-    cursor: pointer;
+    cursor: default;
     position: relative;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--color-text-muted);
@@ -677,6 +614,11 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     font-size: 14px;
     outline: none;
 }
+.phone-field .phone-sep {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-muted);
+}
 
 /* — Footer — */
 .af-footer {
@@ -712,7 +654,6 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 
 .af-submit-btn {
     padding: 10px 24px;
-    border-radius: 50px;
     gap: 10px;
 }
 
@@ -761,12 +702,93 @@ function updateUI() {
     if (stepNumEl) stepNumEl.textContent = currentIdx + 1;
 }
 
+function validarCedula(val) {
+    return /^[VE]-\d{1,3}(\.\d{3})*$/.test(val) || /^[VE]-\d{1,10}$/.test(val);
+}
+
+function showError(id, msg) {
+    const el = document.getElementById(id + '-error');
+    if (el) {
+        el.textContent = msg;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+}
+
+function validateStep(idx) {
+    try {
+        const panel = panels[idx];
+        const requiredInputs = panel.querySelectorAll('[required]');
+        let isValid = true;
+        let missingFields = [];
+        
+        requiredInputs.forEach(input => {
+            const fg = input.closest('.form-group');
+            const labelEl = fg ? fg.querySelector('.form-label') : null;
+            const label = labelEl ? labelEl.textContent.replace('*', '').trim() : (input.name || 'Campo');
+            
+            if (!input.value.trim()) {
+                input.style.borderColor = 'var(--color-danger)';
+                missingFields.push(label);
+                isValid = false;
+            } else {
+                input.style.borderColor = '';
+            }
+        });
+
+        // Validaciones especiales por step
+        if (idx === 0) { // Personal
+            const ced = document.getElementById('cedula');
+            if (ced && ced.value && !validarCedula(ced.value)) {
+                showError('cedula', 'Formato de cédula inválido');
+                missingFields.push('Cédula (Formato)');
+                isValid = false;
+            }
+        }
+        
+        if (idx === 2) { // Representante
+            const tced = document.getElementById('tutor_cedula');
+            if (tced && !validarCedula(tced.value)) {
+                showError('tutor_cedula', 'Cédula requerida');
+                missingFields.push('Cédula del Representante');
+                isValid = false;
+            }
+            const ttel = document.getElementById('tutor_telefono_number');
+            if (!ttel || ttel.value.length !== 7) {
+                showError('tutor_telefono', 'Teléfono requerido');
+                missingFields.push('Teléfono del Representante (7 dígitos)');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            if (typeof CadaModal !== 'undefined' && CadaModal.alert) {
+                CadaModal.alert({
+                    title: 'Campos Requeridos',
+                    text: 'Debes completar los siguientes campos: <br><br><strong>' + missingFields.join(', ') + '</strong>',
+                    type: 'warning'
+                });
+            } else {
+                alert('Debes completar los siguientes campos:\n' + missingFields.join('\n'));
+            }
+        }
+
+        return isValid;
+    } catch (err) {
+        console.error("Error en validateStep:", err);
+        alert("Ocurrió un error interno al validar: " + err.message);
+        return false;
+    }
+}
+
 // Click en botones
 btnNext.addEventListener('click', () => {
-    if (currentIdx < tabs.length - 1) {
-        currentIdx++;
-        updateUI();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (validateStep(currentIdx)) {
+        if (currentIdx < tabs.length - 1) {
+            currentIdx++;
+            updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }
 });
 
@@ -778,14 +800,81 @@ btnPrev.addEventListener('click', () => {
     }
 });
 
-// Click en los tabs directamente
-tabs.forEach((btn, idx) => {
-    btn.addEventListener('click', () => {
-        currentIdx = idx;
-        updateUI();
-        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    });
+
+// --- Lógica de cascada para direcciones ---
+const selEstado = document.getElementById('sel-estado');
+const selMunicipio = document.getElementById('sel-municipio');
+const selParroquia = document.getElementById('sel-parroquia');
+
+function loadEstados() {
+    // Asumimos 232 = Venezuela
+    fetch('<?= e(url('/api/direcciones/estados/232')) ?>')
+        .then(res => res.json())
+        .then(data => {
+            selEstado.innerHTML = '<option value="">Selecciona Estado...</option>';
+            data.forEach(est => {
+                let selected = (parseInt(selEstado.dataset.current) === est.estado_id) ? 'selected' : '';
+                selEstado.innerHTML += `<option value="${est.estado_id}" ${selected}>${est.nombre}</option>`;
+            });
+            if (selEstado.value) loadMunicipios(selEstado.value);
+        })
+        .catch(console.error);
+}
+
+function loadMunicipios(estadoId) {
+    if (!estadoId) {
+        selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
+        selMunicipio.disabled = true;
+        selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+        selParroquia.disabled = true;
+        return;
+    }
+    selMunicipio.disabled = false;
+    fetch('<?= e(url('/api/direcciones/municipios/')) ?>' + estadoId)
+        .then(res => res.json())
+        .then(data => {
+            selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
+            data.forEach(mun => {
+                let selected = (parseInt(selMunicipio.dataset.current) === parseInt(mun.municipio_id)) ? 'selected' : '';
+                selMunicipio.innerHTML += `<option value="${mun.municipio_id}" ${selected}>${mun.nombre}</option>`;
+            });
+            if (selMunicipio.value) loadParroquias(selMunicipio.value);
+        })
+        .catch(console.error);
+}
+
+function loadParroquias(municipioId) {
+    if (!municipioId) {
+        selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+        selParroquia.disabled = true;
+        return;
+    }
+    selParroquia.disabled = false;
+    fetch('<?= e(url('/api/direcciones/parroquias/')) ?>' + municipioId)
+        .then(res => res.json())
+        .then(data => {
+            selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+            data.forEach(par => {
+                let selected = (parseInt(selParroquia.dataset.current) === parseInt(par.parroquia_id)) ? 'selected' : '';
+                selParroquia.innerHTML += `<option value="${par.parroquia_id}" ${selected}>${par.nombre}</option>`;
+            });
+        })
+        .catch(console.error);
+}
+
+selEstado.addEventListener('change', (e) => {
+    selMunicipio.dataset.current = '0';
+    selParroquia.dataset.current = '0';
+    loadMunicipios(e.target.value);
 });
+selMunicipio.addEventListener('change', (e) => {
+    selParroquia.dataset.current = '0';
+    loadParroquias(e.target.value);
+});
+
+// Inicializar cascada de direcciones
+loadEstados();
+
 
 // Botón Limpiar
 const btnReset = document.getElementById('btn-reset');
@@ -874,6 +963,10 @@ if (fotoInput) {
                 fotoLabel.querySelector('span').textContent = 'Cambiar foto';
             }
             reader.readAsDataURL(file);
+
+            // Eliminar flag de borrado si se sube una nueva
+            let deleteInput = document.getElementById('delete-foto-flag');
+            if (deleteInput) deleteInput.remove();
         }
     });
 
@@ -883,6 +976,17 @@ if (fotoInput) {
         fotoPreviewCont.style.display = 'none';
         fotoLabel.classList.remove('has-file');
         fotoLabel.querySelector('span').textContent = 'Subir foto';
+
+        // Notificar al servidor que se borre la foto si es edición
+        let deleteInput = document.getElementById('delete-foto-flag');
+        if (!deleteInput) {
+            deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = 'eliminar_foto';
+            deleteInput.id = 'delete-foto-flag';
+            deleteInput.value = '1';
+            fotoInput.parentNode.appendChild(deleteInput);
+        }
     });
 }
 
@@ -915,6 +1019,11 @@ setupPhoneWidget('tutor_telefono_prefix', 'tutor_telefono_number', 'tutor_telefo
 
 // ── Validación Final ───────────────────────────────────────────────────────
 document.querySelector('form').addEventListener('submit', function(e) {
+    if (!validateStep(currentIdx)) {
+        e.preventDefault();
+        return;
+    }
+
     let hasError = false;
     const check = (id, valid, msg) => {
         const val = document.getElementById(id)?.value ?? '';

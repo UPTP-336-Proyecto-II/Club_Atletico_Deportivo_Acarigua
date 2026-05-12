@@ -17,6 +17,9 @@ use Throwable;
 
 final class AtletasController extends Controller
 {
+    // CAMBIAR ESTE VALOR SI LA COMUNIDAD DECIDE OTRA EDAD MÍNIMA OFICIAL
+    public const EDAD_MINIMA_ATLETA = 4;
+
     public function index(Request $request): Response
     {
         $filters = [
@@ -31,11 +34,12 @@ final class AtletasController extends Controller
 
         // Calcular conteos reales para las tarjetas
         $countsRaw = $atletaModel->countByEstatus();
-        $stats = ['activo' => 0, 'lesionado' => 0, 'suspendido' => 0];
+        $stats = ['activo' => 0, 'lesionado' => 0, 'suspendido' => 0, 'inactivo' => 0];
         foreach ($countsRaw as $c) {
             if ((int)$c['estatus'] === 1) $stats['activo'] = (int)$c['total'];
             if ((int)$c['estatus'] === 2) $stats['lesionado'] = (int)$c['total'];
-            if ((int)$c['estatus'] === 3) $stats['suspendido'] = (int)$c['total'];
+            if ((int)$c['estatus'] === 0) $stats['suspendido'] = (int)$c['total'];
+            if ((int)$c['estatus'] === 3) $stats['inactivo'] = (int)$c['total'];
         }
 
         return $this->view('atletas.index', [
@@ -87,6 +91,19 @@ final class AtletasController extends Controller
             $this->withErrors($errors);
             return $this->redirect('/admin/atletas/crear');
         }
+
+        $fechaNac = strtotime($data['fecha_nacimiento']);
+        $hoy = time();
+        if ($fechaNac > $hoy) {
+            flash('error', 'La fecha de nacimiento no puede ser en el futuro.');
+            return $this->redirect('/admin/atletas/crear');
+        }
+        $edad = date('Y', $hoy) - date('Y', $fechaNac);
+        if ($edad < self::EDAD_MINIMA_ATLETA) {
+            flash('error', 'El atleta debe tener al menos ' . self::EDAD_MINIMA_ATLETA . ' años de edad.');
+            return $this->redirect('/admin/atletas/crear');
+        }
+
         try {
             $service = new AtletaService();
             $id = $service->crear($data, $_FILES['foto'] ?? []);
@@ -128,6 +145,19 @@ final class AtletasController extends Controller
             $this->withErrors($errors);
             return $this->redirect("/admin/atletas/$id/editar");
         }
+
+        $fechaNac = strtotime($data['fecha_nacimiento']);
+        $hoy = time();
+        if ($fechaNac > $hoy) {
+            flash('error', 'La fecha de nacimiento no puede ser en el futuro.');
+            return $this->redirect("/admin/atletas/$id/editar");
+        }
+        $edad = date('Y', $hoy) - date('Y', $fechaNac);
+        if ($edad < self::EDAD_MINIMA_ATLETA) {
+            flash('error', 'El atleta debe tener al menos ' . self::EDAD_MINIMA_ATLETA . ' años de edad.');
+            return $this->redirect("/admin/atletas/$id/editar");
+        }
+
         try {
             (new AtletaService())->actualizar($id, $data, $_FILES['foto'] ?? []);
             flash('success', 'Atleta actualizado.');
@@ -143,12 +173,15 @@ final class AtletasController extends Controller
     {
         $id = (int) $request->param('id');
         try {
+            // Eliminar ficha médica asociada primero (si existe) para evitar error de llave foránea
+            (new \App\Models\FichaMedica())->query('DELETE FROM fichas_medicas WHERE atleta_id = :id', [':id' => $id]);
+            
             (new Atleta())->delete($id);
             Logger::audit('atleta.eliminar', ['atleta_id' => $id]);
-            flash('success', 'Atleta eliminado.');
+            flash('success', 'Atleta eliminado correctamente.');
         } catch (Throwable $e) {
             Logger::error($e);
-            flash('error', 'No se pudo eliminar (posibles registros asociados).');
+            flash('error', 'No se pudo eliminar el atleta porque tiene registros importantes asociados (ej. asistencias). Sugerencia: cambie su estatus a Inactivo.');
         }
         return $this->redirect('/admin/atletas');
     }
@@ -187,6 +220,7 @@ final class AtletasController extends Controller
             'antecedentes_quirurgicos' => trim((string) $request->input('antecedentes_quirurgicos', '')),
             'condicion_cronica'        => trim((string) $request->input('condicion_cronica', '')),
             'medicacion_actual'        => trim((string) $request->input('medicacion_actual', '')),
+            'eliminar_foto'            => $request->input('eliminar_foto') === '1',
         ];
     }
 

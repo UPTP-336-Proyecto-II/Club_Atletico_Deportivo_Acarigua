@@ -74,8 +74,8 @@ try {
     $step('Verificando instalación...');
     $tables = $pdo->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$dbName'")->fetchColumn();
     $users  = $pdo->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
-    $roles  = $pdo->query('SELECT COUNT(*) FROM rol_usuarios')->fetchColumn();
-    $cats   = $pdo->query('SELECT COUNT(*) FROM categoria')->fetchColumn();
+    $roles  = $pdo->query('SELECT COUNT(*) FROM roles_usuarios')->fetchColumn();
+    $cats   = $pdo->query('SELECT COUNT(*) FROM categorias')->fetchColumn();
     $estados = $pdo->query('SELECT COUNT(*) FROM estados')->fetchColumn();
 
     $log('');

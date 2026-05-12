@@ -2,15 +2,15 @@
 .cada-modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .cada-modal-overlay.show {
@@ -22,47 +22,76 @@
 .cada-modal-box {
     background: var(--color-bg);
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     border-radius: var(--radius-lg);
-    padding: 32px;
+    padding: 40px 32px;
     text-align: center;
-    box-shadow: var(--shadow-lg);
-    transform: scale(0.9);
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .cada-modal-box.show {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Excitement Animations */
+.cada-modal-box.success {
+    border-top: 5px solid var(--color-success);
+}
+.cada-modal-box.error {
+    border-top: 5px solid var(--color-danger);
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+.cada-modal-box.warning {
+    border-top: 5px solid var(--color-warning);
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
 .cada-modal-icon {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
     display: flex;
     justify-content: center;
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
+}
+
+.cada-modal-box.show .cada-modal-icon {
+    transform: scale(1);
 }
 
 .cada-modal-box h3 {
     font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
     color: var(--color-text);
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .cada-modal-box p {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--color-text-muted);
-    margin-bottom: 24px;
-    line-height: 1.5;
+    margin-bottom: 32px;
+    line-height: 1.6;
 }
 
 .cada-modal-actions {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     justify-content: center;
 }
 
 .cada-modal-actions .btn {
     flex: 1;
     justify-content: center;
+    padding: 12px 24px;
+    font-size: 16px;
 }

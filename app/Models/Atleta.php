@@ -36,8 +36,11 @@ final class Atleta extends Model
             $params[':estatus'] = (int) $filters['estatus'];
         }
         if (!empty($filters['q'])) {
-            $where[] = '(a.nombre LIKE :q OR a.apellido LIKE :q OR a.cedula LIKE :q)';
-            $params[':q'] = '%' . $filters['q'] . '%';
+            $where[] = '(a.nombre LIKE :q1 OR a.apellido LIKE :q2 OR a.cedula LIKE :q3)';
+            $qVal = '%' . $filters['q'] . '%';
+            $params[':q1'] = $qVal;
+            $params[':q2'] = $qVal;
+            $params[':q3'] = $qVal;
         }
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -52,13 +55,14 @@ final class Atleta extends Model
             SELECT a.atleta_id, a.nombre, a.apellido, a.cedula, a.telefono, a.foto,
                    a.fecha_nac, a.estatus,
                    c.nombre_categoria,
-                   p.nombre_posicion
-            FROM atletas a
-            LEFT JOIN categorias c ON c.categoria_id = a.categoria_id
-            LEFT JOIN posiciones_juegos p ON p.posicion_id = a.posicion_juego_id
-            $whereSql
-            ORDER BY a.apellido, a.nombre
-            LIMIT $perPage OFFSET $offset
+                   p.nombre_posicion,
+                   (SELECT MAX(fecha_medicion) FROM medidas_antropometricas WHERE atleta_id = a.atleta_id) AS ultima_medicion
+             FROM atletas a
+             LEFT JOIN categorias c ON c.categoria_id = a.categoria_id
+             LEFT JOIN posiciones_juegos p ON p.posicion_id = a.posicion_juego_id
+             $whereSql
+             ORDER BY a.apellido, a.nombre
+             LIMIT $perPage OFFSET $offset
         ";
         $stmt = $this->db()->prepare($sql);
         $stmt->execute($params);
@@ -82,14 +86,15 @@ final class Atleta extends Model
             SELECT a.*,
                    c.nombre_categoria,
                    p.nombre_posicion,
-                   rep.nombre_completo AS representante_nombre,
-                   rep.cedula AS representante_cedula,
-                   rep.telefono AS representante_telefono,
-                   rep.tipo_relacion AS representante_relacion,
+                   rep.nombre AS tutor_nombres,
+                   rep.apellido AS tutor_apellidos,
+                   rep.cedula AS tutor_cedula,
+                   rep.telefono AS tutor_telefono,
+                   rep.tipo_relacion AS tutor_relacion,
                    d.parroquias_id, d.localidad, d.tipo_vivienda, d.ubicacion_vivienda,
-                   pa.parroquia AS parroquia_nombre,
-                   m.municipio AS municipio_nombre,
-                   e.estado AS estado_nombre,
+                   pa.parroquia AS parroquia,
+                   m.municipio AS municipio,
+                   e.estado AS estado,
                    pa.municipio_id, m.estado_id,
                    f.ficha_id, f.grupo_sanguineo, f.alergias, f.antecedentes_familiares,
                    f.antecedentes_quirurgicos, f.condicion_cronica, f.medicacion_actual

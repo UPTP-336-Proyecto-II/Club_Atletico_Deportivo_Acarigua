@@ -17,8 +17,8 @@ final class MedidasAntropometricasController extends Controller
         $pag = (new Atleta())->paginate(['estatus' => 1], (int) $request->query('page', 1), 20);
         return $this->view('medidas.index', [
             'title' => 'Antropometría',
-            'active' => 'antropometria',
-            'breadcrumb' => ['Inicio', 'Reportes', 'Antropometría'],
+            'active' => 'medidas',
+            'breadcrumb' => ['Inicio', 'Antropometría'],
             'pag' => $pag,
         ], 'admin');
     }
@@ -27,11 +27,14 @@ final class MedidasAntropometricasController extends Controller
     {
         $id = (int) $request->param('id');
         $atleta = (new Atleta())->findCompleto($id);
-        if (!$atleta) { flash('error', 'Atleta no encontrado.'); return $this->redirect('/admin/antropometria'); }
+        if (!$atleta) { 
+            flash('error', 'Atleta no encontrado.'); 
+            return $this->redirect('/admin/medidas'); 
+        }
         $historial = (new MedidaAntropometrica())->historial($id);
         return $this->view('medidas.atleta', [
             'title' => 'Antropometría - ' . $atleta['nombre'] . ' ' . $atleta['apellido'],
-            'active' => 'antropometria',
+            'active' => 'medidas',
             'breadcrumb' => ['Inicio', 'Antropometría', $atleta['nombre']],
             'atleta' => $atleta,
             'historial' => $historial,
@@ -52,15 +55,33 @@ final class MedidasAntropometricasController extends Controller
             'largo_de_pierna'        => $request->input('largo_de_pierna') !== '' ? (float) $request->input('largo_de_pierna') : null,
             'largo_de_torso'         => $request->input('largo_de_torso') !== '' ? (float) $request->input('largo_de_torso') : null,
         ];
+
         $v = Validator::make($data, [
             'fecha_medicion' => 'required|date',
         ]);
+
         if (!$v->validate()) {
             $this->withErrors($v->errors());
-            return $this->redirect("/admin/antropometria/atleta/$id");
+            return $this->redirect("/admin/medidas/atleta/$id");
         }
+
         (new MedidaAntropometrica())->insert($data);
         flash('success', 'Medición registrada.');
-        return $this->redirect("/admin/antropometria/atleta/$id");
+        return $this->redirect("/admin/medidas/atleta/$id");
+    }
+
+    public function destroy(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $atletaId = (int) $request->query('atleta_id');
+        
+        try {
+            (new MedidaAntropometrica())->delete($id);
+            flash('success', 'Medición eliminada correctamente.');
+        } catch (\Throwable $e) {
+            flash('error', 'No se pudo eliminar la medición.');
+        }
+
+        return $this->redirect("/admin/medidas/atleta/$atletaId");
     }
 }

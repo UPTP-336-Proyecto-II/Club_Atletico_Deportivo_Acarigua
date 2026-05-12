@@ -20,6 +20,7 @@ final class Categoria extends Model
         return $this->query(
             "SELECT c.*,
                     CONCAT_WS(' ', u.nombre, u.apellido) AS entrenador,
+                    u.foto AS entrenador_foto,
                     (SELECT COUNT(*) FROM atletas a WHERE a.categoria_id = c.categoria_id) AS total_atletas
              FROM categorias c
              LEFT JOIN usuarios u ON u.usuario_id = c.usuario_id
