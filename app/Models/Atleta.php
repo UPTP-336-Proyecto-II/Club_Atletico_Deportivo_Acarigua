@@ -36,8 +36,11 @@ final class Atleta extends Model
             $params[':estatus'] = (int) $filters['estatus'];
         }
         if (!empty($filters['q'])) {
-            $where[] = '(a.nombre LIKE :q OR a.apellido LIKE :q OR a.cedula LIKE :q)';
-            $params[':q'] = '%' . $filters['q'] . '%';
+            $where[] = '(a.nombre LIKE :q1 OR a.apellido LIKE :q2 OR a.cedula LIKE :q3)';
+            $qVal = '%' . $filters['q'] . '%';
+            $params[':q1'] = $qVal;
+            $params[':q2'] = $qVal;
+            $params[':q3'] = $qVal;
         }
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -83,10 +86,11 @@ final class Atleta extends Model
             SELECT a.*,
                    c.nombre_categoria,
                    p.nombre_posicion,
-                   CONCAT(rep.nombre, ' ', rep.apellido) AS rep_nombre,
-                   rep.cedula AS rep_cedula,
-                   rep.telefono AS rep_telefono,
-                   rep.tipo_relacion AS rep_relacion,
+                   rep.nombre AS tutor_nombres,
+                   rep.apellido AS tutor_apellidos,
+                   rep.cedula AS tutor_cedula,
+                   rep.telefono AS tutor_telefono,
+                   rep.tipo_relacion AS tutor_relacion,
                    d.parroquias_id, d.localidad, d.tipo_vivienda, d.ubicacion_vivienda,
                    pa.parroquia AS parroquia,
                    m.municipio AS municipio,

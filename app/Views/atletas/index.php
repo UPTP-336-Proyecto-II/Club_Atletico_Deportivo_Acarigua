@@ -29,6 +29,10 @@
         <div class="stat-number" style="color: #EF4444;"><?= (int) ($stats['suspendido'] ?? 0) ?></div>
         <div class="stat-label">Suspendidos</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-number" style="color: #9CA3AF;"><?= (int) ($stats['inactivo'] ?? 0) ?></div>
+        <div class="stat-label">Inactivos</div>
+    </div>
 </div>
 
 <form method="GET" class="table-filters card" style="display: flex; gap: 16px; align-items: flex-end; padding: 16px; margin-bottom: 24px; flex-wrap: wrap;">
@@ -99,7 +103,7 @@
                 </td>
                 <td>
                     <div style="font-weight: 600; color: var(--color-text);"><?= e($a['nombre'] . ' ' . $a['apellido']) ?></div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= e($a['cedula'] ?? 'N/A') ?></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= !empty($a['cedula']) ? e($a['cedula']) : 'Sin Cédula' ?></div>
                 </td>
                 <td>
                     <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--color-bg-alt); border-radius: 12px; font-size: 13px; font-weight: 500;">
@@ -117,8 +121,8 @@
                         [$label, $badge] = match ($val) {
                             1 => ['Activo', 'success'],
                             2 => ['Lesionado', 'warning'],
-                            3 => ['Suspendido', 'danger'],
-                            0 => ['Inactivo', 'outline'],
+                            0 => ['Suspendido', 'danger'],
+                            3 => ['Inactivo', 'outline'],
                             default => ['Desconocido', 'primary']
                         }; 
                     ?>
@@ -129,19 +133,13 @@
                 </td>
                 <td style="text-align: right; padding-right: 24px;">
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Ver Perfil">
-                            <i class="ph ph-eye"></i> Perfil
+                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Ver Perfil" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-eye"></i>
                         </a>
                         <?php if (can('admin')): ?>
-                            <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/editar')) ?>" class="btn btn-sm btn-outline" title="Editar">
+                            <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/editar')) ?>" class="btn btn-sm btn-outline" title="Editar" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
                                 <i class="ph ph-pencil-simple"></i>
                             </a>
-                            <form action="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/eliminar')) ?>" method="POST" class="delete-form" style="display:inline;">
-                                <?= csrf_field() ?>
-                                <button type="button" class="btn btn-sm btn-outline btn-delete" title="Eliminar Atleta" data-id="<?= $a['atleta_id'] ?>" data-name="<?= e($a['nombre'] . ' ' . $a['apellido']) ?>">
-                                    <i class="ph ph-trash" style="color: var(--color-danger);"></i>
-                                </button>
-                            </form>
                         <?php endif; ?>
                     </div>
                 </td>
@@ -151,30 +149,7 @@
     </table>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteButtons = document.querySelectorAll('.btn-delete');
-    
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const form = this.closest('form');
-            const name = this.getAttribute('data-name');
-            
-            CadaModal.confirm({
-                title: '¿Eliminar Atleta?',
-                text: `Estás a punto de eliminar a <strong>${name}</strong>. Esta acción no se puede deshacer.`,
-                type: 'danger',
-                confirmText: 'Sí, Eliminar',
-                cancelText: 'Cancelar'
-            }).then((confirmed) => {
-                if (confirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-});
-</script>
+
 
 <?php if (($pag['last_page'] ?? 1) > 1): ?>
     <div style="display: flex; justify-content: center; margin-top: 24px;">

@@ -93,9 +93,14 @@ final class AtletaService
                 'direccion_id'      => $direccionId,
                 'estatus'           => $data['estatus'] ?? $actual['estatus'],
             ];
-            $nuevaFoto = $this->guardarFoto($fotoFile);
-            if ($nuevaFoto !== null) {
-                $update['foto'] = $nuevaFoto;
+            
+            if (!empty($data['eliminar_foto'])) {
+                $update['foto'] = null;
+            } else {
+                $nuevaFoto = $this->guardarFoto($fotoFile);
+                if ($nuevaFoto !== null) {
+                    $update['foto'] = $nuevaFoto;
+                }
             }
             $atleta->update($atletaId, $update);
 

@@ -98,7 +98,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Fecha de nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nacimiento')) ?>">
+                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nac', $get('fecha_nacimiento'))) ?>" max="<?= date('Y-m-d', strtotime('-4 years')) ?>">
                     </div>
                 </div>
 
@@ -112,8 +112,8 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Categoría</label>
-                        <select name="categoria_id" class="form-control">
+                        <label class="form-label"><span class="required">*</span> Categoría</label>
+                        <select name="categoria_id" class="form-control" required>
                             <option value="">Sin asignar</option>
                             <?php foreach ($categorias as $c): ?>
                                 <option value="<?= (int) $c['categoria_id'] ?>" <?= ((int) $get('categoria_id') === (int) $c['categoria_id']) ? 'selected' : '' ?>>
@@ -127,7 +127,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                         <select name="posicion_de_juego" class="form-control">
                             <option value="">Sin definir</option>
                             <?php foreach ($posiciones as $p): ?>
-                                <option value="<?= (int) $p['posicion_id'] ?>" <?= ((int) $get('posicion_de_juego') === (int) $p['posicion_id']) ? 'selected' : '' ?>>
+                                <option value="<?= (int) $p['posicion_id'] ?>" <?= ((int) $get('posicion_juego_id', $get('posicion_de_juego')) === (int) $p['posicion_id']) ? 'selected' : '' ?>>
                                     <?= e($p['nombre_posicion']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -139,7 +139,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                     <div class="form-group">
                         <label class="form-label">Pierna dominante</label>
                         <select name="pierna_dominante" class="form-control">
-                            <option value="">Selecciona...</option>
+                            <option value="">Sin definir</option>
                             <?php foreach (PIERNA_DOMINANTE as $op): ?>
                                 <option value="<?= e($op) ?>" <?= $get('pierna_dominante') === $op ? 'selected' : '' ?>><?= e(ucfirst($op)) ?></option>
                             <?php endforeach; ?>
@@ -186,14 +186,12 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                         <label class="form-label"><span class="required">*</span> Estado</label>
                         <select id="sel-estado" name="estado_id" class="form-control" required data-current="<?= (int) ($a['estado_id'] ?? 0) ?>">
                             <option value="">Selecciona Estado...</option>
-                            <option value="17" selected>Portuguesa</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Municipio</label>
-                        <select id="sel-municipio" name="municipio_id" class="form-control" required data-current="<?= (int) ($a['municipio_id'] ?? 0) ?>">
+                        <select id="sel-municipio" name="municipio_id" class="form-control" required data-current="<?= (int) ($a['municipio_id'] ?? 0) ?>" disabled>
                             <option value="">Selecciona Municipio...</option>
-                            <option value="283" selected>Páez</option>
                         </select>
                     </div>
                 </div>
@@ -201,9 +199,8 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Parroquia</label>
-                        <select id="sel-parroquia" name="parroquia_id" class="form-control" required data-current="<?= (int) ($a['parroquia_id'] ?? 0) ?>">
+                        <select id="sel-parroquia" name="parroquia_id" class="form-control" required data-current="<?= (int) ($a['parroquias_id'] ?? 0) ?>" disabled>
                             <option value="">Selecciona Parroquia...</option>
-                            <option value="723" selected>Acarigua</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -351,7 +348,6 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 }
 
 .af-back-btn {
-    border-radius: 50px;
     padding: 8px 20px;
 }
 
@@ -394,7 +390,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     padding: 16px 10px;
     border: none;
     background: transparent;
-    cursor: pointer;
+    cursor: default;
     position: relative;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--color-text-muted);
@@ -618,6 +614,11 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     font-size: 14px;
     outline: none;
 }
+.phone-field .phone-sep {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-muted);
+}
 
 /* — Footer — */
 .af-footer {
@@ -653,7 +654,6 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 
 .af-submit-btn {
     padding: 10px 24px;
-    border-radius: 50px;
     gap: 10px;
 }
 
@@ -702,57 +702,83 @@ function updateUI() {
     if (stepNumEl) stepNumEl.textContent = currentIdx + 1;
 }
 
+function validarCedula(val) {
+    return /^[VE]-\d{1,3}(\.\d{3})*$/.test(val) || /^[VE]-\d{1,10}$/.test(val);
+}
+
+function showError(id, msg) {
+    const el = document.getElementById(id + '-error');
+    if (el) {
+        el.textContent = msg;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+}
+
 function validateStep(idx) {
-    const panel = panels[idx];
-    const requiredInputs = panel.querySelectorAll('[required]');
-    let isValid = true;
-    let missingFields = [];
-    
-    requiredInputs.forEach(input => {
-        const label = input.closest('.form-group').querySelector('.form-label').textContent.replace('*', '').trim();
-        if (!input.value.trim()) {
-            input.style.borderColor = 'var(--color-danger)';
-            missingFields.push(label);
-            isValid = false;
-        } else {
-            input.style.borderColor = '';
-        }
-    });
-
-    // Validaciones especiales por step
-    if (idx === 0) { // Personal
-        const ced = document.getElementById('cedula');
-        if (ced && ced.value && !validarCedula(ced.value)) {
-            showError('cedula', 'Formato de cédula inválido');
-            missingFields.push('Cédula (Formato)');
-            isValid = false;
-        }
-    }
-    
-    if (idx === 2) { // Representante
-        const tced = document.getElementById('tutor_cedula');
-        if (tced && !validarCedula(tced.value)) {
-            showError('tutor_cedula', 'Cédula requerida');
-            missingFields.push('Cédula del Representante');
-            isValid = false;
-        }
-        const ttel = document.getElementById('tutor_telefono_number');
-        if (!ttel || ttel.value.length !== 7) {
-            showError('tutor_telefono', 'Teléfono requerido');
-            missingFields.push('Teléfono del Representante (7 dígitos)');
-            isValid = false;
-        }
-    }
-
-    if (!isValid) {
-        CadaModal.alert({
-            title: 'Campos Requeridos',
-            text: 'Debes completar los siguientes campos: <br><br><strong>' + missingFields.join(', ') + '</strong>',
-            type: 'warning'
+    try {
+        const panel = panels[idx];
+        const requiredInputs = panel.querySelectorAll('[required]');
+        let isValid = true;
+        let missingFields = [];
+        
+        requiredInputs.forEach(input => {
+            const fg = input.closest('.form-group');
+            const labelEl = fg ? fg.querySelector('.form-label') : null;
+            const label = labelEl ? labelEl.textContent.replace('*', '').trim() : (input.name || 'Campo');
+            
+            if (!input.value.trim()) {
+                input.style.borderColor = 'var(--color-danger)';
+                missingFields.push(label);
+                isValid = false;
+            } else {
+                input.style.borderColor = '';
+            }
         });
-    }
 
-    return isValid;
+        // Validaciones especiales por step
+        if (idx === 0) { // Personal
+            const ced = document.getElementById('cedula');
+            if (ced && ced.value && !validarCedula(ced.value)) {
+                showError('cedula', 'Formato de cédula inválido');
+                missingFields.push('Cédula (Formato)');
+                isValid = false;
+            }
+        }
+        
+        if (idx === 2) { // Representante
+            const tced = document.getElementById('tutor_cedula');
+            if (tced && !validarCedula(tced.value)) {
+                showError('tutor_cedula', 'Cédula requerida');
+                missingFields.push('Cédula del Representante');
+                isValid = false;
+            }
+            const ttel = document.getElementById('tutor_telefono_number');
+            if (!ttel || ttel.value.length !== 7) {
+                showError('tutor_telefono', 'Teléfono requerido');
+                missingFields.push('Teléfono del Representante (7 dígitos)');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            if (typeof CadaModal !== 'undefined' && CadaModal.alert) {
+                CadaModal.alert({
+                    title: 'Campos Requeridos',
+                    text: 'Debes completar los siguientes campos: <br><br><strong>' + missingFields.join(', ') + '</strong>',
+                    type: 'warning'
+                });
+            } else {
+                alert('Debes completar los siguientes campos:\n' + missingFields.join('\n'));
+            }
+        }
+
+        return isValid;
+    } catch (err) {
+        console.error("Error en validateStep:", err);
+        alert("Ocurrió un error interno al validar: " + err.message);
+        return false;
+    }
 }
 
 // Click en botones
@@ -774,40 +800,81 @@ btnPrev.addEventListener('click', () => {
     }
 });
 
-// Click en los tabs directamente
-tabs.forEach((btn, idx) => {
-    btn.addEventListener('click', (e) => {
-        // Permitir siempre ir hacia atrás
-        if (idx < currentIdx) {
-            currentIdx = idx;
-            updateUI();
-            return;
-        }
 
-        // Si intenta ir hacia adelante, solo permitir el paso inmediatamente siguiente si el actual es válido
-        if (idx > currentIdx) {
-            if (idx > currentIdx + 1) {
-                // No permitir saltar pestañas (ej: de 1 a 3)
-                e.preventDefault();
-                CadaModal.alert({
-                    title: 'Paso no alcanzado',
-                    text: 'Debes completar el paso actual y el siguiente antes de acceder a esta sección.',
-                    type: 'info'
-                });
-                return;
-            }
+// --- Lógica de cascada para direcciones ---
+const selEstado = document.getElementById('sel-estado');
+const selMunicipio = document.getElementById('sel-municipio');
+const selParroquia = document.getElementById('sel-parroquia');
 
-            if (!validateStep(currentIdx)) {
-                e.preventDefault();
-                return;
-            }
-        }
-        
-        currentIdx = idx;
-        updateUI();
-        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    });
+function loadEstados() {
+    // Asumimos 232 = Venezuela
+    fetch('<?= e(url('/api/direcciones/estados/232')) ?>')
+        .then(res => res.json())
+        .then(data => {
+            selEstado.innerHTML = '<option value="">Selecciona Estado...</option>';
+            data.forEach(est => {
+                let selected = (parseInt(selEstado.dataset.current) === est.estado_id) ? 'selected' : '';
+                selEstado.innerHTML += `<option value="${est.estado_id}" ${selected}>${est.nombre}</option>`;
+            });
+            if (selEstado.value) loadMunicipios(selEstado.value);
+        })
+        .catch(console.error);
+}
+
+function loadMunicipios(estadoId) {
+    if (!estadoId) {
+        selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
+        selMunicipio.disabled = true;
+        selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+        selParroquia.disabled = true;
+        return;
+    }
+    selMunicipio.disabled = false;
+    fetch('<?= e(url('/api/direcciones/municipios/')) ?>' + estadoId)
+        .then(res => res.json())
+        .then(data => {
+            selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
+            data.forEach(mun => {
+                let selected = (parseInt(selMunicipio.dataset.current) === parseInt(mun.municipio_id)) ? 'selected' : '';
+                selMunicipio.innerHTML += `<option value="${mun.municipio_id}" ${selected}>${mun.nombre}</option>`;
+            });
+            if (selMunicipio.value) loadParroquias(selMunicipio.value);
+        })
+        .catch(console.error);
+}
+
+function loadParroquias(municipioId) {
+    if (!municipioId) {
+        selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+        selParroquia.disabled = true;
+        return;
+    }
+    selParroquia.disabled = false;
+    fetch('<?= e(url('/api/direcciones/parroquias/')) ?>' + municipioId)
+        .then(res => res.json())
+        .then(data => {
+            selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+            data.forEach(par => {
+                let selected = (parseInt(selParroquia.dataset.current) === parseInt(par.parroquia_id)) ? 'selected' : '';
+                selParroquia.innerHTML += `<option value="${par.parroquia_id}" ${selected}>${par.nombre}</option>`;
+            });
+        })
+        .catch(console.error);
+}
+
+selEstado.addEventListener('change', (e) => {
+    selMunicipio.dataset.current = '0';
+    selParroquia.dataset.current = '0';
+    loadMunicipios(e.target.value);
 });
+selMunicipio.addEventListener('change', (e) => {
+    selParroquia.dataset.current = '0';
+    loadParroquias(e.target.value);
+});
+
+// Inicializar cascada de direcciones
+loadEstados();
+
 
 // Botón Limpiar
 const btnReset = document.getElementById('btn-reset');
@@ -896,6 +963,10 @@ if (fotoInput) {
                 fotoLabel.querySelector('span').textContent = 'Cambiar foto';
             }
             reader.readAsDataURL(file);
+
+            // Eliminar flag de borrado si se sube una nueva
+            let deleteInput = document.getElementById('delete-foto-flag');
+            if (deleteInput) deleteInput.remove();
         }
     });
 
@@ -905,6 +976,17 @@ if (fotoInput) {
         fotoPreviewCont.style.display = 'none';
         fotoLabel.classList.remove('has-file');
         fotoLabel.querySelector('span').textContent = 'Subir foto';
+
+        // Notificar al servidor que se borre la foto si es edición
+        let deleteInput = document.getElementById('delete-foto-flag');
+        if (!deleteInput) {
+            deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = 'eliminar_foto';
+            deleteInput.id = 'delete-foto-flag';
+            deleteInput.value = '1';
+            fotoInput.parentNode.appendChild(deleteInput);
+        }
     });
 }
 

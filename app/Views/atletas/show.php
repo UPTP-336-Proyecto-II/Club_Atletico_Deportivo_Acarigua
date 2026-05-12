@@ -10,12 +10,6 @@
         <a href="<?= e(url("/admin/reportes/atleta/{$atleta['atleta_id']}")) ?>" class="btn btn-outline" target="_blank"><i class="ph ph-file-pdf"></i> Generar PDF</a>
         <?php if (can('admin')): ?>
             <a href="<?= e(url("/admin/atletas/{$atleta['atleta_id']}/editar")) ?>" class="btn btn-primary"><i class="ph ph-pencil-simple"></i> Editar Perfil</a>
-            <form action="<?= e(url('/admin/atletas/' . $atleta['atleta_id'] . '/eliminar')) ?>" method="POST" id="delete-profile-form" style="display:inline;">
-                <?= csrf_field() ?>
-                <button type="button" class="btn btn-outline" id="btn-delete-profile" title="Eliminar Atleta">
-                    <i class="ph ph-trash" style="color: var(--color-danger);"></i>
-                </button>
-            </form>
         <?php endif; ?>
     </div>
 </div>
@@ -37,21 +31,23 @@
                 <?php endif; ?>
             </div>
             <h2 style="margin:0 0 4px; font-family: var(--font-display);"><?= e($atleta['nombre'] . ' ' . $atleta['apellido']) ?></h2>
-            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 16px;">C.I: <?= e($atleta['cedula'] ?? '—') ?></div>
+            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 16px;">C.I: <?= !empty($atleta['cedula']) ? e($atleta['cedula']) : 'Sin Cédula' ?></div>
             
             <?php 
                 $estatusVal = (int) ($atleta['estatus'] ?? 1);
                 $badge = match ($estatusVal) {
                     1 => 'success', // Activo
                     2 => 'warning', // Lesionado
-                    3 => 'danger',  // Suspendido
+                    0 => 'danger',  // Suspendido
+                    3 => 'outline', // Inactivo
                     default => 'primary'
                 }; 
                 $label = match ($estatusVal) {
                     1 => 'Activo',
                     2 => 'Lesionado',
-                    3 => 'Suspendido',
-                    default => 'Inactivo'
+                    0 => 'Suspendido',
+                    3 => 'Inactivo',
+                    default => 'Desconocido'
                 };
             ?>
             <span class="badge badge-<?= $badge ?>" style="padding: 6px 16px; border-radius: 20px; font-weight: 600;">
@@ -86,9 +82,9 @@
                     </div>
                 </div>
                 <div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">Pierna Háb.</div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">Pierna Dominante</div>
                     <div style="font-weight: 500; display:flex; align-items:center; gap:4px; margin-top:4px;">
-                        <i class="ph ph-sneaker text-muted"></i> <?= e(ucfirst($atleta['pierna_dominante'] ?? '—')) ?>
+                        <i class="ph ph-sneaker text-muted"></i> <?= !empty($atleta['pierna_dominante']) ? e(ucfirst($atleta['pierna_dominante'])) : 'Sin definir' ?>
                     </div>
                 </div>
             </div>
@@ -101,15 +97,15 @@
                     <div style="width:36px; height:36px; border-radius:8px; background:var(--color-bg-alt); display:flex; align-items:center; justify-content:center; color:var(--color-primary);"><i class="ph ph-whatsapp-logo" style="font-size:20px;"></i></div>
                     <div>
                         <div style="font-size: 12px; color: var(--color-text-muted);">Teléfono Personal</div>
-                        <div style="font-weight: 500;"><?= e($atleta['telefono'] ?? 'No registrado') ?></div>
+                        <div style="font-weight: 500;"><?= !empty($atleta['telefono']) ? e($atleta['telefono']) : 'No registrado' ?></div>
                     </div>
                 </div>
                 <div style="display:flex; align-items:center; gap: 12px;">
                     <div style="width:36px; height:36px; border-radius:8px; background:var(--color-bg-alt); display:flex; align-items:center; justify-content:center; color:var(--color-primary);"><i class="ph ph-map-pin" style="font-size:20px;"></i></div>
                     <div>
                         <div style="font-size: 12px; color: var(--color-text-muted);">Ubicación</div>
-                        <div style="font-weight: 500; font-size: 13px; line-height: 1.3;">
-                            <?= e($atleta['localidad'] ?? '') ?>, <?= e($atleta['municipio'] ?? '') ?>
+                        <div style="font-weight: 500;">
+                            <?= e($atleta['localidad'] ?? '') ?><?= !empty($atleta['municipio']) ? ', ' . e($atleta['municipio']) : '' ?>
                         </div>
                     </div>
                 </div>
@@ -121,6 +117,7 @@
     <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
         <div class="profile-tabs" style="display: flex; background: var(--color-bg-alt); border-bottom: 1px solid var(--color-border); padding: 0 24px; overflow-x: auto;">
             <button class="tab-btn active" data-target="tab-general"><i class="ph ph-user-list"></i> Datos Generales</button>
+            <button class="tab-btn" data-target="tab-ficha"><i class="ph ph-heartbeat"></i> Ficha Médica</button>
             <button class="tab-btn" data-target="tab-antropometria"><i class="ph ph-rulers"></i> Antropometría</button>
             <button class="tab-btn" data-target="tab-pruebas"><i class="ph ph-chart-line-up"></i> Pruebas Físicas</button>
         </div>
@@ -166,6 +163,62 @@
                         <strong>Vivienda:</strong> <?= e(ucfirst($atleta['tipo_vivienda'] ?? '—')) ?> - <?= e($atleta['ubicacion_vivienda'] ?? '—') ?>
                     </p>
                 </div>
+            </div>
+
+            <!-- Tab: Ficha Médica -->
+            <div id="tab-ficha" class="tab-content" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="margin: 0;"><i class="ph ph-first-aid"></i> Información Médica</h3>
+                    <?php if (can('admin')): ?>
+                        <span class="text-muted" style="font-size: 13px;"><i class="ph ph-info"></i> Los cambios se guardan al presionar el botón inferior</span>
+                    <?php endif; ?>
+                </div>
+
+                <form action="<?= e(url("/admin/ficha-medica/{$atleta['atleta_id']}")) ?>" method="POST">
+                    <?= csrf_field() ?>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label class="form-label">Grupo Sanguíneo</label>
+                            <select name="grupo_sanguineo" class="form-control" <?= !can('admin') ? 'disabled' : '' ?>>
+                                <option value="">—</option>
+                                <?php foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $gs): ?>
+                                    <option value="<?= $gs ?>" <?= ($atleta['grupo_sanguineo'] ?? '') === $gs ? 'selected' : '' ?>><?= $gs ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Alergias</label>
+                            <input type="text" name="alergias" class="form-control" value="<?= e($atleta['alergias'] ?? '') ?>" placeholder="Ej: Penicilina, Maní..." <?= !can('admin') ? 'readonly' : '' ?>>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label class="form-label">Antecedentes Familiares</label>
+                        <textarea name="antecedentes_familiares" class="form-control" rows="2" placeholder="Enfermedades hereditarias relevantes..." <?= !can('admin') ? 'readonly' : '' ?>><?= e($atleta['antecedentes_familiares'] ?? '') ?></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label class="form-label">Antecedentes Quirúrgicos / Lesiones Previas</label>
+                        <textarea name="antecedentes_quirurgicos" class="form-control" rows="2" placeholder="Operaciones o fracturas importantes..." <?= !can('admin') ? 'readonly' : '' ?>><?= e($atleta['antecedentes_quirurgicos'] ?? '') ?></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label class="form-label">Condición Crónica</label>
+                            <input type="text" name="condicion_cronica" class="form-control" value="<?= e($atleta['condicion_cronica'] ?? '') ?>" placeholder="Ej: Asma, Diabetes..." <?= !can('admin') ? 'readonly' : '' ?>>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Medicación Actual</label>
+                            <input type="text" name="medicacion_actual" class="form-control" value="<?= e($atleta['medicacion_actual'] ?? '') ?>" placeholder="Medicamentos que toma regularmente..." <?= !can('admin') ? 'readonly' : '' ?>>
+                        </div>
+                    </div>
+
+                    <?php if (can('admin')): ?>
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Guardar Ficha Médica</button>
+                        </div>
+                    <?php endif; ?>
+                </form>
             </div>
 
             <!-- Tab: Antropometría -->
@@ -374,23 +427,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if(chartAntro) chartAntro.resize();
         if(chartRadar) chartRadar.resize();
     });
-
-    // Lógica de eliminación
-    const btnDel = document.getElementById('btn-delete-profile');
-    if (btnDel) {
-        btnDel.addEventListener('click', () => {
-            CadaModal.confirm({
-                title: '¿Eliminar este Atleta?',
-                text: 'Esta acción eliminará permanentemente el expediente, incluyendo historial médico y medidas. ¿Deseas continuar?',
-                type: 'danger',
-                confirmText: 'Sí, Eliminar Permanentemente',
-                cancelText: 'Cancelar'
-            }).then((confirmed) => {
-                if (confirmed) {
-                    document.getElementById('delete-profile-form').submit();
-                }
-            });
-        });
-    }
 });
 </script>
