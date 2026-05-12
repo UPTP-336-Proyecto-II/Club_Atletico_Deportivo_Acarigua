@@ -115,8 +115,15 @@ $breadcrumb = $breadcrumb ?? [$title];
         document.querySelectorAll('.sidebar__has-sub > a').forEach(a => {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
-                a.parentElement.classList.toggle('is-open');
-                a.nextElementSibling?.classList.toggle('is-open');
+                // No abrir grupos deshabilitados
+                if (a.closest('.sidebar__disabled')) return;
+                
+                const parent = a.parentElement;
+                const submenu = a.nextElementSibling;
+                if (!submenu) return;
+
+                parent.classList.toggle('is-open');
+                submenu.classList.toggle('is-open');
             });
         });
     })();
