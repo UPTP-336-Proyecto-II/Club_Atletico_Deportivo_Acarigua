@@ -133,9 +133,12 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
             </div>
             
             <!-- Actions -->
-            <div style="padding: 16px 24px; background: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; gap: 12px;">
-                <a href="<?= e(url('/admin/atletas?categoria_id=' . $c['categoria_id'])) ?>" class="btn btn-primary" style="flex: 1; font-size: 14px;">
-                    <i class="ph ph-users"></i> Listar Atletas
+            <div style="padding: 16px 24px; background: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; gap: 8px;">
+                <a href="<?= e(url('/admin/atletas?categoria_id=' . $c['categoria_id'])) ?>" class="btn btn-outline" style="flex: 1; font-size: 13px;">
+                    <i class="ph ph-users"></i> Listar
+                </a>
+                <a href="<?= e(url('/admin/reportes/categoria/' . $c['categoria_id'])) ?>" class="btn btn-primary" style="flex: 1; font-size: 13px;" target="_blank">
+                    <i class="ph ph-file-pdf"></i> Reporte
                 </a>
                 <a href="<?= e(url('/admin/reportes/asistencia?categoria_id=' . $c['categoria_id'])) ?>" class="btn btn-ghost" title="Asistencias">
                     <i class="ph ph-calendar-check"></i>

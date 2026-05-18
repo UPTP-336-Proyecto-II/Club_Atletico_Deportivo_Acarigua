@@ -91,11 +91,11 @@
                     </div>
                     
                     <div class="status-options" data-atleta="<?= (int)$d['atleta_id'] ?>">
-                        <?php $currentStatus = (int)$d['estatus'] === 1 ? 'Presente' : 'Ausente'; ?>
+                        <?php $currentStatus = match ((int)$d['estatus']) { 1 => 'Presente', 2 => 'Justificado', default => 'Ausente' }; ?>
                         <input type="hidden" name="estatus[<?= (int)$d['atleta_id'] ?>]" value="<?= $currentStatus ?>" class="status-val">
                         <button type="button" class="status-btn <?= $currentStatus === 'Presente' ? 'active' : '' ?>" data-val="Presente">Presente</button>
                         <button type="button" class="status-btn <?= $currentStatus === 'Ausente' ? 'active' : '' ?>" data-val="Ausente">Ausente</button>
-                        <button type="button" class="status-btn" data-val="Justificado">Justificado</button>
+                        <button type="button" class="status-btn <?= $currentStatus === 'Justificado' ? 'active' : '' ?>" data-val="Justificado">Justificado</button>
                     </div>
 
                     <div>

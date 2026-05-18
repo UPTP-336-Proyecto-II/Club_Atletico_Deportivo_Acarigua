@@ -71,8 +71,8 @@ final class AsistenciaService
                  VALUES (:e, :a, :s, :o)'
             );
             foreach ($detalles as $d) {
-                // Mapeo de estatus: 1 si es Presente o 1, 0 en otro caso
-                $est = ($d['estatus'] === 'Presente' || $d['estatus'] === 1 || $d['estatus'] === '1') ? 1 : 0;
+                // El estatus ya viene mapeado correctamente desde el controlador (0, 1, 2)
+                $est = (int) $d['estatus'];
                 
                 $stmt->execute([
                     ':e' => $eventoId,
@@ -134,7 +134,7 @@ final class AsistenciaService
                  VALUES (:e, :a, :s, :o)'
             );
             foreach ($detalles as $d) {
-                $est = ($d['estatus'] === 'Presente' || $d['estatus'] === 1 || $d['estatus'] === '1') ? 1 : 0;
+                $est = (int) $d['estatus'];
                 $stmt->execute([
                     ':e' => $eventoId,
                     ':a' => (int) $d['atleta_id'],

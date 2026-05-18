@@ -133,14 +133,9 @@
                 </td>
                 <td style="text-align: right; padding-right: 24px;">
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Ver Perfil" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
-                            <i class="ph ph-eye"></i>
+                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="<?= can('admin') ? 'Editar Perfil' : 'Ver Perfil' ?>" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="ph <?= can('admin') ? 'ph-pencil-simple' : 'ph-eye' ?>"></i>
                         </a>
-                        <?php if (can('admin')): ?>
-                            <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/editar')) ?>" class="btn btn-sm btn-outline" title="Editar" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
-                                <i class="ph ph-pencil-simple"></i>
-                            </a>
-                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
@@ -167,3 +162,267 @@
         </ul>
     </div>
 <?php endif; ?>
+
+<!-- Modal: Nueva Medición -->
+<div id="modal-medicion" class="modal-overlay" style="display:none;">
+    <form id="form-medicion" action="" method="POST" class="modal-container" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="ph ph-ruler"></i> Nueva Medición: <span id="atleta-nombre-modal"></span></h3>
+            <button type="button" class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <?= csrf_field() ?>
+        <div class="modal-body">
+            <div id="medicion-error" style="display:none; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;"></div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Fecha de Medición *</label>
+                    <input type="date" name="fecha_medicion" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Peso (kg)</label>
+                    <input type="number" step="0.1" name="peso" class="form-control" placeholder="Ej: 70.5">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Altura (m)</label>
+                    <input type="number" step="0.01" name="altura" class="form-control" placeholder="Ej: 1.75">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">% Grasa</label>
+                    <input type="number" step="0.1" name="porcentaje_grasa" class="form-control" placeholder="Ej: 12.5">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">% Musculatura</label>
+                    <input type="number" step="0.1" name="porcentaje_musculatura" class="form-control" placeholder="Ej: 40.2">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Envergadura (m)</label>
+                    <input type="number" step="0.01" name="envergadura" class="form-control" placeholder="Ej: 1.80">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pierna (cm)</label>
+                    <input type="number" step="0.1" name="largo_de_pierna" class="form-control" placeholder="Ej: 90">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Torso (cm)</label>
+                    <input type="number" step="0.1" name="largo_de_torso" class="form-control" placeholder="Ej: 50">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" data-close-modal>Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Guardar Medición</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal-medicion');
+    const form = document.getElementById('form-medicion');
+    const baseUrl = "<?= e(url('/admin/medidas/atleta')) ?>";
+
+    document.querySelectorAll('.btn-nueva-medicion').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const nombre = btn.getAttribute('data-nombre');
+            
+            document.getElementById('atleta-nombre-modal').textContent = nombre;
+            form.action = `${baseUrl}/${id}`;
+            document.getElementById('medicion-error').style.display = 'none';
+            form.reset();
+            form.querySelector('[name="fecha_medicion"]').value = "<?= date('Y-m-d') ?>";
+            modal.style.display = 'flex';
+        });
+    });
+
+    const cerrarModal = () => { modal.style.display = 'none'; };
+    modal.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', cerrarModal));
+    modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById('medicion-error');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+
+        errorDiv.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Notificar éxito y recargar o mostrar mensaje
+                if (typeof CadaModal !== 'undefined') {
+                    CadaModal.alert({
+                        title: 'Éxito',
+                        text: result.message,
+                        type: 'success'
+                    }).then(() => window.location.reload());
+                } else {
+                    alert(result.message);
+                    window.location.reload();
+                }
+            } else {
+                errorDiv.textContent = result.message || 'Error al guardar la medición.';
+                if (result.errors) {
+                    const firstError = Object.values(result.errors)[0][0];
+                    errorDiv.textContent += ' ' + firstError;
+                }
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        } catch (error) {
+            errorDiv.textContent = 'Error de conexión.';
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+});
+</script>
+
+<!-- Modal: Registrar Prueba Física -->
+<div id="modal-prueba-fisica" class="modal-overlay" style="display:none;">
+    <form id="form-prueba-fisica" action="" method="POST" class="modal-container" style="max-width: 550px;">
+        <div class="modal-header">
+            <h3 class="modal-title"><i class="ph ph-chart-line-up"></i> Registrar Prueba: <span id="atleta-nombre-prueba-modal"></span></h3>
+            <button type="button" class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <?= csrf_field() ?>
+        <div class="modal-body">
+            <div id="prueba-fisica-error" style="display:none; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;"></div>
+            
+            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">Ingrese los resultados de las pruebas (escala 1-100). Se generará un evento automático para hoy.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Test de Fuerza</label>
+                    <input type="number" name="test_de_fuerza" class="form-control" min="0" max="100" placeholder="0-100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Test de Resistencia</label>
+                    <input type="number" name="test_resistencia" class="form-control" min="0" max="100" placeholder="0-100">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label class="form-label">Test de Velocidad</label>
+                    <input type="number" name="test_velocidad" class="form-control" min="0" max="100" placeholder="0-100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Test de Coordinación</label>
+                    <input type="number" name="test_coordinacion" class="form-control" min="0" max="100" placeholder="0-100">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Test de Reacción</label>
+                    <input type="number" name="test_de_reaccion" class="form-control" min="0" max="100" placeholder="0-100">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" data-close-modal>Cancelar</button>
+            <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Guardar Resultados</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modalPrueba = document.getElementById('modal-prueba-fisica');
+    const formPrueba = document.getElementById('form-prueba-fisica');
+    const baseUrlPruebas = "<?= e(url('/admin/resultados-pruebas/atleta')) ?>";
+
+    document.querySelectorAll('.btn-nueva-prueba-fisica').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const nombre = btn.getAttribute('data-nombre');
+            
+            document.getElementById('atleta-nombre-prueba-modal').textContent = nombre;
+            formPrueba.action = `${baseUrlPruebas}/${id}`;
+            document.getElementById('prueba-fisica-error').style.display = 'none';
+            formPrueba.reset();
+            modalPrueba.style.display = 'flex';
+        });
+    });
+
+    const cerrarModalPrueba = () => { modalPrueba.style.display = 'none'; };
+    modalPrueba.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', cerrarModalPrueba));
+    modalPrueba.addEventListener('click', (e) => { if (e.target === modalPrueba) cerrarModalPrueba(); });
+
+    formPrueba.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById('prueba-fisica-error');
+        const submitBtn = formPrueba.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+
+        errorDiv.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
+
+        try {
+            const formData = new FormData(formPrueba);
+            const response = await fetch(formPrueba.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'Accept': 'application/json' }
+            });
+
+            const text = await response.text();
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error("Invalid JSON:", text);
+                throw new Error("El servidor no devolvió una respuesta válida.");
+            }
+
+            if (result.success) {
+                if (typeof CadaModal !== 'undefined') {
+                    CadaModal.alert({
+                        title: 'Éxito',
+                        text: result.message,
+                        type: 'success'
+                    }).then(() => window.location.reload());
+                } else {
+                    alert(result.message);
+                    window.location.reload();
+                }
+            } else {
+                errorDiv.textContent = result.message || 'Error al guardar los resultados.';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        } catch (error) {
+            errorDiv.textContent = error.message || 'Error de conexión.';
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+});
+</script>

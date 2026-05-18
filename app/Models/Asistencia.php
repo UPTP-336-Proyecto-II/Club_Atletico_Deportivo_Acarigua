@@ -31,4 +31,17 @@ final class Asistencia extends Model
             $bindings
         );
     }
+
+    public function historialAtleta(int $atletaId): array
+    {
+        return $this->query(
+            "SELECT a.*, act.fecha, act.tipo_actividad, act.ubicacion
+             FROM asistencias a
+             JOIN actividades act ON act.actividad_id = a.actividad_id
+             WHERE a.atleta_id = :a
+             ORDER BY act.fecha DESC
+             LIMIT 50",
+            [':a' => $atletaId]
+        );
+    }
 }

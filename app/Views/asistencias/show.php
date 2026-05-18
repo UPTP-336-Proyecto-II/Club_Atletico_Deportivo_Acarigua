@@ -40,8 +40,8 @@
                     <td><?= e($d['cedula'] ?? '—') ?></td>
                     <td>
                         <?php 
-                            $status = (int)$d['estatus'] === 1 ? 'Presente' : 'Ausente';
-                            $badge = (int)$d['estatus'] === 1 ? 'success' : 'danger';
+                            $status = match ((int)$d['estatus']) { 1 => 'Presente', 2 => 'Justificado', default => 'Ausente' };
+                            $badge = match ((int)$d['estatus']) { 1 => 'success', 2 => 'warning', default => 'danger' };
                         ?>
                         <span class="badge badge-<?= $badge ?>" style="font-weight: 600; text-transform: uppercase; font-size: 11px;">
                             <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor; margin-right:6px;"></span>

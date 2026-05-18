@@ -43,6 +43,7 @@
 }
 
 html.dark {
+    color-scheme: dark;
     --color-text: #E5E7EB;
     --color-text-muted: #9CA3AF;
     --color-bg: #0B1220;
@@ -72,6 +73,41 @@ body {
     -webkit-font-smoothing: antialiased;
     transition: background 0.2s ease, color 0.2s ease;
 }
+
+/* ============================================================
+   Scrollbars personalizados para todo el sistema (Premium Vinotinto)
+   ============================================================ */
+
+/* 1. Motores Webkit (Chrome, Edge, Safari, Opera, Brave) */
+::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+}
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgba(190, 18, 60, 0.5) !important; /* Rojo vinotinto semi-transparente */
+    border-radius: 10px !important;
+    border: 1px solid transparent !important;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #BE123C !important; /* Rojo vinotinto sólido en hover */
+}
+::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* 2. Soporte Estándar (Firefox y otros navegadores no-Webkit) */
+@supports not selector(::-webkit-scrollbar) {
+    html, body, * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(190, 18, 60, 0.5) transparent;
+    }
+}
+
 
 a {
     color: var(--color-primary);
@@ -428,7 +464,10 @@ body.error-page {
     padding: 24px;
     box-shadow: var(--shadow-sm);
 }
-.card + .card { margin-top: 16px; }
+
+.card+.card {
+    margin-top: 16px;
+}
 
 /* Grid de métricas */
 .stats-grid {
@@ -437,6 +476,7 @@ body.error-page {
     gap: 16px;
     margin-bottom: 24px;
 }
+
 .stat-card {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
@@ -446,15 +486,18 @@ body.error-page {
     box-shadow: var(--shadow-sm);
     transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .stat-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow);
 }
+
 .stat-card .stat-number {
     font-family: var(--font-display);
     font-size: 36px;
     font-weight: 800;
 }
+
 .stat-card .stat-label {
     font-size: 13px;
     color: var(--color-text-muted);
@@ -468,6 +511,7 @@ body.error-page {
     gap: 16px;
     margin-bottom: 24px;
 }
+
 .quick-card {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
@@ -482,11 +526,13 @@ body.error-page {
     transition: all 0.2s;
     cursor: pointer;
 }
+
 .quick-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow);
     border-color: var(--color-primary-light);
 }
+
 .quick-card .qc-icon {
     width: 44px;
     height: 44px;
@@ -497,12 +543,37 @@ body.error-page {
     font-size: 22px;
     flex-shrink: 0;
 }
-.quick-card .qc-icon.red { background: var(--color-primary-light); color: var(--color-primary); }
-.quick-card .qc-icon.blue { background: #DBEAFE; color: #1E40AF; }
-.quick-card .qc-icon.green { background: #DCFCE7; color: #166534; }
-.quick-card .qc-icon.orange { background: #FFF7ED; color: #9A3412; }
-.quick-card .qc-title { font-weight: 600; font-size: 14px; }
-.quick-card .qc-desc { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+
+.quick-card .qc-icon.red {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.quick-card .qc-icon.blue {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.quick-card .qc-icon.green {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.quick-card .qc-icon.orange {
+    background: #FFF7ED;
+    color: #9A3412;
+}
+
+.quick-card .qc-title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.quick-card .qc-desc {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
 
 /* Dashboard Welcome */
 .welcome-card {
@@ -516,18 +587,26 @@ body.error-page {
     align-items: center;
     gap: 20px;
 }
+
 .welcome-card .wc-avatar {
-    width: 64px; height: 64px;
-    background: rgba(255,255,255,0.2);
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: 800; font-family: var(--font-display);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    font-family: var(--font-display);
 }
+
 .welcome-card .wc-title {
     font-family: var(--font-display);
     font-size: 24px;
     font-weight: 700;
 }
+
 .welcome-card .wc-sub {
     font-size: 14px;
     opacity: 0.85;

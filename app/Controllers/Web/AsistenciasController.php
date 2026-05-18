@@ -89,9 +89,17 @@ final class AsistenciasController extends Controller
             $aid = (int) $aid;
             if (!$aid)
                 continue;
+
+            $est = $estatuses[$aid] ?? 'Ausente';
+            $estatusVal = match ($est) {
+                'Presente', '1' => 1,
+                'Justificado', 'Permiso', '2' => 2,
+                default => 0,
+            };
+
             $detalles[] = [
                 'atleta_id' => $aid,
-                'estatus' => ($estatuses[$aid] ?? 'Ausente') === 'Presente' ? 1 : 0,
+                'estatus' => $estatusVal,
                 'observaciones' => $observaciones[$aid] ?? null,
             ];
         }
@@ -237,9 +245,17 @@ final class AsistenciasController extends Controller
             $aid = (int) $aid;
             if (!$aid)
                 continue;
+            
+            $est = $estatuses[$aid] ?? 'Ausente';
+            $estatusVal = match ($est) {
+                'Presente', '1' => 1,
+                'Justificado', 'Permiso', '2' => 2,
+                default => 0,
+            };
+
             $detalles[] = [
                 'atleta_id' => $aid,
-                'estatus' => $estatuses[$aid] ?? 'Ausente',
+                'estatus' => $estatusVal,
                 'observaciones' => $observaciones[$aid] ?? null,
             ];
         }

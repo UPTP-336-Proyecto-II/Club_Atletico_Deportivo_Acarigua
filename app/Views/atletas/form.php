@@ -61,15 +61,42 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 
                 <div class="af-grid af-grid--3">
                     <div class="form-group">
-                        <label class="form-label">Cédula</label>
-                        <input type="text" id="cedula" name="cedula" class="form-control" maxlength="13"
-                               placeholder="V-12.345.678"
-                               autocomplete="off"
-                               value="<?= e($get('cedula')) ?>">
+                        <label class="form-label" id="label-cedula">Cédula o Nro. de Folio</label>
+                        <?php
+                            $cedVal   = $get('cedula');
+                            $cedPref  = 'V';
+                            $cedNum   = '';
+                            if (!empty($cedVal)) {
+                                if (str_contains($cedVal, '-')) {
+                                    [$cedPref, $cedNum] = explode('-', $cedVal, 2);
+                                } else {
+                                    $firstChar = strtoupper($cedVal[0]);
+                                    if (in_array($firstChar, ['V', 'E', 'F'])) {
+                                        $cedPref = $firstChar;
+                                        $cedNum = substr($cedVal, 1);
+                                    } else {
+                                        $cedNum = $cedVal;
+                                    }
+                                }
+                            }
+                        ?>
+                        <div class="phone-field" id="phone-wrap-cedula">
+                            <select class="phone-prefix" id="cedula_prefix" aria-label="Prefijo">
+                                <option value="V" <?= $cedPref==='V'?'selected':'' ?>>V</option>
+                                <option value="E" <?= $cedPref==='E'?'selected':'' ?>>E</option>
+                                <option value="F" <?= $cedPref==='F'?'selected':'' ?>>F</option>
+                            </select>
+                            <span class="phone-sep">-</span>
+                            <input type="text" class="phone-number" id="cedula_number"
+                                   maxlength="10" placeholder="12.345.678 o Folio"
+                                   autocomplete="off"
+                                   value="<?= e($cedNum) ?>">
+                            <input type="hidden" name="cedula" id="cedula" value="<?= e($cedVal) ?>">
+                        </div>
                         <span class="field-error" id="cedula-error"></span>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Tel&eacute;fono</label>
+                        <label class="form-label" id="label-telefono">Tel&eacute;fono</label>
                         <?php
                             $telVal   = $get('telefono');
                             $telPref  = '';
@@ -98,7 +125,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Fecha de nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nac', $get('fecha_nacimiento'))) ?>" max="<?= date('Y-m-d', strtotime('-4 years')) ?>">
+                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nac', $get('fecha_nacimiento'))) ?>" max="<?= date('Y-m-d', strtotime('-6 years')) ?>">
                     </div>
                 </div>
 
@@ -238,21 +265,47 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Nombres</label>
-                        <input type="text" name="tutor_nombres" class="form-control" required maxlength="100" value="<?= e($get('tutor_nombres', $a['tutor_nombres'] ?? '')) ?>" placeholder="Nombres del representante">
+                        <input type="text" name="tutor_nombres" class="form-control" id="tutor_nombres" maxlength="100" value="<?= e($get('tutor_nombres', $a['tutor_nombres'] ?? '')) ?>" placeholder="Nombres del representante">
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Apellidos</label>
-                        <input type="text" name="tutor_apellidos" class="form-control" required maxlength="100" value="<?= e($get('tutor_apellidos', $a['tutor_apellidos'] ?? '')) ?>" placeholder="Apellidos del representante">
+                        <input type="text" name="tutor_apellidos" class="form-control" id="tutor_apellidos" maxlength="100" value="<?= e($get('tutor_apellidos', $a['tutor_apellidos'] ?? '')) ?>" placeholder="Apellidos del representante">
                     </div>
                 </div>
 
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Cédula</label>
-                        <input type="text" id="tutor_cedula" name="tutor_cedula" class="form-control" required maxlength="13"
-                               placeholder="V-12.345.678"
-                               autocomplete="off"
-                               value="<?= e($get('tutor_cedula', $a['tutor_cedula'] ?? '')) ?>">
+                        <?php
+                            $tcedVal   = $get('tutor_cedula', $a['tutor_cedula'] ?? '');
+                            $tcedPref  = 'V';
+                            $tcedNum   = '';
+                            if (!empty($tcedVal)) {
+                                if (str_contains($tcedVal, '-')) {
+                                    [$tcedPref, $tcedNum] = explode('-', $tcedVal, 2);
+                                } else {
+                                    $firstChar = strtoupper($tcedVal[0]);
+                                    if (in_array($firstChar, ['V', 'E'])) {
+                                        $tcedPref = $firstChar;
+                                        $tcedNum = substr($tcedVal, 1);
+                                    } else {
+                                        $tcedNum = $tcedVal;
+                                    }
+                                }
+                            }
+                        ?>
+                        <div class="phone-field" id="phone-wrap-tutor_cedula">
+                            <select class="phone-prefix" id="tutor_cedula_prefix" aria-label="Prefijo">
+                                <option value="V" <?= $tcedPref==='V'?'selected':'' ?>>V</option>
+                                <option value="E" <?= $tcedPref==='E'?'selected':'' ?>>E</option>
+                            </select>
+                            <span class="phone-sep">-</span>
+                            <input type="text" class="phone-number" id="tutor_cedula_number"
+                                   maxlength="10" placeholder="12.345.678"
+                                   autocomplete="off"
+                                   value="<?= e($tcedNum) ?>">
+                            <input type="hidden" name="tutor_cedula" id="tutor_cedula" value="<?= e($tcedVal) ?>">
+                        </div>
                         <span class="field-error" id="tutor_cedula-error"></span>
                     </div>
                     <div class="form-group">
@@ -275,7 +328,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
                                 <option value="0426" <?= $repTelPref==='0426'?'selected':'' ?>>0426</option>
                             </select>
                             <span class="phone-sep">-</span>
-                            <input type="text" class="phone-number" id="tutor_telefono_number" required
+                            <input type="text" class="phone-number" id="tutor_telefono_number"
                                    maxlength="7" placeholder="1234567"
                                    autocomplete="off" inputmode="numeric"
                                    value="<?= e($repTelNum) ?>">
@@ -358,7 +411,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08), 
                 0 0 1px rgba(0,0,0,0.1);
     overflow: hidden;
-    background: #fff;
+    background: var(--color-bg);
     border-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
@@ -414,8 +467,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     white-space: nowrap;
 }
 
-.ft-tab:hover { color: var(--color-text); }
-.ft-tab:hover .ft-tab__icon { background: var(--color-border); }
+
 
 .ft-tab.active { color: var(--color-primary); }
 .ft-tab.active .ft-tab__icon {
@@ -517,7 +569,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 }
 
 .form-control:focus {
-    background: #fff;
+    background: var(--color-bg);
     box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.08);
 }
 
@@ -594,7 +646,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
 }
 .phone-field:focus-within {
     border-color: var(--color-primary);
-    background: #fff;
+    background: var(--color-bg);
     box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.08);
 }
 .phone-field .phone-prefix {
@@ -605,6 +657,12 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     padding: 0 12px;
     cursor: pointer;
     border-right: 1px solid var(--color-border);
+    color: var(--color-text);
+    outline: none;
+}
+.phone-field .phone-prefix option {
+    background: var(--color-bg);
+    color: var(--color-text);
 }
 .phone-field .phone-number {
     flex: 1;
@@ -613,6 +671,7 @@ $get = fn(string $k, $default = '') => $a[$k] ?? $default;
     padding: 0 12px;
     font-size: 14px;
     outline: none;
+    color: var(--color-text);
 }
 .phone-field .phone-sep {
     display: flex;
@@ -736,28 +795,71 @@ function validateStep(idx) {
             }
         });
 
+        const dobInput = document.querySelector('input[name="fecha_nacimiento"]');
+        let age = 0;
+        if (dobInput && dobInput.value) {
+            const dob = new Date(dobInput.value);
+            const today = new Date();
+            age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        }
+
         // Validaciones especiales por step
         if (idx === 0) { // Personal
             const ced = document.getElementById('cedula');
+            // Cédula requerida para mayores de 9 años
+            if (age > 9) {
+                const cedNumInput = document.getElementById('cedula_number');
+                if (!cedNumInput || !cedNumInput.value.trim()) {
+                    showError('cedula', 'Cédula o folio requeridos para mayores de 9 años');
+                    missingFields.push('Cédula o Folio');
+                    isValid = false;
+                }
+            }
+
             if (ced && ced.value && !validarCedula(ced.value)) {
                 showError('cedula', 'Formato de cédula inválido');
                 missingFields.push('Cédula (Formato)');
                 isValid = false;
             }
+
+            // Teléfono personal requerido para mayores de edad
+            if (age >= 18) {
+                const telEl = document.getElementById('telefono_number');
+                if (!telEl || !telEl.value.trim()) {
+                    showError('telefono', 'Teléfono requerido para mayores de edad');
+                    missingFields.push('Teléfono Personal');
+                    isValid = false;
+                }
+            }
         }
         
         if (idx === 2) { // Representante
-            const tced = document.getElementById('tutor_cedula');
-            if (tced && !validarCedula(tced.value)) {
-                showError('tutor_cedula', 'Cédula requerida');
-                missingFields.push('Cédula del Representante');
-                isValid = false;
-            }
-            const ttel = document.getElementById('tutor_telefono_number');
-            if (!ttel || ttel.value.length !== 7) {
-                showError('tutor_telefono', 'Teléfono requerido');
-                missingFields.push('Teléfono del Representante (7 dígitos)');
-                isValid = false;
+            // Representante requerido solo si es menor de edad
+            if (age < 18) {
+                const tn = document.querySelector('input[name="tutor_nombres"]');
+                if (!tn || !tn.value.trim()) {
+                    missingFields.push('Nombres del Representante');
+                    isValid = false;
+                }
+                const ta = document.querySelector('input[name="tutor_apellidos"]');
+                if (!ta || !ta.value.trim()) {
+                    missingFields.push('Apellidos del Representante');
+                    isValid = false;
+                }
+                const tced = document.getElementById('tutor_cedula');
+                if (tced && !validarCedula(tced.value)) {
+                    showError('tutor_cedula', 'Cédula requerida');
+                    missingFields.push('Cédula del Representante');
+                    isValid = false;
+                }
+                const ttel = document.getElementById('tutor_telefono_number');
+                if (!ttel || ttel.value.length !== 7) {
+                    showError('tutor_telefono', 'Teléfono requerido');
+                    missingFields.push('Teléfono del Representante (7 dígitos)');
+                    isValid = false;
+                }
             }
         }
 
@@ -814,7 +916,7 @@ function loadEstados() {
             selEstado.innerHTML = '<option value="">Selecciona Estado...</option>';
             data.forEach(est => {
                 let selected = (parseInt(selEstado.dataset.current) === est.estado_id) ? 'selected' : '';
-                selEstado.innerHTML += `<option value="${est.estado_id}" ${selected}>${est.nombre}</option>`;
+                selEstado.innerHTML += `<option value="${est.estado_id}" ${selected}>${est.estado}</option>`;
             });
             if (selEstado.value) loadMunicipios(selEstado.value);
         })
@@ -836,7 +938,7 @@ function loadMunicipios(estadoId) {
             selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
             data.forEach(mun => {
                 let selected = (parseInt(selMunicipio.dataset.current) === parseInt(mun.municipio_id)) ? 'selected' : '';
-                selMunicipio.innerHTML += `<option value="${mun.municipio_id}" ${selected}>${mun.nombre}</option>`;
+                selMunicipio.innerHTML += `<option value="${mun.municipio_id}" ${selected}>${mun.municipio}</option>`;
             });
             if (selMunicipio.value) loadParroquias(selMunicipio.value);
         })
@@ -856,7 +958,7 @@ function loadParroquias(municipioId) {
             selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
             data.forEach(par => {
                 let selected = (parseInt(selParroquia.dataset.current) === parseInt(par.parroquia_id)) ? 'selected' : '';
-                selParroquia.innerHTML += `<option value="${par.parroquia_id}" ${selected}>${par.nombre}</option>`;
+                selParroquia.innerHTML += `<option value="${par.parroquia_id}" ${selected}>${par.parroquia}</option>`;
             });
         })
         .catch(console.error);
@@ -882,26 +984,57 @@ const form = document.querySelector('.af-card');
 
 if (btnReset) {
     btnReset.addEventListener('click', () => {
-        if (confirm('¿Estás seguro de que deseas limpiar todo el formulario?')) {
-            // Reset campos nativos
-            form.reset();
-            
-            // Reset widgets custom
-            document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.phone-field').forEach(el => el.style.borderColor = '');
-            
-            // Reset Foto
-            if (fotoPreviewCont) {
-                fotoPreviewCont.style.display = 'none';
-                fotoPreviewImg.src = '';
-                fotoLabel.classList.remove('has-file');
-                fotoLabel.querySelector('span').textContent = 'Subir foto';
+        if (typeof CadaModal !== 'undefined') {
+            CadaModal.confirm({
+                title: 'Limpiar Formulario',
+                text: '¿Estás seguro de que deseas limpiar todo el formulario y restablecer todos los campos?',
+                type: 'warning',
+                confirmText: 'Sí, limpiar'
+            }).then(confirmed => {
+                if (confirmed) {
+                    // Reset campos nativos
+                    form.reset();
+                    
+                    // Reset widgets custom
+                    document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
+                    document.querySelectorAll('.phone-field').forEach(el => el.style.borderColor = '');
+                    
+                    // Reset Foto
+                    if (fotoPreviewCont) {
+                        fotoPreviewCont.style.display = 'none';
+                        fotoPreviewImg.src = '';
+                        fotoLabel.classList.remove('has-file');
+                        fotoLabel.querySelector('span').textContent = 'Subir foto';
+                    }
+                    
+                    // Volver al inicio
+                    currentIdx = 0;
+                    updateUI();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        } else {
+            if (confirm('¿Estás seguro de que deseas limpiar todo el formulario?')) {
+                // Reset campos nativos
+                form.reset();
+                
+                // Reset widgets custom
+                document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.phone-field').forEach(el => el.style.borderColor = '');
+                
+                // Reset Foto
+                if (fotoPreviewCont) {
+                    fotoPreviewCont.style.display = 'none';
+                    fotoPreviewImg.src = '';
+                    fotoLabel.classList.remove('has-file');
+                    fotoLabel.querySelector('span').textContent = 'Subir foto';
+                }
+                
+                // Volver al inicio
+                currentIdx = 0;
+                updateUI();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
-            
-            // Volver al inicio
-            currentIdx = 0;
-            updateUI();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 }
@@ -909,20 +1042,23 @@ if (btnReset) {
 // Inicializar
 updateUI();
 
-// ── Cédula venezolana ────────────────────────────────────────────────────────
+// ── Cédula y Folio venezolanos ──────────────────────────────────────────────────
 const CEDULA_REGEX = /^[VE]-\d{1,3}(\.\d{3})*$/;
+const FOLIO_REGEX = /^F-[A-Z0-9.\-\/]{2,10}$/;
 
-function formatearNumeroCedula(digits) {
+function formatCedulaNumber(val) {
+    let digits = val.replace(/\D/g, '').substring(0, 8);
     return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
-function normalizarCedula(raw) {
-    raw = raw.toUpperCase().trim();
-    let prefix = 'V-', rest = raw;
-    if (/^[VE]-/.test(raw))      { prefix = raw.substring(0, 2); rest = raw.substring(2); }
-    else if (/^[VE]/.test(raw)) { prefix = raw[0] + '-';         rest = raw.substring(1); }
-    const digits = rest.replace(/[^\d]/g, '').substring(0, 8);
-    return digits ? prefix + formatearNumeroCedula(digits) : prefix;
+
+function validarCedula(val) {
+    if (!val) return true;
+    if (val.startsWith('F-')) {
+        return FOLIO_REGEX.test(val);
+    }
+    return CEDULA_REGEX.test(val);
 }
+
 function showError(id, msg) {
     const el = document.getElementById(id + '-error');
     const wrap = document.getElementById('phone-wrap-' + id);
@@ -932,17 +1068,72 @@ function showError(id, msg) {
     if (inp && !wrap) inp.style.borderColor = msg ? 'var(--color-danger,#e53e3e)' : '';
 }
 function clearError(id) { showError(id, ''); }
-function validarCedula(val) { return !val || CEDULA_REGEX.test(val); }
 
-// ── Eventos Cédulas ────────────────────────────────────────────────────────────
-[document.getElementById('cedula'), document.getElementById('tutor_cedula')].forEach(inp => {
-    if (!inp) return;
-    inp.addEventListener('input', function() { this.value = normalizarCedula(this.value); });
-    inp.addEventListener('blur', function() {
-        validarCedula(this.value) ? clearError(this.id) : showError(this.id, 'Formato inválido. Ej: V-12.345.678');
+function setupCedulaWidget(prefixId, numberId, hiddenId, errorKey) {
+    const prefixEl = document.getElementById(prefixId);
+    const numberEl = document.getElementById(numberId);
+    const hiddenEl = document.getElementById(hiddenId);
+    if (!prefixEl || !numberEl || !hiddenEl) return;
+
+    function sync() {
+        let val = numberEl.value.trim().toUpperCase();
+        if (prefixEl.value === 'V' || prefixEl.value === 'E') {
+            val = formatCedulaNumber(val);
+        } else {
+            // Para Folio, permitir letras y números (sin puntos automáticos)
+            val = val.replace(/[^A-Z0-9]/g, '').substring(0, 10);
+        }
+        numberEl.value = val;
+        hiddenEl.value = val.length ? prefixEl.value + '-' + val : '';
+    }
+    
+    // Si ya viene un valor cargado, separar prefijo y número
+    if (hiddenEl.value) {
+        let raw = hiddenEl.value;
+        let prefix = 'V', num = raw;
+        if (raw.includes('-')) {
+            let parts = raw.split('-');
+            prefix = parts[0];
+            num = parts[1];
+        } else {
+            let firstChar = raw.charAt(0).toUpperCase();
+            if (['V', 'E', 'F'].includes(firstChar)) {
+                prefix = firstChar;
+                num = raw.substring(1);
+            }
+        }
+        prefixEl.value = prefix;
+        numberEl.value = prefix === 'V' || prefix === 'E' ? formatCedulaNumber(num) : num;
+    }
+    sync();
+
+    numberEl.addEventListener('input', () => { sync(); clearError(errorKey); });
+    prefixEl.addEventListener('change', () => {
+        if (prefixEl.value === 'F') {
+            numberEl.placeholder = "Nro de Folio";
+            numberEl.maxLength = 10;
+        } else {
+            numberEl.placeholder = "12.345.678";
+            numberEl.maxLength = 10;
+        }
+        sync();
+        clearError(errorKey);
+        numberEl.focus();
     });
-    inp.addEventListener('focus', function() { clearError(this.id); });
-});
+    numberEl.addEventListener('blur', () => {
+        const val = hiddenEl.value;
+        if (val && !validarCedula(val)) {
+            showError(errorKey, prefixEl.value === 'F' ? 'Folio inválido (mín. 2 letras/números)' : 'Formato inválido. Ej: ' + prefixEl.value + '-12.345.678');
+        } else {
+            clearError(errorKey);
+        }
+    });
+    numberEl.addEventListener('focus', () => clearError(errorKey));
+}
+
+// Inicializar widgets de Cédula
+setupCedulaWidget('cedula_prefix', 'cedula_number', 'cedula', 'cedula');
+setupCedulaWidget('tutor_cedula_prefix', 'tutor_cedula_number', 'tutor_cedula', 'tutor_cedula');
 
 // ── Preview de Foto ──────────────────────────────────────────────────────────
 const fotoInput = document.getElementById('foto-input');
@@ -1017,6 +1208,88 @@ function setupPhoneWidget(prefixId, numberId, hiddenId, errorKey) {
 setupPhoneWidget('telefono_prefix',     'telefono_number',     'telefono',     'telefono');
 setupPhoneWidget('tutor_telefono_prefix', 'tutor_telefono_number', 'tutor_telefono', 'tutor_telefono');
 
+// --- Lógica Dinámica de Cédula y Representante por Edad ---
+function updateDynamicRequirements() {
+    const dobInput = document.querySelector('input[name="fecha_nacimiento"]');
+    if (!dobInput || !dobInput.value) return;
+
+    const dob = new Date(dobInput.value);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+
+    // 1. Cédula obligatoria si es mayor de 9 años
+    const cedInput = document.getElementById('cedula_number');
+    const cedLabel = document.getElementById('label-cedula');
+    if (age > 9) {
+        if (cedInput) cedInput.setAttribute('required', 'true');
+        if (cedLabel && !cedLabel.querySelector('.required')) {
+            cedLabel.insertAdjacentHTML('afterbegin', '<span class="required">*</span> ');
+        }
+    } else {
+        if (cedInput) cedInput.removeAttribute('required');
+        if (cedLabel) {
+            const reqSpan = cedLabel.querySelector('.required');
+            if (reqSpan) reqSpan.remove();
+        }
+    }
+
+    const isAdult = age >= 18;
+
+    // 2. Teléfono personal obligatorio si es mayor de edad (Adulto)
+    const telInput = document.getElementById('telefono_number');
+    const telLabel = document.getElementById('label-telefono');
+    if (isAdult) {
+        if (telInput) telInput.setAttribute('required', 'true');
+        if (telLabel && !telLabel.querySelector('.required')) {
+            telLabel.insertAdjacentHTML('afterbegin', '<span class="required">*</span> ');
+        }
+    } else {
+        if (telInput) telInput.removeAttribute('required');
+        if (telLabel) {
+            const reqSpan = telLabel.querySelector('.required');
+            if (reqSpan) reqSpan.remove();
+        }
+    }
+
+    // 3. Datos del representante no obligatorios si es mayor de edad
+    const tutorFields = [
+        'tutor_nombres',
+        'tutor_apellidos',
+        'tutor_cedula_number',
+        'tutor_telefono_number'
+    ];
+
+    tutorFields.forEach(id => {
+        const inputEl = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+        if (inputEl) {
+            const fg = inputEl.closest('.form-group');
+            const label = fg ? fg.querySelector('.form-label') : null;
+            if (isAdult) {
+                inputEl.removeAttribute('required');
+                if (label) {
+                    const reqSpan = label.querySelector('.required');
+                    if (reqSpan) reqSpan.remove();
+                }
+            } else {
+                inputEl.setAttribute('required', 'true');
+                if (label && !label.querySelector('.required')) {
+                    label.insertAdjacentHTML('afterbegin', '<span class="required">*</span> ');
+                }
+            }
+        }
+    });
+}
+
+const dobEl = document.querySelector('input[name="fecha_nacimiento"]');
+if (dobEl) {
+    dobEl.addEventListener('change', updateDynamicRequirements);
+    dobEl.addEventListener('input', updateDynamicRequirements);
+    // Ejecutar al cargar para atletas existentes o reediciones
+    updateDynamicRequirements();
+}
+
 // ── Validación Final ───────────────────────────────────────────────────────
 document.querySelector('form').addEventListener('submit', function(e) {
     if (!validateStep(currentIdx)) {
@@ -1027,17 +1300,43 @@ document.querySelector('form').addEventListener('submit', function(e) {
     let hasError = false;
     const check = (id, valid, msg) => {
         const val = document.getElementById(id)?.value ?? '';
-        if (!valid(val)) { showError(id, msg); hasError = true; }
+        if (val && !valid(val)) { showError(id, msg); hasError = true; }
     };
 
-    check('cedula', validarCedula, 'Revisa el formato');
-    check('tutor_cedula', validarCedula, 'Revisa el formato');
-    
-    const telAtleta = document.getElementById('telefono_number')?.value;
-    if (telAtleta && telAtleta.length !== 7) { showError('telefono', 'Ingresa 7 dígitos'); hasError = true; }
+    const dobInput = document.querySelector('input[name="fecha_nacimiento"]');
+    let age = 0;
+    if (dobInput && dobInput.value) {
+        const dob = new Date(dobInput.value);
+        const today = new Date();
+        age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    }
 
-    const telRep = document.getElementById('tutor_telefono_number')?.value;
-    if (telRep && telRep.length !== 7) { showError('tutor_telefono', 'Ingresa 7 dígitos'); hasError = true; }
+    if (age > 9) {
+        const cedVal = document.getElementById('cedula')?.value;
+        if (!cedVal) { showError('cedula', 'Cédula o folio requeridos para mayores de 9 años'); hasError = true; }
+    }
+    check('cedula', validarCedula, 'Revisa el formato');
+
+    if (age < 18) {
+        const tcedVal = document.getElementById('tutor_cedula')?.value;
+        if (!tcedVal) { showError('tutor_cedula', 'Cédula del representante requerida'); hasError = true; }
+        check('tutor_cedula', validarCedula, 'Revisa el formato');
+        
+        const telRep = document.getElementById('tutor_telefono_number')?.value;
+        if (!telRep || telRep.length !== 7) { showError('tutor_telefono', 'Ingresa 7 dígitos'); hasError = true; }
+    } else {
+        check('tutor_cedula', validarCedula, 'Revisa el formato');
+    }
+    
+    if (age >= 18) {
+        const telAtleta = document.getElementById('telefono_number')?.value;
+        if (!telAtleta || telAtleta.length !== 7) { showError('telefono', 'Ingresa 7 dígitos'); hasError = true; }
+    } else {
+        const telAtleta = document.getElementById('telefono_number')?.value;
+        if (telAtleta && telAtleta.length !== 7) { showError('telefono', 'Ingresa 7 dígitos'); hasError = true; }
+    }
 
     if (hasError) {
         e.preventDefault();
