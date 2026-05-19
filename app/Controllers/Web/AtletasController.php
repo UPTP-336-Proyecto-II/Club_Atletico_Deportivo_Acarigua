@@ -114,18 +114,20 @@ final class AtletasController extends Controller
         $data = $this->rawInput($request);
         $errors = $this->validar($data)->errors();
         if ($errors) {
-            $this->withErrors($errors);
+            $this->withOld($data)->withErrors($errors);
             return $this->redirect('/admin/atletas/crear');
         }
 
         $fechaNac = strtotime($data['fecha_nacimiento']);
         $hoy = time();
         if ($fechaNac > $hoy) {
+            $this->withOld($data);
             flash('error', 'La fecha de nacimiento no puede ser en el futuro.');
             return $this->redirect('/admin/atletas/crear');
         }
         $edad = date('Y', $hoy) - date('Y', $fechaNac);
         if ($edad < self::EDAD_MINIMA_ATLETA) {
+            $this->withOld($data);
             flash('error', 'El atleta debe tener al menos ' . self::EDAD_MINIMA_ATLETA . ' años de edad.');
             return $this->redirect('/admin/atletas/crear');
         }
@@ -137,6 +139,7 @@ final class AtletasController extends Controller
             return $this->redirect("/admin/atletas/$id");
         } catch (Throwable $e) {
             Logger::error($e);
+            $this->withOld($data);
             flash('error', 'No se pudo crear el atleta: ' . $e->getMessage());
             return $this->redirect('/admin/atletas/crear');
         }
@@ -188,7 +191,7 @@ final class AtletasController extends Controller
                     'errors' => $v->errors()
                 ], 422);
             }
-            $this->withErrors($v->errors());
+            $this->withOld($data)->withErrors($v->errors());
             return $this->redirect("/admin/atletas/$id/editar");
         }
 
@@ -197,6 +200,7 @@ final class AtletasController extends Controller
         if ($fechaNac > $hoy) {
             $msg = 'La fecha de nacimiento no puede ser en el futuro.';
             if ($request->isAjax() || $request->isJson()) return Response::json(['success' => false, 'message' => $msg], 400);
+            $this->withOld($data);
             flash('error', $msg);
             return $this->redirect("/admin/atletas/$id/editar");
         }
@@ -205,6 +209,7 @@ final class AtletasController extends Controller
         if ($edad < self::EDAD_MINIMA_ATLETA) {
             $msg = 'El atleta debe tener al menos ' . self::EDAD_MINIMA_ATLETA . ' años de edad.';
             if ($request->isAjax() || $request->isJson()) return Response::json(['success' => false, 'message' => $msg], 400);
+            $this->withOld($data);
             flash('error', $msg);
             return $this->redirect("/admin/atletas/$id/editar");
         }
@@ -222,6 +227,7 @@ final class AtletasController extends Controller
             Logger::error($e);
             $msg = 'No se pudo actualizar: ' . $e->getMessage();
             if ($request->isAjax() || $request->isJson()) return Response::json(['success' => false, 'message' => $msg], 500);
+            $this->withOld($data);
             flash('error', $msg);
             return $this->redirect("/admin/atletas/$id/editar");
         }
@@ -245,6 +251,8 @@ final class AtletasController extends Controller
             'categoria_id'      => $request->input('categoria_id', $actual['categoria_id']),
             'estatus'           => $request->input('estatus') !== null ? (int) $request->input('estatus') : $actual['estatus'],
             
+            'estado_id'         => $request->input('estado_id', $actual['estado_id'] ?? null),
+            'municipio_id'      => $request->input('municipio_id', $actual['municipio_id'] ?? null),
             'parroquia_id'      => $request->input('parroquia_id', $actual['parroquias_id']),
             'localidad'         => $request->input('localidad', $actual['localidad']),
             'tipo_vivienda'     => $request->input('tipo_vivienda', $actual['tipo_vivienda']),
@@ -300,6 +308,8 @@ final class AtletasController extends Controller
             'estatus' => $request->input('estatus') !== null ? (int) $request->input('estatus') : 1,
 
             // Dirección (Adaptado a tabla direcciones)
+            'estado_id' => $request->input('estado_id') ?: null,
+            'municipio_id' => $request->input('municipio_id') ?: null,
             'parroquia_id' => $request->input('parroquia_id') ?: null,
             'localidad' => trim((string) $request->input('localidad', '')),
             'tipo_vivienda' => trim((string) $request->input('tipo_vivienda', '')),
@@ -325,8 +335,8 @@ final class AtletasController extends Controller
 
     private function validar(array $data, ?int $ignoreId = null): Validator
     {
-        // Regex: cédula venezolana V-X.XXX.XXX o E-XX.XXX.XXX (hasta 8 dígitos) o F-Folio (letras, números, de 2 a 10 caracteres)
-        $cedRegex = '/^([VE]-\d{1,3}(\.\d{3})*|F-[A-Z0-9.\-\/]{2,10})$/i';
+        // Regex: cédula venezolana V-X.XXX.XXX o E-XX.XXX.XXX (hasta 8 dígitos) o P-AÑO-ACTA-FOLIO (partida de nacimiento)
+        $cedRegex = '/^([VE]-\d{1,3}(\.\d{3})*|P-\d{4}-[A-Z0-9]{1,5}-[A-Z0-9]{1,5})$/i';
         // Regex: teléfono 11 dígitos con prefijo venezolano (prefijo 4 dígitos + 7 dígitos = 11 total)
         $telRegex = '/^0(412|414|416|422|424|426)\d{7}$/';
 
@@ -382,12 +392,13 @@ final class AtletasController extends Controller
         }
 
         $messages = [
-            'cedula' => 'La cédula debe tener el formato V-12.345.678, E-1.234.567 o F-FOLIO (letras y números). Es obligatoria para mayores de 9 años.',
+            'cedula' => 'La cédula debe tener el formato V-12.345.678, E-12.345.678 o P-AÑO-ACTA-FOLIO (partida de nacimiento). Es obligatoria para mayores de 9 años.',
             'telefono' => 'El teléfono debe comenzar con 0412, 0414, 0416, 0422 o 0424 y tener 11 dígitos. Es obligatorio para mayores de edad.',
             'tutor_nombres' => 'El nombre del representante es obligatorio para menores de edad.',
             'tutor_apellidos' => 'El apellido del representante es obligatorio para menores de edad.',
-            'tutor_cedula' => 'La cédula del representante debe tener el formato V-12.345.678 o E-1.234.567 y es obligatoria para menores de edad.',
+            'tutor_cedula' => 'La cédula del representante debe tener el formato V-12.345.678 o E-12.345.678 y es obligatoria para menores de edad.',
             'tutor_telefono' => 'El teléfono del representante es obligatorio para menores de edad y debe tener 11 dígitos.',
+            'tutor_relacion' => 'El tipo de relación con el representante es obligatorio.',
         ];
 
         $v = Validator::make($data, $rules, $messages);

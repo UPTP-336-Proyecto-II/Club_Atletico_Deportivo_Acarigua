@@ -2,7 +2,7 @@
             <div id="tab-general" class="tab-content active">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 style="margin: 0; font-family: var(--font-display);"><i class="ph ph-map-pin-line text-primary"
-                            style="margin-right: 8px;"></i>Dirección Detallada</h3>
+                            style="margin-right: 8px;"></i>DirecciÃ³n Detallada</h3>
                     <?php if (can('admin')): ?>
                         <button type="button" class="btn btn-outline btn-sm" id="btn-abrir-editar-direccion"
                             style="border-radius: 20px;">
@@ -24,7 +24,7 @@
                                     style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 2px;">
                                     Estado</div>
                                 <div style="font-weight: 600; font-size: 15px; color: var(--color-text);">
-                                    <?= e($atleta['estado'] ?? '—') ?></div>
+                                    <?= e($atleta['estado'] ?? 'â') ?></div>
                             </div>
                         </div>
 
@@ -38,7 +38,7 @@
                                     style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 2px;">
                                     Municipio</div>
                                 <div style="font-weight: 600; font-size: 15px; color: var(--color-text);">
-                                    <?= e($atleta['municipio'] ?? '—') ?></div>
+                                    <?= e($atleta['municipio'] ?? 'â') ?></div>
                             </div>
                         </div>
 
@@ -52,7 +52,7 @@
                                     style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 2px;">
                                     Parroquia</div>
                                 <div style="font-weight: 600; font-size: 15px; color: var(--color-text);">
-                                    <?= e($atleta['parroquia'] ?? '—') ?></div>
+                                    <?= e($atleta['parroquia'] ?? 'â') ?></div>
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@
                         <div style="flex: 1;">
                             <div
                                 style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px;">
-                                Localidad / Dirección Exacta</div>
+                                Localidad / DirecciÃ³n Exacta</div>
                             <div
                                 style="font-weight: 500; font-size: 15px; color: var(--color-text); line-height: 1.5; background: var(--color-bg); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--color-border);">
                                 <?= !empty($atleta['localidad']) ? e($atleta['localidad']) : '<span style="color:var(--color-text-muted); font-style:italic;">No especificada</span>' ?>
@@ -83,7 +83,7 @@
                         </div>
                         <div
                             style="padding: 8px 16px; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
-                            <i class="ph ph-info text-primary" style="font-size: 16px;"></i> Ubicación:
+                            <i class="ph ph-info text-primary" style="font-size: 16px;"></i> UbicaciÃ³n:
                             <?= e($atleta['ubicacion_vivienda'] ?? 'N/A') ?>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <h3 style="margin: 0; font-family: var(--font-display);"><i class="ph ph-users text-primary"
-                            style="margin-right: 8px;"></i>Información del Representante Legal</h3>
+                            style="margin-right: 8px;"></i>InformaciÃ³n del Representante Legal</h3>
                     <?php if (can('admin')): ?>
                         <button type="button" class="btn btn-outline btn-sm" id="btn-abrir-editar-representante"
                             style="border-radius: 20px;">
@@ -136,9 +136,9 @@
                                 <div>
                                     <div
                                         style="font-size: 12px; color: var(--color-text-muted); font-weight: 600; margin-bottom: 2px;">
-                                        Cédula de Identidad</div>
+                                        CÃ©dula de Identidad</div>
                                     <div style="font-weight: 600; font-size: 15px; color: var(--color-text);">
-                                        <?= e($atleta['rep_cedula'] ?? $atleta['tutor_cedula'] ?? '—') ?></div>
+                                        <?= e($atleta['rep_cedula'] ?? $atleta['tutor_cedula'] ?? 'â') ?></div>
                                 </div>
                             </div>
 
@@ -150,9 +150,9 @@
                                 <div>
                                     <div
                                         style="font-size: 12px; color: var(--color-text-muted); font-weight: 600; margin-bottom: 2px;">
-                                        Teléfono de Contacto</div>
+                                        TelÃ©fono de Contacto</div>
                                     <div style="font-weight: 600; font-size: 15px; color: var(--color-text);">
-                                        <?= e($atleta['rep_telefono'] ?? $atleta['tutor_telefono'] ?? '—') ?></div>
+                                        <?= e($atleta['rep_telefono'] ?? $atleta['tutor_telefono'] ?? 'â') ?></div>
                                 </div>
                             </div>
                         </div>

@@ -13,7 +13,12 @@ $isEdit = !empty($c['categoria_id']);
         <h1><?= $isEdit ? 'Editar' : 'Crear' ?> Categoría</h1>
         <div class="subtitle"><?= $isEdit ? 'Modifica los parámetros de la categoría' : 'Define un nuevo grupo por rango de edad' ?></div>
     </div>
-    <a href="<?= e(url('/admin/categorias')) ?>" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Volver</a>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="button" class="btn-help" id="btn-help-categoria" title="¿Cómo llenar este formulario?">
+            <i class="ph ph-question"></i>
+        </button>
+        <a href="<?= e(url('/admin/categorias')) ?>" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Volver</a>
+    </div>
 </div>
 
 <div class="card" style="max-width: 800px; margin: 0 auto; padding: 0; overflow: hidden;">
@@ -23,7 +28,7 @@ $isEdit = !empty($c['categoria_id']);
         </h3>
     </div>
 
-    <form method="POST" action="<?= e($action) ?>" style="padding: 32px;">
+    <form method="POST" action="<?= e($action) ?>" style="padding: 32px;" novalidate>
         <?= csrf_field() ?>
         
         <div class="form-group">
@@ -34,7 +39,7 @@ $isEdit = !empty($c['categoria_id']);
                        placeholder="Ej: Sub-12, Semillitas..." required maxlength="50" 
                        value="<?= e($get('nombre_categoria', '')) ?>">
             </div>
-            <div class="form-hint">El nombre debe identificar claramente al grupo.</div>
+
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
@@ -115,21 +120,25 @@ html.dark input[type="number"] {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const minInput = document.querySelector('input[name="edad_min"]');
-    const maxInput = document.querySelector('input[name="edad_max"]');
-    
-    const validarEdades = () => {
-        const min = parseInt(minInput.value);
-        const max = parseInt(maxInput.value);
-        if (!isNaN(min) && !isNaN(max) && min > max) {
-            minInput.setCustomValidity('La edad mínima no puede ser mayor a la máxima.');
-        } else {
-            minInput.setCustomValidity('');
-        }
-    };
+    // Botón de ayuda [?]
+    document.getElementById('btn-help-categoria')?.addEventListener('click', () => {
+        FormValidator.showHelp(
+            'Guía: Registro de Categoría',
+            '<?= e(asset("img/ayuda/formulario_categoria.png")) ?>'
+        );
+    });
 
-    minInput.addEventListener('input', validarEdades);
-    maxInput.addEventListener('input', validarEdades);
-    validarEdades(); // Validar al cargar
+    // Validación estándar al submit
+    FormValidator.init('form', {
+        custom: (form) => {
+            const errors = [];
+            const min = parseInt(form.querySelector('input[name="edad_min"]')?.value);
+            const max = parseInt(form.querySelector('input[name="edad_max"]')?.value);
+            if (!isNaN(min) && !isNaN(max) && min > max) {
+                errors.push({ label: 'La edad mínima no puede ser mayor a la máxima', element: form.querySelector('input[name="edad_min"]') });
+            }
+            return errors;
+        }
+    });
 });
 </script>

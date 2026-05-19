@@ -16,7 +16,11 @@
     <link rel="stylesheet" href="<?= e(asset('css/phosphor/style.css')) ?>?v=<?= filemtime(BASE_PATH . '/public/assets/css/phosphor/style.css') ?>">
 
 
+    <link rel="stylesheet" href="<?= e(asset('css/modal.css')) ?>?v=<?= filemtime(BASE_PATH . '/public/assets/css/modal.css') ?>">
+
     <script src="<?= e(asset('js/core/theme.js')) ?>"></script>
+    <script src="<?= e(asset('js/core/modal.js')) ?>"></script>
+    <script src="<?= e(asset('js/core/form-validator.js')) ?>"></script>
 </head>
 <body>
     <?php if (!($hideHeader ?? false)): ?>

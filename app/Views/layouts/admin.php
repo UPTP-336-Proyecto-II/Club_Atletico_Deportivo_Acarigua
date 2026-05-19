@@ -32,6 +32,7 @@ $breadcrumb = $breadcrumb ?? [$title];
     <!-- Scripts Base -->
     <script src="<?= e(asset('js/core/theme.js')) ?>"></script>
     <script src="<?= e(asset('js/core/modal.js')) ?>"></script>
+    <script src="<?= e(asset('js/core/form-validator.js')) ?>"></script>
 </head>
 <body class="admin-body">
     <div class="admin-layout" id="admin-layout">

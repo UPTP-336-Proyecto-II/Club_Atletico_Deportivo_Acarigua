@@ -1,10 +1,10 @@
         <!-- Modal: Editar Datos Personales -->
         <div id="modal-editar-basico" class="modal-overlay" style="display:none;">
             <form id="form-editar-basico" action="<?= e(url("/admin/atletas/{$atleta['atleta_id']}")) ?>" method="POST"
-                enctype="multipart/form-data" class="modal-container" style="max-width: 600px;">
+                enctype="multipart/form-data" class="modal-container" style="max-width: 600px;" novalidate>
                 <?= csrf_field() ?>
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="ph ph-user-circle"></i> Editar Datos Básicos</h3>
+                    <h3 class="modal-title"><i class="ph ph-user-circle"></i> Editar Datos BÃ¡sicos</h3>
                     <button type="button" class="modal-close" data-close-modal>&times;</button>
                 </div>
                 <div class="modal-body">
@@ -25,7 +25,7 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                         <div class="form-group">
-                            <label class="form-label">Cédula o Nro. de Folio</label>
+                            <label class="form-label">CÃ©dula o Nro. de Folio</label>
                             <?php
                                 $cedVal   = $atleta['cedula'];
                                 $cedPref  = 'V';
@@ -56,7 +56,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Teléfono Personal</label>
+                            <label class="form-label">TelÃ©fono Personal</label>
                             <input type="text" name="telefono" class="form-control"
                                 value="<?= e($atleta['telefono']) ?>" placeholder="Ej: 0414-1234567">
                         </div>
@@ -73,9 +73,9 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Categoría</label>
+                            <label class="form-label">CategorÃ­a</label>
                             <select name="categoria_id" class="form-control">
-                                <option value="">— Seleccionar —</option>
+                                <option value="">â Seleccionar â</option>
                                 <?php foreach ($categorias as $cat): ?>
                                     <option value="<?= $cat['categoria_id'] ?>"
                                         <?= (int) $atleta['categoria_id'] === (int) $cat['categoria_id'] ? 'selected' : '' ?>>
@@ -87,9 +87,9 @@
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                         <div class="form-group">
-                            <label class="form-label">Posición</label>
+                            <label class="form-label">PosiciÃ³n</label>
                             <select name="posicion_de_juego" class="form-control">
-                                <option value="">— Seleccionar —</option>
+                                <option value="">â Seleccionar â</option>
                                 <?php foreach ($posiciones as $pos): ?>
                                     <option value="<?= $pos['posicion_id'] ?>"
                                         <?= (int) $atleta['posicion_juego_id'] === (int) $pos['posicion_id'] ? 'selected' : '' ?>><?= e($pos['nombre_posicion']) ?></option>
@@ -108,7 +108,7 @@
                         <div class="form-group">
                             <label class="form-label">Pierna Dominante</label>
                             <select name="pierna_dominante" class="form-control">
-                                <option value="">— Seleccionar —</option>
+                                <option value="">â Seleccionar â</option>
                                 <?php foreach (PIERNA_DOMINANTE as $p): ?>
                                     <option value="<?= $p ?>" <?= $atleta['pierna_dominante'] === $p ? 'selected' : '' ?>>
                                         <?= e(ucfirst($p)) ?></option>
@@ -127,7 +127,7 @@
         <!-- Modal: Editar Foto -->
         <div id="modal-editar-foto" class="modal-overlay" style="display:none;">
             <form id="form-editar-foto" action="<?= e(url("/admin/atletas/{$atleta['atleta_id']}")) ?>" method="POST"
-                enctype="multipart/form-data" class="modal-container" style="max-width: 400px;">
+                enctype="multipart/form-data" class="modal-container" style="max-width: 400px;" novalidate>
                 <?= csrf_field() ?>
                 <div class="modal-header">
                     <h3 class="modal-title"><i class="ph ph-camera"></i> Actualizar Foto</h3>
@@ -181,7 +181,7 @@
         <!-- Modal: Editar Representante -->
         <div id="modal-editar-representante" class="modal-overlay" style="display:none;">
             <form id="form-editar-representante" action="<?= e(url("/admin/atletas/{$atleta['atleta_id']}")) ?>"
-                method="POST" class="modal-container" style="max-width: 500px;">
+                method="POST" class="modal-container" style="max-width: 500px;" novalidate>
                 <?= csrf_field() ?>
                 <div class="modal-header">
                     <h3 class="modal-title"><i class="ph ph-users"></i> Editar Representante</h3>
@@ -215,7 +215,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Cédula</label>
+                            <label class="form-label">CÃ©dula</label>
                             <?php
                                 $tcedVal   = $atleta['tutor_cedula'];
                                 $tcedPref  = 'V';
@@ -247,7 +247,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Teléfono de Contacto</label>
+                        <label class="form-label">TelÃ©fono de Contacto</label>
                         <input type="text" name="tutor_telefono" class="form-control"
                             value="<?= e($atleta['tutor_telefono']) ?>">
                     </div>
@@ -259,13 +259,13 @@
             </form>
         </div>
 
-        <!-- Modal: Editar Dirección Detallada -->
+        <!-- Modal: Editar DirecciÃ³n Detallada -->
         <div id="modal-editar-direccion" class="modal-overlay" style="display:none;">
             <form id="form-editar-direccion" action="<?= e(url("/admin/atletas/{$atleta['atleta_id']}")) ?>"
-                method="POST" class="modal-container" style="max-width: 600px;">
+                method="POST" class="modal-container" style="max-width: 600px;" novalidate>
                 <?= csrf_field() ?>
                 <div class="modal-header">
-                    <h3 class="modal-title"><i class="ph ph-map-pin"></i> Editar Dirección Detallada</h3>
+                    <h3 class="modal-title"><i class="ph ph-map-pin"></i> Editar DirecciÃ³n Detallada</h3>
                     <button type="button" class="modal-close" data-close-modal>&times;</button>
                 </div>
                 <div class="modal-body">
@@ -277,7 +277,7 @@
                         <div class="form-group">
                             <label class="form-label">Estado</label>
                             <select id="select-estado" class="form-control">
-                                <option value="">— Seleccionar —</option>
+                                <option value="">â Seleccionar â</option>
                             </select>
                         </div>
                     </div>
@@ -286,13 +286,13 @@
                         <div class="form-group">
                             <label class="form-label">Municipio</label>
                             <select id="select-municipio" class="form-control">
-                                <option value="">— Seleccionar —</option>
+                                <option value="">â Seleccionar â</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Parroquia *</label>
                             <select name="parroquia_id" id="select-parroquia" class="form-control" required>
-                                <option value="">— Seleccionar —</option>
+                                <option value="">â Seleccionar â</option>
                             </select>
                         </div>
                     </div>
@@ -314,7 +314,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Ubicación Específica (Calle, Nro...)</label>
+                        <label class="form-label">UbicaciÃ³n EspecÃ­fica (Calle, Nro...)</label>
                         <textarea name="ubicacion_vivienda" class="form-control"
                             rows="2"><?= e($atleta['ubicacion_vivienda']) ?></textarea>
                     </div>

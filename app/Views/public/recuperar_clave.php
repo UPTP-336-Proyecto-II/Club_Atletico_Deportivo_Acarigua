@@ -19,7 +19,7 @@
 
         <?php include view_path('partials.flash'); ?>
 
-        <form method="POST" action="<?= e(url('/recuperar/nueva-clave')) ?>" id="form-nueva-clave">
+        <form method="POST" action="<?= e(url('/recuperar/nueva-clave')) ?>" id="form-nueva-clave" novalidate>
             <?= csrf_field() ?>
 
             <div class="form-group">

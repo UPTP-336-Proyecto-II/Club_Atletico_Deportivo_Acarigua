@@ -1,7 +1,7 @@
-            <!-- Tab: Pruebas Físicas -->
+            <!-- Tab: Pruebas FÃ­sicas -->
             <div id="tab-pruebas" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h3 style="margin: 0;"><i class="ph ph-chart-line-up"></i> Rendimiento Físico</h3>
+                    <h3 style="margin: 0;"><i class="ph ph-chart-line-up"></i> Rendimiento FÃ­sico</h3>
                     <button type="button" class="btn btn-primary btn-sm" id="btn-nueva-prueba"><i
                             class="ph ph-plus"></i> Registrar Prueba</button>
                 </div>
@@ -10,7 +10,7 @@
                     <div style="height: 350px; background: var(--color-bg-alt); border-radius: var(--radius); border: 1px solid var(--color-border);"
                         id="chart-radar-pruebas"></div>
                     <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 24px;">
-                        <h4 style="margin-top: 0;">Última Evaluación</h4>
+                        <h4 style="margin-top: 0;">Ãltima EvaluaciÃ³n</h4>
                         <?php
                         $ultima = !empty($pruebas_historial) ? $pruebas_historial[0] : null;
                         ?>
@@ -56,7 +56,7 @@
                                 <li>
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
-                                        <span>Coordinación</span>
+                                        <span>CoordinaciÃ³n</span>
                                         <strong><?= e($ultima['test_coordinacion'] ?? 0) ?>/100</strong></div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
@@ -68,7 +68,7 @@
                                 <li>
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
-                                        <span>Reacción</span>
+                                        <span>ReacciÃ³n</span>
                                         <strong><?= e($ultima['test_de_reaccion'] ?? 0) ?>/100</strong></div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
@@ -86,13 +86,13 @@
                             <div style="text-align: center; padding: 32px; color: var(--color-text-muted);">
                                 <i class="ph ph-chart-bar"
                                     style="font-size: 40px; opacity: 0.3; margin-bottom: 12px; display: block;"></i>
-                                No hay pruebas registradas aún.
+                                No hay pruebas registradas aÃºn.
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Tabla de Historial de Pruebas Físicas -->
+                <!-- Tabla de Historial de Pruebas FÃ­sicas -->
                 <div class="table-responsive" style="overflow-x: auto;">
                     <table class="data-table" id="tabla-pruebas" style="min-width: 650px;">
                         <thead>
@@ -113,7 +113,7 @@
                                 <tr>
                                     <td colspan="<?= can('admin') ? 7 : 6 ?>"
                                         style="text-align: center; padding: 32px; color: var(--color-text-muted);">No hay
-                                        pruebas registradas aún.</td>
+                                        pruebas registradas aÃºn.</td>
                                 </tr>
                             <?php else:
                                 foreach ($pruebas_historial as $p): ?>
@@ -186,12 +186,12 @@
                 </div>
             </div>
 
-            <!-- Modal: Registrar Prueba Física -->
+            <!-- Modal: Registrar Prueba FÃ­sica -->
             <div id="modal-prueba" class="modal-overlay" style="display:none;">
                 <form id="form-prueba" action="<?= e(url("/admin/resultados-pruebas/atleta/{$atleta['atleta_id']}")) ?>"
                     method="POST" class="modal-container" style="max-width: 550px;">
                     <div class="modal-header">
-                        <h3 class="modal-title"><i class="ph ph-chart-line-up"></i> Registrar Evaluación Física</h3>
+                        <h3 class="modal-title"><i class="ph ph-chart-line-up"></i> Registrar EvaluaciÃ³n FÃ­sica</h3>
                         <button type="button" class="modal-close" data-close-modal>&times;</button>
                     </div>
                     <?= csrf_field() ?>
@@ -201,8 +201,8 @@
                         </div>
 
                         <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">Ingrese los
-                            resultados de las pruebas (escala 1-100). Si no tiene un evento creado, se generará uno
-                            automáticamente para hoy.</p>
+                            resultados de las pruebas (escala 1-100). Si no tiene un evento creado, se generarÃ¡ uno
+                            automÃ¡ticamente para hoy.</p>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                             <div class="form-group">
@@ -224,7 +224,7 @@
                                     placeholder="0-100">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Test de Coordinación</label>
+                                <label class="form-label">Test de CoordinaciÃ³n</label>
                                 <input type="number" name="test_coordinacion" class="form-control" min="0" max="100"
                                     placeholder="0-100">
                             </div>
@@ -232,7 +232,7 @@
 
                         <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Reacción</label>
+                                <label class="form-label">Test de ReacciÃ³n</label>
                                 <input type="number" name="test_de_reaccion" class="form-control" min="0" max="100"
                                     placeholder="0-100">
                             </div>
@@ -246,11 +246,11 @@
                 </form>
             </div>
 
-            <!-- Modal: Editar Prueba Física -->
+            <!-- Modal: Editar Prueba FÃ­sica -->
             <div id="modal-prueba-editar" class="modal-overlay" style="display:none;">
-                <form id="form-prueba-editar" action="" method="POST" class="modal-container" style="max-width: 550px;">
+                <form id="form-prueba-editar" action="" method="POST" class="modal-container" style="max-width: 550px;" novalidate>
                     <div class="modal-header">
-                        <h3 class="modal-title"><i class="ph ph-chart-line-up"></i> Editar Evaluación Física</h3>
+                        <h3 class="modal-title"><i class="ph ph-chart-line-up"></i> Editar EvaluaciÃ³n FÃ­sica</h3>
                         <button type="button" class="modal-close" data-close-modal>&times;</button>
                     </div>
                     <?= csrf_field() ?>
@@ -276,14 +276,14 @@
                                 <input type="number" name="test_velocidad" id="edit-prueba-velocidad" class="form-control" min="0" max="100" placeholder="0-100">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Test de Coordinación</label>
+                                <label class="form-label">Test de CoordinaciÃ³n</label>
                                 <input type="number" name="test_coordinacion" id="edit-prueba-coordinacion" class="form-control" min="0" max="100" placeholder="0-100">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Reacción</label>
+                                <label class="form-label">Test de ReacciÃ³n</label>
                                 <input type="number" name="test_de_reaccion" id="edit-prueba-reaccion" class="form-control" min="0" max="100" placeholder="0-100">
                             </div>
                         </div>

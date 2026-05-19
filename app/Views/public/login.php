@@ -14,7 +14,12 @@
             </a>
         </div>
 
-        <h1 class="login-card__title">Bienvenido</h1>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <h1 class="login-card__title" style="margin-bottom: 0;">Bienvenido</h1>
+            <button type="button" class="btn-help" id="btn-help-login" title="¿Cómo iniciar sesión?">
+                <i class="ph ph-question"></i>
+            </button>
+        </div>
         <p class="login-card__subtitle">Ingresa al sistema del club</p>
 
         <?php include view_path('partials.flash'); ?>
@@ -57,3 +62,18 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Botón de ayuda [?]
+    document.getElementById('btn-help-login')?.addEventListener('click', () => {
+        FormValidator.showHelp(
+            'Guía: Inicio de Sesión',
+            '<?= e(asset("img/ayuda/login.png")) ?>'
+        );
+    });
+
+    // Validación estándar al clic en "Iniciar Sesión"
+    FormValidator.init('form');
+});
+</script>

@@ -14,10 +14,15 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
         <h1><?= $isEdit ? 'Editar' : 'Nuevo' ?> Usuario</h1>
         <div class="subtitle">Complete los datos personales y de ubicación</div>
     </div>
-    <a href="<?= e(url('/admin/usuarios')) ?>" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Volver</a>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="button" class="btn-help" id="btn-help-usuario" title="¿Cómo llenar este formulario?">
+            <i class="ph ph-question"></i>
+        </button>
+        <a href="<?= e(url('/admin/usuarios')) ?>" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Volver</a>
+    </div>
 </div>
 
-<form method="POST" action="<?= e($action) ?>" enctype="multipart/form-data" class="card" style="max-width:1000px; padding:0; overflow:hidden;">
+<form method="POST" action="<?= e($action) ?>" enctype="multipart/form-data" class="card" style="max-width:1000px; padding:0; overflow:hidden;" novalidate>
     <?= csrf_field() ?>
 
     <!-- Indicador de pasos -->
@@ -38,22 +43,16 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Nombres</label>
                     <input type="text" id="nombre" name="nombre" class="form-control" required minlength="3" maxlength="30" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" value="<?= e($get('nombre', '')) ?>">
-                    <span class="field-error" id="nombre-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Apellidos</label>
                     <input type="text" id="apellido" name="apellido" class="form-control" required minlength="3" maxlength="30" pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" value="<?= e($get('apellido', '')) ?>">
-                    <span class="field-error" id="apellido-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
             </div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Cédula</label>
                     <input type="text" id="cedula" name="cedula" class="form-control" required maxlength="13" placeholder="V-12.345.678" autocomplete="off" value="<?= e($get('cedula', '')) ?>">
-                    <span class="field-error" id="cedula-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
-                    <?php if (!$isEdit): ?>
-                        <div class="form-hint">Se usarán solo los números como contraseña inicial.</div>
-                    <?php endif; ?>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Teléfono</label>
@@ -78,20 +77,16 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                         <input type="text" class="phone-number" id="telefono_number" maxlength="7" placeholder="1234567" autocomplete="off" inputmode="numeric" value="<?= e($telNum) ?>" style="border: none; background: transparent; padding: 10px; font-size: 14px; outline: none; width: 100%;">
                         <input type="hidden" name="telefono" id="telefono" required>
                     </div>
-                    <span class="field-error" id="telefono-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Fecha de nacimiento</label>
                     <input type="date" id="fecha_nac" name="fecha_nac" class="form-control" required max="<?= $maxDate ?>" value="<?= e($get('fecha_nac', '')) ?>">
-                    <span class="field-error" id="fecha_nac-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
-                    <div class="form-hint">Debe ser mayor de edad (min. 18 años).</div>
                 </div>
             </div>
             <div class="form-row-3">
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Correo Electrónico</label>
                     <input type="email" id="correo" name="correo" class="form-control" required maxlength="50" value="<?= e($get('correo', '')) ?>" placeholder="ejemplo@correo.com">
-                    <span class="field-error" id="correo-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Rol / Cargo</label>
@@ -103,7 +98,6 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <span class="field-error" id="rol_id-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Estatus</label>
@@ -111,13 +105,12 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                         <option value="Activo" <?= $get('estatus', 'Activo') === 'Activo' ? 'selected' : '' ?>>Activo</option>
                         <option value="Inactivo" <?= $get('estatus') === 'Inactivo' ? 'selected' : '' ?>>Inactivo</option>
                     </select>
-                    <span class="field-error" id="estatus-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Foto de Perfil</label>
                     <input type="file" name="foto" class="form-control" accept="image/jpeg,image/png,image/webp">
                     <?php if (!empty($p['foto'])): ?>
-                        <div class="form-hint mt-2">
+                        <div style="margin-top: 8px;">
                             <img src="<?= e(url($p['foto'])) ?>" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-border);">
                         </div>
                     <?php endif; ?>
@@ -139,14 +132,12 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                     <select id="sel-estado" name="estado_id" class="form-control" data-current="<?= (int) $get('estado_id', '') ?>" required>
                         <option value="">Selecciona Estado...</option>
                     </select>
-                    <span class="field-error" id="sel-estado-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Municipio</label>
                     <select id="sel-municipio" name="municipio_id" class="form-control" data-current="<?= (int) $get('municipio_id', '') ?>" required>
                         <option value="">Selecciona Municipio...</option>
                     </select>
-                    <span class="field-error" id="sel-municipio-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
             </div>
 
@@ -156,7 +147,6 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                     <select id="sel-parroquia" name="parroquia_id" class="form-control" data-current="<?= (int) $get('parroquia_id', '') ?>" required>
                         <option value="">Selecciona Parroquia...</option>
                     </select>
-                    <span class="field-error" id="sel-parroquia-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Tipo de Vivienda</label>
@@ -165,7 +155,6 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                         <option value="apto" <?= $get('tipo_vivienda', '') === 'apto' ? 'selected' : '' ?>>Apartamento</option>
                         <option value="edificio" <?= $get('tipo_vivienda', '') === 'edificio' ? 'selected' : '' ?>>Edificio</option>
                     </select>
-                    <span class="field-error" id="tipo_vivienda-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
             </div>
 
@@ -173,12 +162,10 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Localidad (Barrio / Urbanización)</label>
                     <input type="text" id="localidad" name="localidad" class="form-control" required maxlength="100" value="<?= e($get('localidad', '')) ?>" placeholder="Ej: Urb. Villas del Pilar, Barrio San Jose">
-                    <span class="field-error" id="localidad-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
                 <div class="form-group">
                     <label class="form-label"><span class="required">*</span> Dirección Exacta</label>
                     <input type="text" id="ubicacion_vivienda" name="ubicacion_vivienda" class="form-control" required maxlength="100" value="<?= e($get('ubicacion_vivienda', '')) ?>" placeholder="Ej: Calle 15A, Casa 412">
-                    <span class="field-error" id="ubicacion_vivienda-error" style="display:none; color: var(--color-danger); font-size: 12px; margin-top: 4px;"></span>
                 </div>
             </div>
 
@@ -192,73 +179,91 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    function showError(id, msg) {
-        const el = document.getElementById(id + '-error');
-        if (el) { el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
-        const wrap = document.getElementById('phone-wrap-' + id);
-        if (wrap) wrap.style.borderColor = msg ? 'var(--color-danger,#e53e3e)' : 'var(--color-border)';
-        const inp = document.getElementById(id);
-        if (inp && !wrap) inp.style.borderColor = msg ? 'var(--color-danger,#e53e3e)' : 'var(--color-border)';
-    }
-    function clearError(id) { showError(id, ''); }
-
-    // Validación Dinámica en tiempo real para todos los campos
-    const allInputs = document.querySelectorAll('input[required], select[required]');
-    allInputs.forEach(input => {
-        if (input.id === 'cedula' || input.id === 'telefono' || input.id === 'telefono_number') return;
-        
-        const validateField = () => {
-            if (!input.value) {
-                showError(input.id, 'Este campo es obligatorio.');
-            } else if (input.type === 'email') {
-                const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!regex.test(input.value)) {
-                    showError(input.id, 'Por favor ingresa un correo válido (ej: usuario@correo.com).');
-                } else {
-                    clearError(input.id);
-                }
-            } else if (!input.checkValidity()) {
-                let msg = 'El valor ingresado es inválido.';
-                if (input.validity.tooShort) {
-                    msg = `Debe tener al menos ${input.minLength} caracteres.`;
-                } else if (input.type === 'date') {
-                    msg = 'Ingresa una fecha válida (mayor de 18 años).';
-                } else if (input.pattern && input.validity.patternMismatch) {
-                    msg = input.title || 'El formato es incorrecto.';
-                }
-                showError(input.id, msg);
-            } else {
-                clearError(input.id);
-            }
-        };
-        input.addEventListener('input', validateField);
-        input.addEventListener('blur', validateField);
-        input.addEventListener('change', validateField);
+    // ── Botón de ayuda [?] ──
+    document.getElementById('btn-help-usuario')?.addEventListener('click', () => {
+        FormValidator.showHelp(
+            'Guía: Registro de Usuario',
+            '<?= e(asset("img/ayuda/formulario_usuario.png")) ?>'
+        );
     });
 
-    // Navegación Wizard (Paso a Paso)
+    // ── Cédula venezolana (solo formateo, NO validación visual) ──
+    const CEDULA_REGEX = /^[VE]-\d{1,3}(\.\d{3})*$/;
+    const cedulaInput = document.getElementById('cedula');
+
+    function formatearNumeroCedula(digits) {
+        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+    function normalizarCedula(raw) {
+        raw = raw.toUpperCase().trim();
+        let prefix = 'V-', rest = raw;
+        if (/^[VE]-/.test(raw))      { prefix = raw.substring(0, 2); rest = raw.substring(2); }
+        else if (/^[VE]/.test(raw)) { prefix = raw[0] + '-';         rest = raw.substring(1); }
+        const digits = rest.replace(/[^\d]/g, '').substring(0, 8);
+        return digits ? prefix + formatearNumeroCedula(digits) : prefix;
+    }
+    function validarCedula(val) { 
+        if (!CEDULA_REGEX.test(val)) return false;
+        const digitsOnly = val.replace(/[^\d]/g, '');
+        return digitsOnly.length >= 7;
+    }
+
+    if (cedulaInput) {
+        if (cedulaInput.value && !cedulaInput.value.includes('-')) {
+             cedulaInput.value = normalizarCedula(cedulaInput.value);
+        }
+        // Solo formateo automático, sin mensajes de error
+        cedulaInput.addEventListener('input', function() { 
+            this.value = normalizarCedula(this.value); 
+        });
+    }
+
+    // ── Widget teléfono (solo sync, sin mensajes de error) ──
+    function setupPhoneWidget(prefixId, numberId, hiddenId) {
+        const prefixEl = document.getElementById(prefixId);
+        const numberEl = document.getElementById(numberId);
+        const hiddenEl = document.getElementById(hiddenId);
+        if (!prefixEl || !numberEl || !hiddenEl) return;
+
+        function sync() {
+            const num = numberEl.value.replace(/[^\d]/g, '').substring(0, 7);
+            numberEl.value = num;
+            hiddenEl.value = num.length ? prefixEl.value + num : '';
+        }
+        sync();
+
+        numberEl.addEventListener('input', sync);
+        prefixEl.addEventListener('change', () => { sync(); numberEl.focus(); });
+    }
+
+    setupPhoneWidget('telefono_prefix', 'telefono_number', 'telefono');
+
+    // ── Navegación Wizard (Paso a Paso) ──
     const stepPersonal = document.getElementById('step-personal');
     const stepDireccion = document.getElementById('step-direccion');
     const indicator1 = document.getElementById('step-indicator-1');
     const indicator2 = document.getElementById('step-indicator-2');
 
     document.getElementById('btn-siguiente').addEventListener('click', () => {
-        const inputs = stepPersonal.querySelectorAll('[required]');
-        let valid = true;
-        inputs.forEach(input => { 
-            // Trigger blur to show errors if they bypassed input
-            input.dispatchEvent(new Event('blur'));
-            if (!input.checkValidity()) valid = false; 
+        // Validar paso 1 usando FormValidator
+        const result = FormValidator.validate(stepPersonal, (container) => {
+            const errors = [];
+            // Validar cédula
+            if (cedulaInput && cedulaInput.value && !validarCedula(cedulaInput.value)) {
+                errors.push({ label: 'La cédula tiene formato inválido (ej: V-12.345.678)', element: cedulaInput });
+            }
+            // Validar teléfono
+            const telNumInput = document.getElementById('telefono_number');
+            if (telNumInput && (!telNumInput.value || telNumInput.value.length !== 7)) {
+                errors.push({ label: 'El teléfono debe tener 7 dígitos completos', element: telNumInput });
+            }
+            return errors;
         });
-        
-        // Validación explícita para el widget de teléfono (ya que no usa el validador genérico)
-        const telNumInput = document.getElementById('telefono_number');
-        if (telNumInput) {
-            telNumInput.dispatchEvent(new Event('blur'));
-            if (!telNumInput.value || telNumInput.value.length !== 7) valid = false;
-        }
 
-        if (!valid) return;
+        if (!result.valid) {
+            FormValidator.showErrors(result.errors);
+            return;
+        }
 
         stepPersonal.style.display = 'none';
         stepDireccion.style.display = 'block';
@@ -273,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         indicator1.style.fontWeight = '600'; indicator1.style.color = 'var(--color-primary)'; indicator1.style.borderBottom = '2px solid var(--color-primary)';
     });
 
-    // Carga dinámica de direcciones (cascada Estado → Municipio → Parroquia)
+    // ── Carga dinámica de direcciones (cascada Estado → Municipio → Parroquia) ──
     const selEstado = document.getElementById('sel-estado');
     const selMunicipio = document.getElementById('sel-municipio');
     const selParroquia = document.getElementById('sel-parroquia');
@@ -329,106 +334,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ── Cédula venezolana ────────────────────────────────────────────────────────
-    const CEDULA_REGEX = /^[VE]-\d{1,3}(\.\d{3})*$/;
-    const cedulaInput = document.getElementById('cedula');
-
-    function formatearNumeroCedula(digits) {
-        return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-    function normalizarCedula(raw) {
-        raw = raw.toUpperCase().trim();
-        let prefix = 'V-', rest = raw;
-        if (/^[VE]-/.test(raw))      { prefix = raw.substring(0, 2); rest = raw.substring(2); }
-        else if (/^[VE]/.test(raw)) { prefix = raw[0] + '-';         rest = raw.substring(1); }
-        const digits = rest.replace(/[^\d]/g, '').substring(0, 8);
-        return digits ? prefix + formatearNumeroCedula(digits) : prefix;
-    }
-    function validarCedula(val) { 
-        if (!CEDULA_REGEX.test(val)) return false;
-        const digitsOnly = val.replace(/[^\d]/g, '');
-        return digitsOnly.length >= 7;
-    }
-
-    if (cedulaInput) {
-        if (cedulaInput.value && !cedulaInput.value.includes('-')) {
-             cedulaInput.value = normalizarCedula(cedulaInput.value);
-        }
-        cedulaInput.addEventListener('input', function() { 
-            this.value = normalizarCedula(this.value); 
-            if (this.value && this.value !== 'V-' && this.value !== 'E-') { 
-                validarCedula(this.value) ? clearError(this.id) : showError(this.id, 'Formato inválido. Mínimo 7 números. Ej: V-12.345.678'); 
+    // ── Validación estándar al submit ──
+    FormValidator.init('form', {
+        custom: (form) => {
+            const errors = [];
+            // Cédula
+            if (cedulaInput && cedulaInput.value && !validarCedula(cedulaInput.value)) {
+                errors.push({ label: 'La cédula tiene formato inválido (ej: V-12.345.678)', element: cedulaInput });
             }
-        });
-        cedulaInput.addEventListener('blur', function() {
-            if (!this.value || this.value === 'V-' || this.value === 'E-') { showError(this.id, 'Este campo es obligatorio'); }
-            else { validarCedula(this.value) ? clearError(this.id) : showError(this.id, 'Formato inválido. Mínimo 7 números. Ej: V-12.345.678'); }
-        });
-        cedulaInput.addEventListener('focus', function() { clearError(this.id); });
-    }
-
-    // ── Widget teléfono ──────────────────────────────────────────────────────────
-    function setupPhoneWidget(prefixId, numberId, hiddenId, errorKey) {
-        const prefixEl = document.getElementById(prefixId);
-        const numberEl = document.getElementById(numberId);
-        const hiddenEl = document.getElementById(hiddenId);
-        if (!prefixEl || !numberEl || !hiddenEl) return;
-
-        function sync() {
-            const num = numberEl.value.replace(/[^\d]/g, '').substring(0, 7);
-            numberEl.value = num;
-            hiddenEl.value = num.length ? prefixEl.value + num : '';
-        }
-        sync();
-
-        numberEl.addEventListener('input', () => { 
-            sync(); 
-            if (numberEl.value && numberEl.value.length === 7) clearError(errorKey); 
-            else if (numberEl.value) showError(errorKey, 'Ingresa 7 dígitos');
-        });
-        prefixEl.addEventListener('change', () => { sync(); clearError(errorKey); numberEl.focus(); });
-        numberEl.addEventListener('blur', () => {
-            const num = numberEl.value;
-            if (!num) showError(errorKey, 'Este campo es obligatorio');
-            else if (num.length !== 7) showError(errorKey, 'Ingresa 7 dígitos completos');
-            else clearError(errorKey);
-        });
-        numberEl.addEventListener('focus', () => clearError(errorKey));
-    }
-
-    setupPhoneWidget('telefono_prefix', 'telefono_number', 'telefono', 'telefono');
-
-    // Validación al enviar el formulario
-    document.querySelector('form').addEventListener('submit', function(e) {
-        let hasError = false;
-        
-        // Trigger blur on all to show messages
-        const inputs = this.querySelectorAll('[required]');
-        inputs.forEach(input => {
-            input.dispatchEvent(new Event('blur'));
-            if (!input.checkValidity()) hasError = true;
-        });
-
-        if (cedulaInput && !validarCedula(cedulaInput.value)) {
-            showError('cedula', 'Revisa el formato de la cédula');
-            hasError = true;
-        }
-        
-        const telNum = document.getElementById('telefono_number')?.value;
-        if (!telNum || telNum.length !== 7) {
-            showError('telefono', 'Ingresa los 7 dígitos completos');
-            hasError = true;
-        }
-
-        if (hasError) {
-            e.preventDefault();
-            // Ver si el error es del paso 1
-            const firstErr = document.querySelector('.field-error[style*="block"]');
-            if (firstErr) {
-                const isStep1 = document.getElementById('step-personal').contains(firstErr);
-                if (isStep1) document.getElementById('btn-atras').click();
-                firstErr.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Teléfono
+            const telNum = document.getElementById('telefono_number')?.value;
+            if (!telNum || telNum.length !== 7) {
+                const telEl = document.getElementById('telefono_number');
+                errors.push({ label: 'El teléfono debe tener 7 dígitos completos', element: telEl });
             }
+            return errors;
         }
     });
 });

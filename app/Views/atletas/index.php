@@ -271,16 +271,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.success) {
                 // Notificar éxito y recargar o mostrar mensaje
-                if (typeof CadaModal !== 'undefined') {
-                    CadaModal.alert({
-                        title: 'Éxito',
-                        text: result.message,
-                        type: 'success'
-                    }).then(() => window.location.reload());
-                } else {
-                    alert(result.message);
-                    window.location.reload();
-                }
+                CadaModal.alert({
+                    title: 'Éxito',
+                    text: result.message,
+                    type: 'success'
+                }).then(() => window.location.reload());
             } else {
                 errorDiv.textContent = result.message || 'Error al guardar la medición.';
                 if (result.errors) {
@@ -401,16 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (result.success) {
-                if (typeof CadaModal !== 'undefined') {
-                    CadaModal.alert({
-                        title: 'Éxito',
-                        text: result.message,
-                        type: 'success'
-                    }).then(() => window.location.reload());
-                } else {
-                    alert(result.message);
-                    window.location.reload();
-                }
+                CadaModal.alert({
+                    title: 'Éxito',
+                    text: result.message,
+                    type: 'success'
+                }).then(() => window.location.reload());
             } else {
                 errorDiv.textContent = result.message || 'Error al guardar los resultados.';
                 errorDiv.style.display = 'block';

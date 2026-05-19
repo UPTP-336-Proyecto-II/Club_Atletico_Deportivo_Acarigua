@@ -4,12 +4,17 @@
         <h1>Registrar Asistencia</h1>
         <div class="subtitle">Selecciona la categoría y registra la asistencia de hoy</div>
     </div>
-    <a href="<?= e(url('/admin/asistencias')) ?>" class="btn btn-ghost">
-        <i class="ph ph-caret-left"></i> Directorio de Asistencias
-    </a>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="button" class="btn-help" id="btn-help-asistencia" title="¿Cómo registrar asistencia?">
+            <i class="ph ph-question"></i>
+        </button>
+        <a href="<?= e(url('/admin/asistencias')) ?>" class="btn btn-ghost">
+            <i class="ph ph-caret-left"></i> Directorio de Asistencias
+        </a>
+    </div>
 </div>
 
-<form method="POST" action="<?= e(url('/admin/asistencias/crear')) ?>" id="form-asistencia">
+<form method="POST" action="<?= e(url('/admin/asistencias/crear')) ?>" id="form-asistencia" novalidate>
     <?= csrf_field() ?>
 
     <div class="card" style="margin-bottom: 24px;">
@@ -211,6 +216,17 @@
             CadaModal.alert({ title: 'Error', text: 'No se pudo cargar la lista de atletas.', type: 'danger' });
         }
     });
+
+    // Botón de ayuda [?]
+    document.getElementById('btn-help-asistencia')?.addEventListener('click', () => {
+        FormValidator.showHelp(
+            'Guía: Registro de Asistencia',
+            '<?= e(asset("img/ayuda/formulario_asistencia.png")) ?>'
+        );
+    });
+
+    // Validación estándar al submit
+    FormValidator.init('#form-asistencia');
 
     document.getElementById('form-asistencia').addEventListener('submit', function() {
         const btn = document.getElementById('btn-save');

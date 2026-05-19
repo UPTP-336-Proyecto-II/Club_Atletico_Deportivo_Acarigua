@@ -1,12 +1,12 @@
-<!-- Inclusión de ECharts para gráficos -->
+<!-- InclusiÃ³n de ECharts para grÃ¡ficos -->
 <script src="<?= e(url('/assets/js/lib/echarts.min.js')) ?>"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. Manejo de Pestañas
+        // 1. Manejo de PestaÃ±as
         const tabs = document.querySelectorAll('.tab-btn');
         const contents = document.querySelectorAll('.tab-content');
 
-        // Manejo de Modales (Genérico para cerrar)
+        // Manejo de Modales (GenÃ©rico para cerrar)
         document.querySelectorAll('[data-close-modal]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const modal = btn.closest('.modal-overlay');
@@ -30,7 +30,7 @@
                 const targetId = tab.getAttribute('data-target');
                 document.getElementById(targetId).style.display = 'block';
 
-                // Redimensionar gráficos si están en la pestaña activa
+                // Redimensionar grÃ¡ficos si estÃ¡n en la pestaÃ±a activa
                 if (targetId === 'tab-antropometria' && chartAntro) {
                     setTimeout(() => chartAntro.resize(), 50);
                 }
@@ -43,7 +43,7 @@
             });
         });
 
-        // Activar pestaña desde URL si existe (ej: ?tab=tab-ficha)
+        // Activar pestaÃ±a desde URL si existe (ej: ?tab=tab-ficha)
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
         if (tabParam) {
@@ -53,7 +53,7 @@
             }
         }
 
-        // 1.5 Modal de Ficha Médica
+        // 1.5 Modal de Ficha MÃ©dica
         const modalFicha = document.getElementById('modal-ficha-medica');
         function abrirModalFicha() {
             if (modalFicha) modalFicha.style.display = 'flex';
@@ -62,9 +62,9 @@
             if (modalFicha) modalFicha.style.display = 'none';
         }
 
-        // Botón "Editar" en la ficha (cuando ya hay datos)
+        // BotÃ³n "Editar" en la ficha (cuando ya hay datos)
         document.getElementById('btn-editar-ficha')?.addEventListener('click', abrirModalFicha);
-        // Botón "Registrar Ficha Médica" (cuando no hay datos)
+        // BotÃ³n "Registrar Ficha MÃ©dica" (cuando no hay datos)
         document.getElementById('btn-crear-ficha')?.addEventListener('click', abrirModalFicha);
 
         // Cerrar modal con botones de cancelar/cerrar
@@ -109,7 +109,7 @@
             if (modalDisc) modalDisc.style.display = 'none';
         }
 
-        // Interceptar envío del formulario con AJAX
+        // Interceptar envÃ­o del formulario con AJAX
         formDisc?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const errorDiv = document.getElementById('discapacidad-error');
@@ -133,17 +133,17 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Éxito: recargar para ver la tabla actualizada en la misma pestaña
+                    // Ãxito: recargar para ver la tabla actualizada en la misma pestaÃ±a
                     window.location.href = window.location.pathname + '?tab=tab-ficha';
                 } else {
                     // Error: mostrar mensaje en el modal
-                    errorDiv.textContent = result.message || 'Ocurrió un error inesperado.';
+                    errorDiv.textContent = result.message || 'OcurriÃ³ un error inesperado.';
                     errorDiv.style.display = 'block';
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
-                errorDiv.textContent = 'Error de conexión. Intente nuevamente.';
+                errorDiv.textContent = 'Error de conexiÃ³n. Intente nuevamente.';
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
@@ -167,18 +167,14 @@
         document.querySelectorAll('.btn-delete-disc').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const form = e.currentTarget.closest('form');
-                if (typeof CadaModal !== 'undefined') {
-                    CadaModal.confirm({
-                        title: 'Eliminar Discapacidad',
-                        text: '¿Estás seguro de que deseas eliminar esta discapacidad?',
-                        type: 'danger',
-                        confirmText: 'Sí, eliminar'
-                    }).then(confirmed => {
-                        if (confirmed) form.submit();
-                    });
-                } else {
-                    if (confirm('¿Eliminar esta discapacidad?')) form.submit();
-                }
+                CadaModal.confirm({
+                    title: 'Eliminar Discapacidad',
+                    text: 'Â¿EstÃ¡s seguro de que deseas eliminar esta discapacidad?',
+                    type: 'danger',
+                    confirmText: 'SÃ­, eliminar'
+                }).then(confirmed => {
+                    if (confirmed) form.submit();
+                });
             });
         });
 
@@ -204,7 +200,7 @@
             if (e.target === modalDisc) cerrarModalDisc();
         });
 
-        // 1.7 Modal de Mediciones Antropométricas
+        // 1.7 Modal de Mediciones AntropomÃ©tricas
         const modalMedicion = document.getElementById('modal-medicion');
         const formMedicion = document.getElementById('form-medicion');
 
@@ -244,7 +240,7 @@
                 if (result.success) {
                     window.location.href = window.location.pathname + '?tab=tab-antropometria';
                 } else {
-                    errorDiv.textContent = result.message || 'Error al guardar la medición.';
+                    errorDiv.textContent = result.message || 'Error al guardar la mediciÃ³n.';
                     if (result.errors) {
                         const firstError = Object.values(result.errors)[0][0];
                         errorDiv.textContent += ' ' + firstError;
@@ -254,7 +250,7 @@
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
-                errorDiv.textContent = 'Error de conexión.';
+                errorDiv.textContent = 'Error de conexiÃ³n.';
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
@@ -265,7 +261,7 @@
             btn.addEventListener('click', cerrarModalMedicion);
         });
 
-        // 1.7.5 Modal de Edición de Mediciones Antropométricas
+        // 1.7.5 Modal de EdiciÃ³n de Mediciones AntropomÃ©tricas
         const modalMedicionEditar = document.getElementById('modal-medicion-editar');
         const formMedicionEditar = document.getElementById('form-medicion-editar');
 
@@ -296,7 +292,7 @@
                 document.getElementById('edit-largo_de_pierna').value = pierna || '';
                 document.getElementById('edit-largo_de_torso').value = torso || '';
 
-                // Ajustar acción de form dinámicamente
+                // Ajustar acciÃ³n de form dinÃ¡micamente
                 formMedicionEditar.action = `<?= url("/admin/medidas") ?>/${id}/editar`;
 
                 document.getElementById('medicion-editar-error').style.display = 'none';
@@ -327,7 +323,7 @@
                 if (result.success) {
                     window.location.href = window.location.pathname + '?tab=tab-antropometria';
                 } else {
-                    errorDiv.textContent = result.message || 'Error al actualizar la medición.';
+                    errorDiv.textContent = result.message || 'Error al actualizar la mediciÃ³n.';
                     if (result.errors) {
                         const firstError = Object.values(result.errors)[0][0];
                         errorDiv.textContent += ' ' + firstError;
@@ -337,7 +333,7 @@
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
-                errorDiv.textContent = 'Error de conexión.';
+                errorDiv.textContent = 'Error de conexiÃ³n.';
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
@@ -348,17 +344,17 @@
             btn.addEventListener('click', cerrarModalMedicionEditar);
         });
 
-        // 1.7.6 Eliminación de Mediciones con CadaModal
+        // 1.7.6 EliminaciÃ³n de Mediciones con CadaModal
         document.querySelectorAll('.btn-eliminar-medicion').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.dataset.id;
                 const atletaId = "<?= $atleta['atleta_id'] ?>";
 
                 CadaModal.confirm({
-                    title: '¿Eliminar Medición?',
-                    text: '¿Estás seguro de eliminar este registro antropométrico? Esta acción no se puede deshacer.',
+                    title: 'Â¿Eliminar MediciÃ³n?',
+                    text: 'Â¿EstÃ¡s seguro de eliminar este registro antropomÃ©trico? Esta acciÃ³n no se puede deshacer.',
                     type: 'danger',
-                    confirmText: 'Sí, Eliminar',
+                    confirmText: 'SÃ­, Eliminar',
                     cancelText: 'Cancelar'
                 }).then((confirmed) => {
                     if (confirmed) {
@@ -379,10 +375,10 @@
             });
         });
 
-        // 2. Gráfica Real de Antropometría (Peso vs Altura)
+        // 2. GrÃ¡fica Real de AntropometrÃ­a (Peso vs Altura)
         var chartAntro = null;
         const chartAntroDOM = document.getElementById('chart-antropometria');
-        // Dado que el modelo PHP ya devuelve el historial ordenado en ASC (Cronológico), lo usamos directo
+        // Dado que el modelo PHP ya devuelve el historial ordenado en ASC (CronolÃ³gico), lo usamos directo
         const historialMedidas = <?= json_encode($medidas_historial ?? []) ?>;
 
         if (chartAntroDOM && typeof echarts !== 'undefined') {
@@ -402,8 +398,8 @@
                 const p = parseFloat(m.peso) || 0;
                 const h = parseFloat(m.altura) || 0;
                 if (p > 0 && h > 0) {
-                    // Si el dato viejo está guardado en metros (ej. 1.75), lo dejamos igual.
-                    // Si es en centímetros (ej. 175), lo pasamos a metros dividiendo entre 100.
+                    // Si el dato viejo estÃ¡ guardado en metros (ej. 1.75), lo dejamos igual.
+                    // Si es en centÃ­metros (ej. 175), lo pasamos a metros dividiendo entre 100.
                     const a = h > 3 ? h / 100 : h;
                     const imc = p / (a * a);
                     return isFinite(imc) ? parseFloat(imc.toFixed(1)) : 0;
@@ -459,7 +455,7 @@
             chartAntro.setOption(optionAntro);
         }
 
-        // 1.8 Modal de Pruebas Físicas
+        // 1.8 Modal de Pruebas FÃ­sicas
         const modalPrueba = document.getElementById('modal-prueba');
         const formPrueba = document.getElementById('form-prueba');
 
@@ -500,7 +496,7 @@
                     result = JSON.parse(text);
                 } catch (e) {
                     console.error("Invalid JSON:", text);
-                    throw new Error("El servidor no devolvió una respuesta válida.");
+                    throw new Error("El servidor no devolviÃ³ una respuesta vÃ¡lida.");
                 }
 
                 if (result.success) {
@@ -512,7 +508,7 @@
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
-                errorDiv.textContent = error.message || 'Error de conexión.';
+                errorDiv.textContent = error.message || 'Error de conexiÃ³n.';
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
@@ -523,9 +519,9 @@
             btn.addEventListener('click', cerrarModalPrueba);
         });
 
-        // 3. Gráfica Real Radar de Pruebas Físicas (Ya implementada arriba)
+        // 3. GrÃ¡fica Real Radar de Pruebas FÃ­sicas (Ya implementada arriba)
 
-        // 4. Lógica de los 4 Nuevos Modales de Edición (Sesiones)
+        // 4. LÃ³gica de los 4 Nuevos Modales de EdiciÃ³n (Sesiones)
         const formsEdit = [
             { id: 'basico', modal: 'modal-editar-basico', form: 'form-editar-basico', error: 'error-basico', tab: 'tab-general' },
             { id: 'contacto', modal: 'modal-editar-contacto', form: 'form-editar-contacto', error: 'error-contacto', tab: 'tab-general' },
@@ -534,7 +530,7 @@
             { id: 'foto', modal: 'modal-editar-foto', form: 'form-editar-foto', error: 'error-foto', tab: 'tab-general' }
         ];
 
-        // CSS Dinámico para efectos de foto y botones
+        // CSS DinÃ¡mico para efectos de foto y botones
         const style = document.createElement('style');
         style.innerHTML = `
         #btn-abrir-editar-foto:hover .photo-overlay { opacity: 1 !important; }
@@ -567,7 +563,7 @@
         }
         #btn-abrir-editar-basico { position: absolute; top: 12px; right: 12px; }
 
-        /* Zona de Carga Dinámica */
+        /* Zona de Carga DinÃ¡mica */
         .upload-zone {
             border: 2px dashed var(--color-border);
             border-radius: 12px;
@@ -590,7 +586,7 @@
         .upload-content p { font-weight: 600; margin: 0; color: var(--color-text); }
         .upload-content span { font-size: 12px; color: var(--color-text-muted); }
         
-        /* Animación de Éxito */
+        /* AnimaciÃ³n de Ãxito */
         @keyframes scaleIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
@@ -599,7 +595,7 @@
     `;
         document.head.appendChild(style);
 
-        // Lógica de Zona de Carga (Drag & Drop)
+        // LÃ³gica de Zona de Carga (Drag & Drop)
         const uploadZone = document.getElementById('upload-zone-foto');
         const fileInput = document.getElementById('input-foto-file');
         const filenameDisplay = document.getElementById('foto-filename');
@@ -645,7 +641,7 @@
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Guardando...';
 
-                // Validación inteligente para subida/eliminación de foto de perfil
+                // ValidaciÃ³n inteligente para subida/eliminaciÃ³n de foto de perfil
                 if (item.form === 'form-editar-foto') {
                     const fileInput = form.querySelector('#input-foto-file');
                     const eliminarCheckbox = form.querySelector('input[name="eliminar_foto"]');
@@ -653,7 +649,7 @@
                     const isEliminarChecked = eliminarCheckbox && eliminarCheckbox.checked;
 
                     if (!hasSelectedFile && !isEliminarChecked) {
-                        errorDiv.textContent = 'Por favor, seleccione una imagen para subir o marque la opción de eliminar la foto actual.';
+                        errorDiv.textContent = 'Por favor, seleccione una imagen para subir o marque la opciÃ³n de eliminar la foto actual.';
                         errorDiv.style.display = 'block';
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalBtnText;
@@ -674,20 +670,15 @@
                     if (result.success) {
                         modal.style.display = 'none';
 
-                        if (typeof CadaModal !== 'undefined') {
-                            CadaModal.alert({
-                                title: '¡Éxito!',
-                                text: result.message || 'Cambios guardados correctamente.',
-                                type: 'success',
-                                confirmText: 'Aceptar'
-                            }).then(() => {
-                                const currentTab = new URLSearchParams(window.location.search).get('tab') || 'tab-general';
-                                window.location.href = window.location.pathname + '?tab=' + currentTab;
-                            });
-                        } else {
-                            alert(result.message || 'Cambios guardados.');
-                            location.reload();
-                        }
+                        CadaModal.alert({
+                            title: 'Â¡Ãxito!',
+                            text: result.message || 'Cambios guardados correctamente.',
+                            type: 'success',
+                            confirmText: 'Aceptar'
+                        }).then(() => {
+                            const currentTab = new URLSearchParams(window.location.search).get('tab') || 'tab-general';
+                            window.location.href = window.location.pathname + '?tab=' + currentTab;
+                        });
                     } else {
                         errorDiv.textContent = result.message || 'Error al actualizar.';
                         if (result.errors) {
@@ -699,7 +690,7 @@
                         submitBtn.innerHTML = originalBtnText;
                     }
                 } catch (error) {
-                    errorDiv.textContent = 'Error de conexión.';
+                    errorDiv.textContent = 'Error de conexiÃ³n.';
                     errorDiv.style.display = 'block';
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
@@ -713,7 +704,7 @@
             if (modal) modal.style.display = 'flex';
         });
 
-        // Lógica de Direcciones Dinámicas (Estado -> Municipio -> Parroquia)
+        // LÃ³gica de Direcciones DinÃ¡micas (Estado -> Municipio -> Parroquia)
         const selectPais = document.getElementById('select-pais');
         const selectEstado = document.getElementById('select-estado');
         const selectMunicipio = document.getElementById('select-municipio');
@@ -726,7 +717,7 @@
             try {
                 const res = await fetch(`${baseUrl}/estados/${paisId}`);
                 const estados = await res.json();
-                selectEstado.innerHTML = '<option value="">— Seleccionar —</option>';
+                selectEstado.innerHTML = '<option value="">â Seleccionar â</option>';
                 estados.forEach(e => {
                     const opt = document.createElement('option');
                     opt.value = e.estado_id;
@@ -743,7 +734,7 @@
             try {
                 const res = await fetch(`${baseUrl}/municipios/${estadoId}`);
                 const municipios = await res.json();
-                selectMunicipio.innerHTML = '<option value="">— Seleccionar —</option>';
+                selectMunicipio.innerHTML = '<option value="">â Seleccionar â</option>';
                 municipios.forEach(m => {
                     const opt = document.createElement('option');
                     opt.value = m.municipio_id;
@@ -760,7 +751,7 @@
             try {
                 const res = await fetch(`${baseUrl}/parroquias/${municipioId}`);
                 const parroquias = await res.json();
-                selectParroquia.innerHTML = '<option value="">— Seleccionar —</option>';
+                selectParroquia.innerHTML = '<option value="">â Seleccionar â</option>';
                 parroquias.forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.parroquia_id;
@@ -774,14 +765,14 @@
         selectEstado?.addEventListener('change', (e) => cargarMunicipios(e.target.value));
         selectMunicipio?.addEventListener('change', (e) => cargarParroquias(e.target.value));
 
-        // Carga inicial de dirección si existe
+        // Carga inicial de direcciÃ³n si existe
         if (selectEstado && <?= (int) ($atleta['estado_id'] ?? 0) ?> > 0) {
             cargarEstados(selectPais.value, <?= (int) ($atleta['estado_id'] ?? 0) ?>);
         } else if (selectEstado) {
             cargarEstados(selectPais.value);
         }
 
-        // 3. Gráfica Real Radar de Pruebas Físicas
+        // 3. GrÃ¡fica Real Radar de Pruebas FÃ­sicas
         var chartRadar = null;
         const chartRadarDOM = document.getElementById('chart-radar-pruebas');
         const historialPruebasRadar = <?= json_encode($pruebas_historial ?? []) ?>;
@@ -796,7 +787,7 @@
             ];
 
             if (historialPruebasRadar.length > 0) {
-                // Última prueba (índice 0)
+                // Ãltima prueba (Ã­ndice 0)
                 const p1 = historialPruebasRadar[0];
                 let d1 = 'Manual';
                 if (p1.fecha_evento) d1 = new Date(p1.fecha_evento).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -808,14 +799,14 @@
                         p1.test_coordinacion || 0,
                         p1.test_de_reaccion || 0
                     ],
-                    name: 'Última: ' + d1,
+                    name: 'Ãltima: ' + d1,
                     itemStyle: { color: colores[0].line },
                     areaStyle: { color: colores[0].fill },
                     symbol: 'circle',
                     symbolSize: 6
                 });
 
-                // Penúltima prueba (índice 1)
+                // PenÃºltima prueba (Ã­ndice 1)
                 if (historialPruebasRadar.length > 1) {
                     const p2 = historialPruebasRadar[1];
                     let d2 = 'Manual';
@@ -857,8 +848,8 @@
                         { name: 'Fuerza', max: 100 },
                         { name: 'Velocidad', max: 100 },
                         { name: 'Resistencia', max: 100 },
-                        { name: 'Coordinación', max: 100 },
-                        { name: 'Reacción', max: 100 }
+                        { name: 'CoordinaciÃ³n', max: 100 },
+                        { name: 'ReacciÃ³n', max: 100 }
                     ],
                     radius: '60%', // Reducido un poco para dar espacio a la leyenda
                     axisName: { color: 'var(--color-text-muted)', fontWeight: 'bold' },
@@ -882,7 +873,7 @@
             if (chartRadar) chartRadar.resize();
         });
 
-        // 1.8.5 Modal de Edición de Pruebas Físicas
+        // 1.8.5 Modal de EdiciÃ³n de Pruebas FÃ­sicas
         const modalPruebaEditar = document.getElementById('modal-prueba-editar');
         const formPruebaEditar = document.getElementById('form-prueba-editar');
 
@@ -906,7 +897,7 @@
                 document.getElementById('edit-prueba-coordinacion').value = coordinacion || '';
                 document.getElementById('edit-prueba-reaccion').value = reaccion || '';
 
-                // Ajustar acción de form dinámicamente
+                // Ajustar acciÃ³n de form dinÃ¡micamente
                 formPruebaEditar.action = `<?= url("/admin/resultados-pruebas") ?>/${id}/editar`;
 
                 document.getElementById('prueba-editar-error').style.display = 'none';
@@ -947,7 +938,7 @@
                     submitBtn.innerHTML = originalBtnText;
                 }
             } catch (error) {
-                errorDiv.textContent = 'Error de conexión.';
+                errorDiv.textContent = 'Error de conexiÃ³n.';
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
@@ -958,37 +949,20 @@
             btn.addEventListener('click', cerrarModalPruebaEditar);
         });
 
-        // 1.8.6 Eliminación de Pruebas Físicas con CadaModal
+        // 1.8.6 EliminaciÃ³n de Pruebas FÃ­sicas con CadaModal
         document.querySelectorAll('.btn-eliminar-prueba').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.dataset.id;
                 const atletaId = "<?= $atleta['atleta_id'] ?>";
 
-                if (typeof CadaModal !== 'undefined') {
-                    CadaModal.confirm({
-                        title: '¿Eliminar Prueba Física?',
-                        text: '¿Estás seguro de eliminar este registro de pruebas físicas? Esta acción no se puede deshacer.',
-                        type: 'danger',
-                        confirmText: 'Sí, Eliminar',
-                        cancelText: 'Cancelar'
-                    }).then((confirmed) => {
-                        if (confirmed) {
-                            const form = document.createElement('form');
-                            form.method = 'POST';
-                            form.action = `<?= url('/admin/resultados-pruebas') ?>/${id}/eliminar?atleta_id=${atletaId}&redirect=${encodeURIComponent(window.location.pathname + '?tab=tab-pruebas')}`;
-
-                            const csrf = document.createElement('input');
-                            csrf.type = 'hidden';
-                            csrf.name = '_csrf';
-                            csrf.value = document.querySelector('meta[name="csrf-token"]').content;
-
-                            form.appendChild(csrf);
-                            document.body.appendChild(form);
-                            form.submit();
-                        }
-                    });
-                } else {
-                    if (confirm('¿Eliminar esta prueba?')) {
+                CadaModal.confirm({
+                    title: 'Â¿Eliminar Prueba FÃ­sica?',
+                    text: 'Â¿EstÃ¡s seguro de eliminar este registro de pruebas fÃ­sicas? Esta acciÃ³n no se puede deshacer.',
+                    type: 'danger',
+                    confirmText: 'SÃ­, Eliminar',
+                    cancelText: 'Cancelar'
+                }).then((confirmed) => {
+                    if (confirmed) {
                         const form = document.createElement('form');
                         form.method = 'POST';
                         form.action = `<?= url('/admin/resultados-pruebas') ?>/${id}/eliminar?atleta_id=${atletaId}&redirect=${encodeURIComponent(window.location.pathname + '?tab=tab-pruebas')}`;
@@ -1002,14 +976,14 @@
                         document.body.appendChild(form);
                         form.submit();
                     }
-                }
+                });
             });
         });
 
-        // 5. Asistencia: Calendario Mensual y Gráfico de Dona
+        // 5. Asistencia: Calendario Mensual y GrÃ¡fico de Dona
         const historialAsistenciasData = <?= json_encode($asistencias_historial ?? []) ?>;
         
-        // 5.1 Gráfico de Dona
+        // 5.1 GrÃ¡fico de Dona
         var chartDona = null;
         const chartDonaDOM = document.getElementById('chart-asistencia-dona');
         if (chartDonaDOM && typeof echarts !== 'undefined') {
@@ -1185,7 +1159,7 @@
             let currentPage = 1;
             const totalPages = Math.ceil(rows.length / rowsPerPage);
             
-            if (totalPages <= 1) return; // No necesita paginación
+            if (totalPages <= 1) return; // No necesita paginaciÃ³n
 
             // Crear controles
             let controls = document.getElementById(tableId + '-pagination');
@@ -1223,7 +1197,7 @@
                 span.style.fontSize = '13px';
                 span.style.color = 'var(--color-text-muted)';
                 span.style.fontWeight = '500';
-                span.innerText = `Pág ${currentPage} de ${totalPages}`;
+                span.innerText = `PÃ¡g ${currentPage} de ${totalPages}`;
                 controls.appendChild(span);
 
                 const btnNext = document.createElement('button');
@@ -1240,7 +1214,7 @@
             render();
         }
 
-        // ── Widget de Cédula/Folio para Modales de Edición ───────────────────────────
+        // ââ Widget de CÃ©dula/Folio para Modales de EdiciÃ³n âââââââââââââââââââââââââââ
         function formatCedulaNumber(val) {
             let digits = val.replace(/\D/g, '').substring(0, 8);
             return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
