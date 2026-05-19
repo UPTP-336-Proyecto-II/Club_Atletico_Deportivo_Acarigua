@@ -41,7 +41,7 @@
             <div class="form-group">
                 <label class="form-label" for="pregunta_1"><span class="required">*</span> Pregunta de Seguridad 1</label>
                 <select id="pregunta_1" name="pregunta_1" class="form-control" required>
-                    <option value="">Selecciona una pregunta...</option>
+                    <option value="">— Seleccione —</option>
                     <?php foreach ($preguntas as $p): ?>
                         <option value="<?= (int) $p['pregunta_id'] ?>"><?= e($p['preguntas']) ?></option>
                     <?php endforeach; ?>
@@ -56,7 +56,7 @@
             <div class="form-group">
                 <label class="form-label" for="pregunta_2"><span class="required">*</span> Pregunta de Seguridad 2</label>
                 <select id="pregunta_2" name="pregunta_2" class="form-control" required>
-                    <option value="">Selecciona una pregunta...</option>
+                    <option value="">— Seleccione —</option>
                     <?php foreach ($preguntas as $p): ?>
                         <option value="<?= (int) $p['pregunta_id'] ?>"><?= e($p['preguntas']) ?></option>
                     <?php endforeach; ?>

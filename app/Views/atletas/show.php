@@ -202,30 +202,31 @@
         </div>
 
         <div style="padding: 32px; flex: 1;">
-
-
             <!-- Tab: General -->
-            <?php include __DIR__ . '/partials/_tab_general.php'; ?>
+            <?php include __DIR__ . '/partials/perfil/_tab_general.php'; ?>
 
             <!-- Tab: Ficha Médica -->
-            <?php include __DIR__ . '/partials/_tab_ficha_medica.php'; ?>
+            <?php include __DIR__ . '/partials/perfil/_tab_ficha_medica.php'; ?>
 
             <!-- Tab: Antropometría -->
-            <?php include __DIR__ . '/partials/_tab_antropometria.php'; ?>
+            <?php include __DIR__ . '/partials/perfil/_tab_antropometria.php'; ?>
 
             <!-- Tab: Pruebas Físicas -->
-            <?php include __DIR__ . '/partials/_tab_pruebas.php'; ?>
+            <?php include __DIR__ . '/partials/perfil/_tab_pruebas.php'; ?>
 
             <!-- Tab: Asistencia -->
-            <?php include __DIR__ . '/partials/_tab_asistencia.php'; ?>
+            <?php include __DIR__ . '/partials/perfil/_tab_asistencia.php'; ?>
         </div>
 
-        <?php include __DIR__ . '/partials/_modals.php'; ?>
+        <?php include __DIR__ . '/partials/perfil/_modals.php'; ?>
 
     </div>
 </div>
 </div>
 
-<?php include __DIR__ . '/partials/_styles.php'; ?>
+<?php include __DIR__ . '/partials/perfil/_styles.php'; ?>
 
-<?php include __DIR__ . '/partials/_scripts.php'; ?>
+<?php include __DIR__ . '/partials/perfil/_scripts.php'; ?>
+
+
+

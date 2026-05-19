@@ -10,11 +10,11 @@
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Nombres</label>
-                        <input type="text" name="nombre" class="form-control" required maxlength="50" value="<?= e($get('nombre')) ?>" placeholder="Ej: Juan Carlos">
+                        <input type="text" name="nombre" class="form-control" required maxlength="50" value="<?= e($get('nombre', '')) ?>" placeholder="Ej: Juan Carlos">
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Apellidos</label>
-                        <input type="text" name="apellido" class="form-control" required maxlength="50" value="<?= e($get('apellido')) ?>" placeholder="Ej: Pérez Rodríguez">
+                        <input type="text" name="apellido" class="form-control" required maxlength="50" value="<?= e($get('apellido', '')) ?>" placeholder="Ej: Pérez Rodríguez">
                     </div>
                 </div>
 
@@ -22,7 +22,7 @@
                     <div class="form-group">
                         <label class="form-label" id="label-cedula">Cédula o Cód. de Partida</label>
                         <?php
-                            $cedVal   = $get('cedula');
+                            $cedVal   = $get('cedula', '');
                             $cedPref  = 'V';
                             $cedNum   = '';
                             if (!empty($cedVal)) {
@@ -80,7 +80,7 @@
                     <div class="form-group">
                         <label class="form-label" id="label-telefono">Tel&eacute;fono</label>
                         <?php
-                            $telVal   = $get('telefono');
+                            $telVal   = $get('telefono', '');
                             $telPref  = '';
                             $telNum   = '';
                             foreach (['0412','0414','0416','0422','0424','0426'] as $_p) {
@@ -107,7 +107,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Fecha de nacimiento</label>
-                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nac', $get('fecha_nacimiento'))) ?>" max="<?= date('Y-m-d', strtotime('-6 years')) ?>">
+                        <input type="date" name="fecha_nacimiento" class="form-control" required value="<?= e($get('fecha_nac', $get('fecha_nacimiento', ''))) ?>" max="<?= date('Y-m-d', strtotime('-6 years')) ?>">
                     </div>
                 </div>
 
@@ -116,8 +116,8 @@
                         <label class="form-label"><span class="required">*</span> Sexo</label>
                         <select name="sexo" class="form-control" required>
                             <option value="">— Seleccione —</option>
-                            <option value="M" <?= $get('sexo') === 'M' ? 'selected' : '' ?>>Masculino</option>
-                            <option value="F" <?= $get('sexo') === 'F' ? 'selected' : '' ?>>Femenino</option>
+                            <option value="M" <?= $get('sexo', '') === 'M' ? 'selected' : '' ?>>Masculino</option>
+                            <option value="F" <?= $get('sexo', '') === 'F' ? 'selected' : '' ?>>Femenino</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -125,7 +125,7 @@
                         <select name="categoria_id" class="form-control" required>
                             <option value="">— Seleccione —</option>
                             <?php foreach ($categorias as $c): ?>
-                                <option value="<?= (int) $c['categoria_id'] ?>" <?= ((int) $get('categoria_id') === (int) $c['categoria_id']) ? 'selected' : '' ?>>
+                                <option value="<?= (int) $c['categoria_id'] ?>" <?= ((int) $get('categoria_id', '') === (int) $c['categoria_id']) ? 'selected' : '' ?>>
                                     <?= e($c['nombre_categoria']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -136,7 +136,7 @@
                         <select name="posicion_de_juego" class="form-control">
                             <option value="">Sin definir</option>
                             <?php foreach ($posiciones as $p): ?>
-                                <option value="<?= (int) $p['posicion_id'] ?>" <?= ((int) $get('posicion_juego_id', $get('posicion_de_juego')) === (int) $p['posicion_id']) ? 'selected' : '' ?>>
+                                <option value="<?= (int) $p['posicion_id'] ?>" <?= ((int) $get('posicion_juego_id', $get('posicion_de_juego', '')) === (int) $p['posicion_id']) ? 'selected' : '' ?>>
                                     <?= e($p['nombre_posicion']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -150,10 +150,11 @@
                         <select name="pierna_dominante" class="form-control">
                             <option value="">Sin definir</option>
                             <?php foreach (PIERNA_DOMINANTE as $op): ?>
-                                <option value="<?= e($op) ?>" <?= $get('pierna_dominante') === $op ? 'selected' : '' ?>><?= e(ucfirst($op)) ?></option>
+                                <option value="<?= e($op) ?>" <?= $get('pierna_dominante', '') === $op ? 'selected' : '' ?>><?= e(ucfirst($op)) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <?php if ($isEdit): ?>
                     <div class="form-group">
                         <label class="form-label">Estatus</label>
                         <select name="estatus" class="form-control">
@@ -163,6 +164,9 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <?php else: ?>
+                        <input type="hidden" name="estatus" value="1">
+                    <?php endif; ?>
                     <div class="form-group">
                         <label class="form-label">Foto de Perfil</label>
                         <div class="af-file-upload">

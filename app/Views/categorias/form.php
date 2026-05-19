@@ -58,7 +58,7 @@ $isEdit = !empty($c['categoria_id']);
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: <?= $isEdit ? '1fr 1fr 1fr' : '1fr 1fr' ?>; gap: 24px; margin-bottom: 24px;">
             <div class="form-group" style="margin: 0;">
                 <label class="form-label"><span class="required">*</span> Género</label>
                 <div style="position: relative;">
@@ -85,6 +85,7 @@ $isEdit = !empty($c['categoria_id']);
                     </select>
                 </div>
             </div>
+            <?php if ($isEdit): ?>
             <div class="form-group" style="margin: 0;">
                 <label class="form-label">Estado</label>
                 <div style="position: relative;">
@@ -98,6 +99,9 @@ $isEdit = !empty($c['categoria_id']);
                     </select>
                 </div>
             </div>
+            <?php else: ?>
+                <input type="hidden" name="estatus" value="activa">
+            <?php endif; ?>
         </div>
 
         <div style="background: var(--color-surface); margin: 32px -32px -32px; padding: 24px 32px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
@@ -116,6 +120,30 @@ $isEdit = !empty($c['categoria_id']);
 /* Solucionar visibilidad de las flechitas de input number en modo oscuro */
 html.dark input[type="number"] {
     color-scheme: dark;
+}
+
+#form-categoria .form-control {
+    height: 44px;
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    transition: all 0.2s;
+}
+
+#form-categoria .form-control:focus {
+    background: var(--color-bg);
+    box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.08);
+}
+
+#form-categoria select.form-control {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
 }
 </style>
 

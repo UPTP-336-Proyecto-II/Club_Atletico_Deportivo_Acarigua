@@ -186,7 +186,7 @@
     .af-back-btn { padding: 8px; width: 40px; height: 40px; border-radius: 50%; }
 }
 
-/* â?? Mejoras de Input â?? */
+/* —— Mejoras de Input —— */
 .form-control {
     height: 44px;
     background: var(--color-surface);
@@ -302,8 +302,8 @@ select.form-control {
     outline: none;
 }
 .phone-field .phone-prefix option {
-    background: var(--color-bg);
-    color: var(--color-text);
+    background-color: var(--color-surface, #1e293b) !important;
+    color: var(--color-text, #f8fafc) !important;
 }
 .phone-field .phone-number {
     flex: 1;

@@ -44,11 +44,11 @@
                 <div class="af-grid af-grid--2">
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Localidad (Barrio / Urbanización)</label>
-                        <input type="text" name="localidad" class="form-control" required maxlength="100" value="<?= e($get('localidad')) ?>" placeholder="Ej: Urb. La Goajira">
+                        <input type="text" name="localidad" class="form-control" required maxlength="100" value="<?= e($get('localidad', '')) ?>" placeholder="Ej: Urb. La Goajira">
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Dirección Exacta</label>
-                        <input type="text" name="ubicacion_vivienda" class="form-control" required maxlength="100" value="<?= e($get('ubicacion_vivienda')) ?>" placeholder="Ej: Calle 3, Vereda 5, Casa 12">
+                        <input type="text" name="ubicacion_vivienda" class="form-control" required maxlength="100" value="<?= e($get('ubicacion_vivienda', '')) ?>" placeholder="Ej: Calle 3, Vereda 5, Casa 12">
                     </div>
                 </div>
             </div>
