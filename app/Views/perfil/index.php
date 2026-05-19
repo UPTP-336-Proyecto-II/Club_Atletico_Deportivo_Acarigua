@@ -8,9 +8,6 @@ $get = function(string $k, $d = '') use ($item) { return old($k, $item[$k] ?? $d
         <h1><i class="ph ph-user-circle"></i> Mi Perfil</h1>
         <div class="subtitle">Gestiona tu información personal y seguridad</div>
     </div>
-    <button type="button" class="btn-help" id="btn-help-perfil" title="¿Cómo actualizar mi perfil?">
-        <i class="ph ph-question"></i>
-    </button>
 </div>
 
 <!-- Pestañas -->
@@ -129,8 +126,11 @@ $get = function(string $k, $d = '') use ($item) { return old($k, $item[$k] ?? $d
             </div>
         </div>
 
-        <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
             <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Guardar Cambios</button>
+            <button type="button" class="btn-help js-btn-help-perfil" title="¿Cómo actualizar mi perfil?">
+                <i class="ph ph-question"></i>
+            </button>
         </div>
     </form>
 </div>
@@ -209,8 +209,11 @@ $get = function(string $k, $d = '') use ($item) { return old($k, $item[$k] ?? $d
             <input type="text" name="respuesta_2" class="form-control" autocomplete="off">
         </div>
 
-        <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+        <div style="margin-top: 24px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
             <button type="submit" class="btn btn-primary"><i class="ph ph-shield-check"></i> Guardar Seguridad</button>
+            <button type="button" class="btn-help js-btn-help-perfil" title="¿Cómo actualizar mi perfil?">
+                <i class="ph ph-question"></i>
+            </button>
         </div>
     </form>
 </div>
@@ -218,11 +221,13 @@ $get = function(string $k, $d = '') use ($item) { return old($k, $item[$k] ?? $d
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // ── Botón de ayuda [?] ──
-    document.getElementById('btn-help-perfil')?.addEventListener('click', () => {
-        FormValidator.showHelp(
-            'Guía: Mi Perfil',
-            '<?= e(asset("img/ayuda/formulario_perfil.png")) ?>'
-        );
+    document.querySelectorAll('.js-btn-help-perfil').forEach(btn => {
+        btn.addEventListener('click', () => {
+            FormValidator.showHelp(
+                'Guía: Mi Perfil',
+                '<?= e(asset("img/ayuda/formulario_perfil.png")) ?>'
+            );
+        });
     });
 
     // ── Tabs ──

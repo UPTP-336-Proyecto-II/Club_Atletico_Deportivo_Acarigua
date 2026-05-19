@@ -5,9 +5,6 @@
         <div class="subtitle">Selecciona la categoría y registra la asistencia de hoy</div>
     </div>
     <div style="display: flex; gap: 12px; align-items: center;">
-        <button type="button" class="btn-help" id="btn-help-asistencia" title="¿Cómo registrar asistencia?">
-            <i class="ph ph-question"></i>
-        </button>
         <a href="<?= e(url('/admin/asistencias')) ?>" class="btn btn-ghost">
             <i class="ph ph-caret-left"></i> Directorio de Asistencias
         </a>
@@ -22,7 +19,7 @@
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Categoría Deportiva</label>
                 <select id="sel-cat" name="categoria_id" class="form-control" required>
-                    <option value="">Selecciona una categoría...</option>
+                    <option value="">— Seleccione —</option>
                     <?php foreach ($categorias as $c): ?>
                         <option value="<?= (int) $c['categoria_id'] ?>"><?= e($c['nombre_categoria']) ?></option>
                     <?php endforeach; ?>
@@ -30,11 +27,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e(date('Y-m-d')) ?>" max="<?= date('Y-m-d') ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e(date('Y-m-d')) ?>" min="<?= date('Y-m-d', strtotime('-1 day')) ?>" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Tipo de Actividad</label>
                 <select name="tipo_evento" class="form-control" required>
+                    <option value="">— Seleccione —</option>
                     <?php foreach (TIPO_EVENTO as $op): ?>
                         <option value="<?= e($op) ?>"><?= e($op) ?></option>
                     <?php endforeach; ?>
@@ -50,26 +48,26 @@
             <div class="form-group">
                 <label class="form-label">Clima</label>
                 <select name="clima" class="form-control">
-                    <option value="">Selecciona...</option>
+                    <option value="">— Seleccione —</option>
                     <?php foreach (CLIMA_TIPO as $k => $v): ?>
                         <option value="<?= $k ?>"><?= e($v) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Hora Inicio</label>
-                <input type="time" name="hora_inicio" class="form-control">
+                <label class="form-label"><span class="required">*</span> Hora Inicio</label>
+                <input type="time" name="hora_inicio" class="form-control" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Hora Fin</label>
-                <input type="time" name="hora_fin" class="form-control">
+                <label class="form-label"><span class="required">*</span> Hora Fin</label>
+                <input type="time" name="hora_fin" class="form-control" required>
             </div>
         </div>
 
         <div class="form-group" style="margin-top: 16px;">
             <label class="form-label"><span class="required">*</span> Entrenador a Cargo</label>
             <select name="entrenador_id" class="form-control" required>
-                <option value="">Selecciona al entrenador...</option>
+                <option value="">— Seleccione —</option>
                 <?php foreach ($entrenadores as $e): ?>
                     <option value="<?= (int) $e['usuario_id'] ?>"><?= e($e['nombre'] . ' ' . $e['apellido']) ?></option>
                 <?php endforeach; ?>
@@ -88,10 +86,13 @@
             <div id="atletas-list-wrap"></div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; margin-top: 24px; gap: 12px;">
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 24px; gap: 12px;">
             <button type="reset" class="btn btn-ghost">Cancelar</button>
             <button type="submit" class="btn btn-primary btn-lg" id="btn-save" style="padding: 12px 32px;">
                 <i class="ph ph-check-circle"></i> Guardar Asistencia
+            </button>
+            <button type="button" class="btn-help" id="btn-help-asistencia" title="¿Cómo registrar asistencia?" style="width: 44px; height: 44px;">
+                <i class="ph ph-question"></i>
             </button>
         </div>
     </div>

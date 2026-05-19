@@ -17,7 +17,7 @@
 
         <?php include view_path('partials.flash'); ?>
 
-        <form method="POST" action="<?= e(url('/admin/setup/save')) ?>" novalidate>
+        <form id="form-setup" method="POST" action="<?= e(url('/admin/setup/save')) ?>" novalidate>
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pass.addEventListener('input', updateRules);
 
     // Standard validation on submit
-    FormValidator.init('form', {
+    FormValidator.init('#form-setup', {
         custom: (form) => {
             const errors = [];
             const passVal = document.getElementById('password')?.value;

@@ -49,10 +49,7 @@ $get = fn(string $k, $default = '') => old($k, $a[$k] ?? $default);
             <div class="af-footer-info">
                 <i class="ph ph-info"></i> Paso <span id="current-step-num">1</span> de 3
             </div>
-            <div class="af-actions">
-                <button type="button" class="btn btn-ghost" id="btn-help-atleta" title="¿Cómo llenar este formulario?">
-                    <i class="ph ph-question"></i> Ayuda
-                </button>
+            <div class="af-actions" style="display: flex; gap: 12px; align-items: center;">
                 <button type="button" class="btn btn-ghost" id="btn-reset" title="Borrar todo"><i class="ph ph-trash"></i> Limpiar</button>
                 <div class="af-actions-sep"></div>
                 <button type="button" class="btn btn-ghost" id="btn-prev" style="display:none;"><i class="ph ph-caret-left"></i> Anterior</button>
@@ -60,6 +57,9 @@ $get = fn(string $k, $default = '') => old($k, $a[$k] ?? $default);
                 <button type="submit" class="btn btn-primary af-submit-btn" id="btn-submit" style="display:none;">
                     <span><?= $isEdit ? 'Guardar Cambios' : 'Finalizar Registro' ?></span>
                     <i class="ph ph-check-circle"></i>
+                </button>
+                <button type="button" class="btn-help" id="btn-help-atleta" title="¿Cómo llenar este formulario?" style="width: 38px; height: 38px;">
+                    <i class="ph ph-question"></i>
                 </button>
             </div>
         </div>

@@ -169,7 +169,7 @@ function loadEstados() {
     fetch('<?= e(url('/api/direcciones/estados/232')) ?>')
         .then(res => res.json())
         .then(data => {
-            selEstado.innerHTML = '<option value="">Selecciona Estado...</option>';
+            selEstado.innerHTML = '<option value="">— Seleccione Estado —</option>';
             data.forEach(est => {
                 let selected = (parseInt(selEstado.dataset.current) === est.estado_id) ? 'selected' : '';
                 selEstado.innerHTML += `<option value="${est.estado_id}" ${selected}>${est.estado}</option>`;
@@ -181,9 +181,9 @@ function loadEstados() {
 
 function loadMunicipios(estadoId) {
     if (!estadoId) {
-        selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
+        selMunicipio.innerHTML = '<option value="">— Seleccione Municipio —</option>';
         selMunicipio.disabled = true;
-        selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+        selParroquia.innerHTML = '<option value="">— Seleccione Parroquia —</option>';
         selParroquia.disabled = true;
         return;
     }
@@ -191,7 +191,7 @@ function loadMunicipios(estadoId) {
     fetch('<?= e(url('/api/direcciones/municipios')) ?>/' + estadoId)
         .then(res => res.json())
         .then(data => {
-            selMunicipio.innerHTML = '<option value="">Selecciona Municipio...</option>';
+            selMunicipio.innerHTML = '<option value="">— Seleccione Municipio —</option>';
             data.forEach(mun => {
                 let selected = (parseInt(selMunicipio.dataset.current) === parseInt(mun.municipio_id)) ? 'selected' : '';
                 selMunicipio.innerHTML += `<option value="${mun.municipio_id}" ${selected}>${mun.municipio}</option>`;
@@ -203,7 +203,7 @@ function loadMunicipios(estadoId) {
 
 function loadParroquias(municipioId) {
     if (!municipioId) {
-        selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+        selParroquia.innerHTML = '<option value="">— Seleccione Parroquia —</option>';
         selParroquia.disabled = true;
         return;
     }
@@ -211,7 +211,7 @@ function loadParroquias(municipioId) {
     fetch('<?= e(url('/api/direcciones/parroquias')) ?>/' + municipioId)
         .then(res => res.json())
         .then(data => {
-            selParroquia.innerHTML = '<option value="">Selecciona Parroquia...</option>';
+            selParroquia.innerHTML = '<option value="">— Seleccione Parroquia —</option>';
             data.forEach(par => {
                 let selected = (parseInt(selParroquia.dataset.current) === parseInt(par.parroquia_id)) ? 'selected' : '';
                 selParroquia.innerHTML += `<option value="${par.parroquia_id}" ${selected}>${par.parroquia}</option>`;

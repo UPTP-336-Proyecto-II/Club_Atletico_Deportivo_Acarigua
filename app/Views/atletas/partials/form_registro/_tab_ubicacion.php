@@ -11,13 +11,13 @@
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Estado</label>
                         <select id="sel-estado" name="estado_id" class="form-control" required data-current="<?= (int) old('estado_id', $a['estado_id'] ?? 0) ?>">
-                            <option value="">Selecciona Estado...</option>
+                            <option value="">— Seleccione Estado —</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Municipio</label>
                         <select id="sel-municipio" name="municipio_id" class="form-control" required data-current="<?= (int) old('municipio_id', $a['municipio_id'] ?? 0) ?>" disabled>
-                            <option value="">Selecciona Municipio...</option>
+                            <option value="">— Seleccione Municipio —</option>
                         </select>
                     </div>
                 </div>
@@ -26,13 +26,13 @@
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Parroquia</label>
                         <select id="sel-parroquia" name="parroquia_id" class="form-control" required data-current="<?= (int) old('parroquia_id', $a['parroquias_id'] ?? 0) ?>" disabled>
-                            <option value="">Selecciona Parroquia...</option>
+                            <option value="">— Seleccione Parroquia —</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Tipo de Vivienda</label>
                         <select name="tipo_vivienda" class="form-control" required>
-                            <option value="">Selecciona...</option>
+                            <option value="">— Seleccione —</option>
                             <?php $tv = $get('tipo_vivienda', $a['tipo_vivienda'] ?? ''); ?>
                             <option value="casa" <?= $tv === 'casa' ? 'selected' : '' ?>>Casa</option>
                             <option value="apto" <?= $tv === 'apto' ? 'selected' : '' ?>>Apartamento</option>

@@ -14,17 +14,14 @@
             </a>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <div style="margin-bottom: 8px;">
             <h1 class="login-card__title" style="margin-bottom: 0;">Bienvenido</h1>
-            <button type="button" class="btn-help" id="btn-help-login" title="¿Cómo iniciar sesión?">
-                <i class="ph ph-question"></i>
-            </button>
         </div>
         <p class="login-card__subtitle">Ingresa al sistema del club</p>
 
         <?php include view_path('partials.flash'); ?>
 
-        <form method="POST" action="<?= e(url('/login')) ?>" novalidate>
+        <form id="form-login" method="POST" action="<?= e(url('/login')) ?>" novalidate>
             <?= csrf_field() ?>
 
             <div class="form-group">
@@ -54,10 +51,15 @@
                 <a href="<?= e(url('/recuperar')) ?>">¿Olvidaste tu contraseña?</a>
             </div>
 
-            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 8px;">Iniciar Sesión</button>
 
-            <div class="login-footer">
-                ¿Necesitas acceso? <a href="<?= e(url('/contacto')) ?>">Contacta a la directiva</a>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 24px;">
+                <div class="login-footer" style="margin: 0;">
+                    ¿Necesitas acceso? <a href="<?= e(url('/contacto')) ?>">Contacta a la directiva</a>
+                </div>
+                <button type="button" class="btn-help" id="btn-help-login" title="¿Cómo iniciar sesión?" style="width: 38px; height: 38px;">
+                    <i class="ph ph-question"></i>
+                </button>
             </div>
         </form>
     </div>
@@ -74,6 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Validación estándar al clic en "Iniciar Sesión"
-    FormValidator.init('form');
+    FormValidator.init('#form-login');
 });
 </script>

@@ -15,14 +15,11 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
         <div class="subtitle">Complete los datos personales y de ubicación</div>
     </div>
     <div style="display: flex; gap: 12px; align-items: center;">
-        <button type="button" class="btn-help" id="btn-help-usuario" title="¿Cómo llenar este formulario?">
-            <i class="ph ph-question"></i>
-        </button>
         <a href="<?= e(url('/admin/usuarios')) ?>" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Volver</a>
     </div>
 </div>
 
-<form method="POST" action="<?= e($action) ?>" enctype="multipart/form-data" class="card" style="max-width:1000px; padding:0; overflow:hidden;" novalidate>
+<form id="form-usuario" method="POST" action="<?= e($action) ?>" enctype="multipart/form-data" class="card" style="max-width:1000px; padding:0; overflow:hidden;" novalidate>
     <?= csrf_field() ?>
 
     <!-- Indicador de pasos -->
@@ -117,9 +114,12 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                 </div>
             </div>
 
-            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border);">
+            <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border);">
                 <a href="<?= e(url('/admin/usuarios')) ?>" class="btn btn-ghost">Cancelar</a>
                 <button type="button" id="btn-siguiente" class="btn btn-primary"><i class="ph ph-arrow-right"></i> Siguiente</button>
+                <button type="button" class="btn-help js-btn-help-usuario" title="¿Cómo llenar este formulario?">
+                    <i class="ph ph-question"></i>
+                </button>
             </div>
         </div>
 
@@ -169,9 +169,12 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                 </div>
             </div>
 
-            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border);">
+            <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--color-border);">
                 <button type="button" id="btn-atras" class="btn btn-ghost"><i class="ph ph-arrow-left"></i> Atrás</button>
                 <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> <?= $isEdit ? 'Guardar Cambios' : 'Registrar Usuario' ?></button>
+                <button type="button" class="btn-help js-btn-help-usuario" title="¿Cómo llenar este formulario?">
+                    <i class="ph ph-question"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -180,11 +183,13 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // ── Botón de ayuda [?] ──
-    document.getElementById('btn-help-usuario')?.addEventListener('click', () => {
-        FormValidator.showHelp(
-            'Guía: Registro de Usuario',
-            '<?= e(asset("img/ayuda/formulario_usuario.png")) ?>'
-        );
+    document.querySelectorAll('.js-btn-help-usuario').forEach(btn => {
+        btn.addEventListener('click', () => {
+            FormValidator.showHelp(
+                'Guía: Registro de Usuario',
+                '<?= e(asset("img/ayuda/formulario_usuario.png")) ?>'
+            );
+        });
     });
 
     // ── Cédula venezolana (solo formateo, NO validación visual) ──
@@ -335,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ── Validación estándar al submit ──
-    FormValidator.init('form', {
+    FormValidator.init('#form-usuario', {
         custom: (form) => {
             const errors = [];
             // Cédula

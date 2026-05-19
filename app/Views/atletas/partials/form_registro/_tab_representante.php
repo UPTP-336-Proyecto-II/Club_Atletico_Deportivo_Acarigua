@@ -87,7 +87,7 @@
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Tipo de Relación</label>
                         <select name="tutor_relacion" class="form-control" required>
-                            <option value="">Selecciona...</option>
+                            <option value="">— Seleccione —</option>
                             <?php foreach (TIPO_RELACION_REPRESENTANTE as $op):
                                 $cur = $get('tutor_relacion', $a['tutor_relacion'] ?? ''); ?>
                                 <option value="<?= e($op) ?>" <?= $cur === $op ? 'selected' : '' ?>><?= e(ucfirst($op)) ?></option>

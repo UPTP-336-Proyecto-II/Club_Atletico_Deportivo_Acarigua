@@ -125,10 +125,6 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
                     <div style="height: 8px; background: var(--color-surface-2); border-radius: 4px; overflow: hidden;">
                         <div style="height: 100%; width: <?= $porcentaje ?>%; background: <?= $barColor ?>; border-radius: 4px; transition: width 0.5s ease;"></div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--color-text-muted); font-weight: 500;">
-                        <span>0 Atletas</span>
-                        <span>Capacidad sugerida: <?= $maxRef ?></span>
-                    </div>
                 </div>
             </div>
             

@@ -89,9 +89,9 @@ final class AtletasController extends Controller
             'medidas_historial' => $medidas_historial,
             'pruebas_historial' => $pruebas_historial,
             'asistencias_historial' => $asistencias_historial,
-            'categorias' => (new \App\Models\Categoria())->activas(),
-            'posiciones' => (new \App\Models\PosicionJuego())->all('nombre_posicion'),
-            'paises'     => (new \App\Models\Direccion())->paises(),
+            'categorias' => (new Categoria())->activas(),
+            'posiciones' => (new PosicionJuego())->all('nombre_posicion'),
+            'paises'     => (new Direccion())->paises(),
         ], 'admin');
     }
 

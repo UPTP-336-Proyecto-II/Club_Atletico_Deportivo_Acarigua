@@ -115,7 +115,7 @@
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Sexo</label>
                         <select name="sexo" class="form-control" required>
-                            <option value="">Selecciona...</option>
+                            <option value="">— Seleccione —</option>
                             <option value="M" <?= $get('sexo') === 'M' ? 'selected' : '' ?>>Masculino</option>
                             <option value="F" <?= $get('sexo') === 'F' ? 'selected' : '' ?>>Femenino</option>
                         </select>
@@ -123,7 +123,7 @@
                     <div class="form-group">
                         <label class="form-label"><span class="required">*</span> Categoría</label>
                         <select name="categoria_id" class="form-control" required>
-                            <option value="">Selecciona...</option>
+                            <option value="">— Seleccione —</option>
                             <?php foreach ($categorias as $c): ?>
                                 <option value="<?= (int) $c['categoria_id'] ?>" <?= ((int) $get('categoria_id') === (int) $c['categoria_id']) ? 'selected' : '' ?>>
                                     <?= e($c['nombre_categoria']) ?>
