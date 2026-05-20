@@ -107,6 +107,7 @@ final class FichaMedicaController extends Controller
             ]);
             
             if ($request->header('Accept') === 'application/json') {
+                flash('success', 'Discapacidad agregada correctamente.');
                 echo json_encode(['success' => true]);
                 exit;
             }
@@ -173,6 +174,7 @@ final class FichaMedicaController extends Controller
             ]);
             
             if ($request->header('Accept') === 'application/json') {
+                flash('success', 'Discapacidad actualizada correctamente.');
                 echo json_encode(['success' => true]);
                 exit;
             }

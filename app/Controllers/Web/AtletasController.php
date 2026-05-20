@@ -92,6 +92,7 @@ final class AtletasController extends Controller
             'categorias' => (new Categoria())->activas(),
             'posiciones' => (new PosicionJuego())->all('nombre_posicion'),
             'paises'     => (new Direccion())->paises(),
+            'entrenadores' => (new \App\Models\Usuario())->entrenadores(),
         ], 'admin');
     }
 
@@ -242,13 +243,13 @@ final class AtletasController extends Controller
         $input = [
             'nombre'            => $request->input('nombre', $actual['nombre']),
             'apellido'          => $request->input('apellido', $actual['apellido']),
-            'cedula'            => $request->input('cedula', $actual['cedula']),
+            'cedula'            => $request->input('cedula') !== null ? ($request->input('cedula') ?: null) : $actual['cedula'],
             'sexo'              => $request->input('sexo', $actual['sexo']),
-            'telefono'          => $request->input('telefono', $actual['telefono']),
+            'telefono'          => $request->input('telefono') !== null ? ($request->input('telefono') ?: null) : $actual['telefono'],
             'fecha_nacimiento'  => $request->input('fecha_nacimiento', $actual['fecha_nac']),
-            'posicion_de_juego' => $request->input('posicion_de_juego', $actual['posicion_juego_id']),
-            'pierna_dominante'  => $request->input('pierna_dominante', $actual['pierna_dominante']),
-            'categoria_id'      => $request->input('categoria_id', $actual['categoria_id']),
+            'posicion_de_juego' => $request->input('posicion_de_juego') !== null ? ($request->input('posicion_de_juego') ?: null) : $actual['posicion_juego_id'],
+            'pierna_dominante'  => $request->input('pierna_dominante') !== null ? ($request->input('pierna_dominante') ?: null) : $actual['pierna_dominante'],
+            'categoria_id'      => $request->input('categoria_id') !== null ? ($request->input('categoria_id') ?: null) : $actual['categoria_id'],
             'estatus'           => $request->input('estatus') !== null ? (int) $request->input('estatus') : $actual['estatus'],
             
             'estado_id'         => $request->input('estado_id', $actual['estado_id'] ?? null),
@@ -374,15 +375,27 @@ final class AtletasController extends Controller
             $rules['telefono'] = ["regex:$telRegex"];
         }
 
-        // 3. Datos del representante obligatorios solo si es menor de edad
-        if ($age < 18) {
-            $rules['tutor_nombres'] = 'required|min:2|max:100';
-            $rules['tutor_apellidos'] = 'required|min:2|max:100';
-            $rules['tutor_cedula'] = ['required', "regex:$cedRegex"];
-            $rules['tutor_telefono'] = ['required', "regex:$telRegex"];
-            $rules['tutor_relacion'] = 'required';
+        // 3. Datos del representante obligatorios si es menor de edad OR si se edita desde el modal de representante
+        $tieneRepresentanteEnPost = ($ignoreId !== null) && isset($_POST['tutor_nombres']);
+        if ($age < 18 || $tieneRepresentanteEnPost) {
+            $esEdicionBasico = ($ignoreId !== null) && isset($_POST['nombre']) && !isset($_POST['tutor_nombres']);
+            $tutorVacio = empty($data['tutor_nombres']) 
+                || $data['tutor_nombres'] === 'Sin Nombre' 
+                || empty($data['tutor_cedula']) 
+                || $data['tutor_cedula'] === 'S/N' 
+                || empty($data['tutor_telefono']);
+
+            if ($esEdicionBasico && $tutorVacio && $age < 18) {
+                $rules['tutor_representante'] = 'required';
+            } else {
+                $rules['tutor_nombres'] = 'required|min:2|max:100';
+                $rules['tutor_apellidos'] = 'required|min:2|max:100';
+                $rules['tutor_cedula'] = ['required', "regex:$cedRegex"];
+                $rules['tutor_telefono'] = ['required', "regex:$telRegex"];
+                $rules['tutor_relacion'] = 'required';
+            }
         } else {
-            // Si es mayor de edad, el representante es opcional pero si se ingresa se valida formato
+            // Si es mayor de edad y no se envía el modal de representante, es opcional pero se valida formato si existe
             if (!empty($data['tutor_cedula'])) {
                 $rules['tutor_cedula'] = ["regex:$cedRegex"];
             }
@@ -391,14 +404,29 @@ final class AtletasController extends Controller
             }
         }
 
+        // 4. Validar dirección detallada si estamos en registro o si se envían datos de dirección en el request
+        $esRegistro = ($ignoreId === null);
+        $tieneDireccionEnRequest = isset($_POST['parroquia_id']) || isset($_POST['localidad']);
+        if ($esRegistro || $tieneDireccionEnRequest) {
+            $rules['parroquia_id'] = 'required|integer';
+            $rules['localidad'] = 'required|min:2|max:200';
+            $rules['tipo_vivienda'] = 'required|in:casa,apto,edificio';
+            $rules['ubicacion_vivienda'] = 'required|min:2|max:500';
+        }
+
         $messages = [
             'cedula' => 'La cédula debe tener el formato V-12.345.678, E-12.345.678 o P-AÑO-ACTA-FOLIO (partida de nacimiento). Es obligatoria para mayores de 9 años.',
             'telefono' => 'El teléfono debe comenzar con 0412, 0414, 0416, 0422 o 0424 y tener 11 dígitos. Es obligatorio para mayores de edad.',
-            'tutor_nombres' => 'El nombre del representante es obligatorio para menores de edad.',
-            'tutor_apellidos' => 'El apellido del representante es obligatorio para menores de edad.',
-            'tutor_cedula' => 'La cédula del representante debe tener el formato V-12.345.678 o E-12.345.678 y es obligatoria para menores de edad.',
-            'tutor_telefono' => 'El teléfono del representante es obligatorio para menores de edad y debe tener 11 dígitos.',
+            'tutor_representante' => 'Para registrar al atleta como menor de edad, primero debe asignar y guardar los datos de su representante en la sección correspondiente de su perfil.',
+            'tutor_nombres' => 'El nombre del representante es obligatorio.',
+            'tutor_apellidos' => 'El apellido del representante es obligatorio.',
+            'tutor_cedula' => 'La cédula del representante debe tener el formato V-12.345.678 o E-12.345.678 y es obligatoria.',
+            'tutor_telefono' => 'El teléfono del representante es obligatorio y debe tener 11 dígitos.',
             'tutor_relacion' => 'El tipo de relación con el representante es obligatorio.',
+            'parroquia_id' => 'La parroquia es obligatoria.',
+            'localidad' => 'La localidad o sector es obligatorio y debe tener al menos 2 caracteres.',
+            'tipo_vivienda' => 'El tipo de vivienda es obligatorio.',
+            'ubicacion_vivienda' => 'La ubicación específica (dirección exacta) es obligatoria y debe tener al menos 2 caracteres.',
         ];
 
         $v = Validator::make($data, $rules, $messages);

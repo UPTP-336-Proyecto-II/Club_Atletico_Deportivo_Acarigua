@@ -1,9 +1,9 @@
-            <!-- Tab: AntropometrÃ­a -->
+            <!-- Tab: Antropometría -->
             <div id="tab-antropometria" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h3 style="margin: 0;"><i class="ph ph-ruler"></i> EvoluciÃ³n FÃ­sica</h3>
+                    <h3 style="margin: 0;"><i class="ph ph-ruler"></i> Evolución Física</h3>
                     <button type="button" class="btn btn-primary btn-sm" id="btn-nueva-medicion"><i
-                            class="ph ph-plus"></i> Nueva MediciÃ³n</button>
+                            class="ph ph-plus"></i> Nueva Medición</button>
                 </div>
 
                 <!-- Mock Chart Container -->
@@ -41,13 +41,13 @@
                                 foreach (array_reverse($medidas_historial) as $m): ?>
                                     <tr>
                                         <td><?= e(date('d/m/Y', strtotime($m['fecha_medicion']))) ?></td>
-                                        <td><?= e($m['peso'] ?? 'â') ?></td>
-                                        <td><?= e($m['altura'] ?? 'â') ?></td>
-                                        <td><?= !empty($m['porcentaje_grasa']) ? e($m['porcentaje_grasa']) . '%' : 'â' ?></td>
-                                        <td><?= !empty($m['porcentaje_musculatura']) ? e($m['porcentaje_musculatura']) . '%' : 'â' ?></td>
-                                        <td><?= e($m['envergadura'] ?? 'â') ?></td>
-                                        <td><?= e($m['largo_de_pierna'] ?? 'â') ?></td>
-                                        <td><?= e($m['largo_de_torso'] ?? 'â') ?></td>
+                                        <td><?= e($m['peso'] ?? '—') ?></td>
+                                        <td><?= e($m['altura'] ?? '—') ?></td>
+                                        <td><?= !empty($m['porcentaje_grasa']) ? e($m['porcentaje_grasa']) . '%' : '—' ?></td>
+                                        <td><?= !empty($m['porcentaje_musculatura']) ? e($m['porcentaje_musculatura']) . '%' : '—' ?></td>
+                                        <td><?= e($m['envergadura'] ?? '—') ?></td>
+                                        <td><?= e($m['largo_de_pierna'] ?? '—') ?></td>
+                                        <td><?= e($m['largo_de_torso'] ?? '—') ?></td>
                                         <td style="white-space: nowrap;">
                                             <?php 
                                             $peso = (float)($m['peso'] ?? 0);
@@ -72,7 +72,7 @@
                                                 <span class="badge badge-<?= $badgeClass ?>"><?= number_format($imc, 1) ?>
                                                     (<?= $label ?>)</span>
                                             <?php else: ?>
-                                                â
+                                                —
                                             <?php endif; ?>
                                         </td>
                                         <?php if (can('admin')): ?>
@@ -88,13 +88,13 @@
                                                         data-envergadura="<?= e($m['envergadura']) ?>"
                                                         data-pierna="<?= e($m['largo_de_pierna']) ?>"
                                                         data-torso="<?= e($m['largo_de_torso']) ?>"
-                                                        title="Editar mediciÃ³n"
+                                                        title="Editar medición"
                                                         style="width: 28px; height: 28px; font-size: 14px;">
                                                         <i class="ph ph-pencil-simple"></i>
                                                     </button>
                                                     <button type="button" class="btn-icon-premium btn-eliminar-medicion"
                                                         data-id="<?= $m['medidas_id'] ?>"
-                                                        title="Eliminar mediciÃ³n"
+                                                        title="Eliminar medición"
                                                         style="width: 28px; height: 28px; font-size: 14px; color: var(--color-danger); border-color: rgba(239, 68, 68, 0.2);">
                                                         <i class="ph ph-trash"></i>
                                                     </button>
@@ -108,25 +108,21 @@
                 </div>
             </div>
 
-            <!-- Modal: Nueva MediciÃ³n -->
+            <!-- Modal: Nueva Medición -->
             <div id="modal-medicion" class="modal-overlay" style="display:none;">
                 <form id="form-medicion" action="<?= e(url("/admin/medidas/atleta/{$atleta['atleta_id']}")) ?>"
-                    method="POST" class="modal-container" style="max-width: 600px;">
+                    method="POST" class="modal-container" style="max-width: 600px;" novalidate>
                     <div class="modal-header">
-                        <h3 class="modal-title"><i class="ph ph-ruler"></i> Nueva MediciÃ³n AntropomÃ©trica</h3>
+                        <h3 class="modal-title"><i class="ph ph-ruler"></i> Nueva Medición Antropométrica</h3>
                         <button type="button" class="modal-close" data-close-modal>&times;</button>
                     </div>
                     <?= csrf_field() ?>
                     <div class="modal-body">
-                        <div id="medicion-error"
-                            style="display:none; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;">
-                        </div>
-
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Fecha de MediciÃ³n *</label>
+                                <label class="form-label"><span class="required">*</span> Fecha de Medición</label>
                                 <input type="date" name="fecha_medicion" class="form-control"
-                                    value="<?= date('Y-m-d') ?>" required>
+                                    value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>" required>
                             </div>
                         </div>
 
@@ -175,29 +171,27 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-ghost" data-close-modal>Cancelar</button>
-                        <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Guardar
-                            MediciÃ³n</button>
+                        <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Guardar Medición</button>
+                        <button type="button" class="btn-help" id="btn-help-medicion" title="¿Cómo llenar esta sección?">
+                            <i class="ph ph-question"></i>
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Modal: Editar MediciÃ³n -->
+            <!-- Modal: Editar Medición -->
             <div id="modal-medicion-editar" class="modal-overlay" style="display:none;">
                 <form id="form-medicion-editar" action="" method="POST" class="modal-container" style="max-width: 600px;" novalidate>
                     <div class="modal-header">
-                        <h3 class="modal-title"><i class="ph ph-ruler"></i> Editar MediciÃ³n AntropomÃ©trica</h3>
+                        <h3 class="modal-title"><i class="ph ph-ruler"></i> Editar Medición Antropométrica</h3>
                         <button type="button" class="modal-close" data-close-modal>&times;</button>
                     </div>
                     <?= csrf_field() ?>
                     <div class="modal-body">
-                        <div id="medicion-editar-error"
-                            style="display:none; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;">
-                        </div>
-
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Fecha de MediciÃ³n *</label>
-                                <input type="date" name="fecha_medicion" id="edit-fecha_medicion" class="form-control" required>
+                                <label class="form-label"><span class="required">*</span> Fecha de Medición</label>
+                                <input type="date" name="fecha_medicion" id="edit-fecha_medicion" class="form-control" max="<?= date('Y-m-d') ?>" required>
                             </div>
                         </div>
 
@@ -241,6 +235,9 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-ghost" data-close-modal>Cancelar</button>
                         <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> Guardar Cambios</button>
+                        <button type="button" class="btn-help" id="btn-help-medicion-editar" title="¿Cómo llenar esta sección?">
+                            <i class="ph ph-question"></i>
+                        </button>
                     </div>
                 </form>
             </div>

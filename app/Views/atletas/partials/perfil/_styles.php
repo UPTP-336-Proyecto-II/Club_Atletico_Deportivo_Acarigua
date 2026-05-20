@@ -103,4 +103,91 @@
     .calendar-day .status-dot.ausente { background: #EF4444; }
     .calendar-day .status-dot.justificado { background: #F59E0B; }
     .calendar-day .status-dot.partido { background: var(--color-primary); width: 8px; height: 8px; transform: translateY(-1px); }
+    .required {
+        color: var(--color-danger, #e53e3e) !important;
+        margin-right: 4px;
+        font-weight: bold;
+    }
+    .modal-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    @media (max-width: 600px) {
+        .modal-grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    /* —— Mejoras de Input y Form (Igual a Form Registro) —— */
+    .form-control {
+        height: 44px;
+        background: var(--color-surface);
+        border-color: var(--color-border);
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        background: var(--color-bg);
+        box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.08);
+    }
+
+    select.form-control {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        padding-right: 40px;
+        cursor: pointer;
+    }
+
+    /* ✦ Widget Teléfono y Cédula ✦ */
+    .phone-field {
+        display: flex;
+        align-items: stretch;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        background: var(--color-surface);
+        transition: all 0.2s;
+        height: 44px;
+    }
+    .phone-field:focus-within {
+        border-color: var(--color-primary);
+        background: var(--color-bg);
+        box-shadow: 0 0 0 4px rgba(190, 18, 60, 0.08);
+    }
+    .phone-field .phone-prefix {
+        border: none;
+        background: var(--color-surface-2);
+        font-weight: 700;
+        font-size: 13px;
+        padding: 0 12px;
+        cursor: pointer;
+        border-right: 1px solid var(--color-border);
+        color: var(--color-text);
+        outline: none;
+    }
+    .phone-field .phone-prefix option {
+        background-color: var(--color-surface, #1e293b) !important;
+        color: var(--color-text, #f8fafc) !important;
+    }
+    .phone-field .phone-number {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 0 12px;
+        font-size: 14px;
+        outline: none;
+        color: var(--color-text);
+    }
+    .phone-field .phone-sep {
+        display: flex;
+        align-items: center;
+        color: var(--color-text-muted);
+    }
 </style>

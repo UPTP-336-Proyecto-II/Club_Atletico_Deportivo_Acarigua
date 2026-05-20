@@ -74,6 +74,19 @@ final class MedidasAntropometricasController extends Controller
             return $this->redirect("/admin/medidas/atleta/$id");
         }
 
+        // Validar que la fecha de medición no sea futura
+        if (strtotime($data['fecha_medicion']) > strtotime(date('Y-m-d'))) {
+            $msg = 'La fecha de medición no puede ser en el futuro.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json([
+                    'success' => false,
+                    'message' => $msg
+                ], 422);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/medidas/atleta/$id");
+        }
+
         // Validar que no exista otra medición en la misma fecha para este atleta
         $db = \App\Core\Database::connection();
         $fecha = $data['fecha_medicion'];
@@ -90,9 +103,15 @@ final class MedidasAntropometricasController extends Controller
             return $this->redirect("/admin/medidas/atleta/$id");
         }
 
-        // Validar que no se guarde el registro completamente vacío (debe ingresar al menos peso o altura)
-        if ($data['peso'] === null && $data['altura'] === null) {
-            $msg = 'Debes ingresar al menos el Peso o la Altura para registrar la medición.';
+        // Validar que no se guarde el registro completamente vacío (debe ingresar al menos una medición)
+        if ($data['peso'] === null &&
+            $data['altura'] === null &&
+            $data['porcentaje_grasa'] === null &&
+            $data['porcentaje_musculatura'] === null &&
+            $data['envergadura'] === null &&
+            $data['largo_de_pierna'] === null &&
+            $data['largo_de_torso'] === null) {
+            $msg = 'Debe ingresar al menos una medición (Peso, Altura, % Grasa, % Musculatura, Envergadura, Pierna o Torso).';
             if ($request->isAjax() || $request->isJson()) {
                 return Response::json([
                     'success' => false,
@@ -107,6 +126,7 @@ final class MedidasAntropometricasController extends Controller
             (new MedidaAntropometrica())->insert($data);
             
             if ($request->isAjax() || $request->isJson()) {
+                flash('success', 'Medición registrada correctamente.');
                 return Response::json([
                     'success' => true,
                     'message' => 'Medición registrada correctamente.'
@@ -169,6 +189,19 @@ final class MedidasAntropometricasController extends Controller
             return $this->redirect("/admin/atletas/" . $medida['atleta_id'] . "?tab=tab-antropometria");
         }
 
+        // Validar que la fecha de medición no sea futura
+        if (strtotime($data['fecha_medicion']) > strtotime(date('Y-m-d'))) {
+            $msg = 'La fecha de medición no puede ser en el futuro.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json([
+                    'success' => false,
+                    'message' => $msg
+                ], 422);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/atletas/" . $medida['atleta_id'] . "?tab=tab-antropometria");
+        }
+
         // Validar que no exista otra medición en la misma fecha para este atleta (excluyendo la actual)
         $db = \App\Core\Database::connection();
         $fecha = $data['fecha_medicion'];
@@ -185,9 +218,15 @@ final class MedidasAntropometricasController extends Controller
             return $this->redirect("/admin/atletas/" . $medida['atleta_id'] . "?tab=tab-antropometria");
         }
 
-        // Validar que no se guarde el registro completamente vacío (debe ingresar al menos peso o altura)
-        if ($data['peso'] === null && $data['altura'] === null) {
-            $msg = 'Debes ingresar al menos el Peso o la Altura para guardar los cambios.';
+        // Validar que no se guarde el registro completamente vacío (debe ingresar al menos una medición)
+        if ($data['peso'] === null &&
+            $data['altura'] === null &&
+            $data['porcentaje_grasa'] === null &&
+            $data['porcentaje_musculatura'] === null &&
+            $data['envergadura'] === null &&
+            $data['largo_de_pierna'] === null &&
+            $data['largo_de_torso'] === null) {
+            $msg = 'Debe ingresar al menos una medición (Peso, Altura, % Grasa, % Musculatura, Envergadura, Pierna o Torso).';
             if ($request->isAjax() || $request->isJson()) {
                 return Response::json([
                     'success' => false,
@@ -202,6 +241,7 @@ final class MedidasAntropometricasController extends Controller
             $medidaModel->update($id, $data);
             
             if ($request->isAjax() || $request->isJson()) {
+                flash('success', 'Medición actualizada correctamente.');
                 return Response::json([
                     'success' => true,
                     'message' => 'Medición actualizada correctamente.'

@@ -60,12 +60,12 @@
                                 </div>
                             </div>
                             
-                            <!-- DÃ­as de la semana -->
+                            <!-- Días de la semana -->
                             <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 12px; color: var(--color-text-muted); margin-bottom: 8px;">
-                                <div>Lun</div><div>Mar</div><div>MiÃ©</div><div>Jue</div><div>Vie</div><div>SÃ¡b</div><div>Dom</div>
+                                <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
                             </div>
                             
-                            <!-- CuadrÃ­cula del calendario -->
+                            <!-- Cuadrícula del calendario -->
                             <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
                                 <!-- Generado por JS -->
                             </div>
@@ -79,9 +79,9 @@
                             </div>
                         </div>
 
-                        <!-- GrÃ¡fico de Dona -->
-                        <div style="background: var(--color-bg-alt); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column;">
-                            <h4 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;"><i class="ph ph-chart-pie-slice"></i> DistribuciÃ³n</h4>
+                        <!-- Gráfico de Dona -->
+                        <div style="background: var(--color-bg-alt); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; border: 1px solid var(--color-border);">
+                            <h4 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;"><i class="ph ph-chart-pie-slice"></i> Distribución</h4>
                             <div id="chart-asistencia-dona" style="flex: 1; min-height: 250px;"></div>
                         </div>
                     </div>
@@ -95,7 +95,7 @@
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Evento / Tipo</th>
-                                    <th>UbicaciÃ³n</th>
+                                    <th>Ubicación</th>
                                     <th>Estado</th>
                                     <th>Observaciones</th>
                                 </tr>
@@ -120,7 +120,7 @@
                                                 $tipoStr = match ((int) $as['tipo_actividad']) {
                                                     0 => 'Partido',
                                                     1 => 'Entrenamiento',
-                                                    2 => 'Pruebas FÃ­sicas',
+                                                    2 => 'Pruebas Físicas',
                                                     3 => 'Evento Especial',
                                                     default => 'Otro'
                                                 };
@@ -135,7 +135,7 @@
                                                 </div>
                                             </td>
                                             <td><span
-                                                    style="font-size: 13px; color: var(--color-text-muted);"><i class="ph ph-map-pin"></i> <?= e($as['ubicacion'] ?? 'â') ?></span>
+                                                    style="font-size: 13px; color: var(--color-text-muted);"><i class="ph ph-map-pin"></i> <?= e($as['ubicacion'] ?? '—') ?></span>
                                             </td>
                                             <td>
                                                 <?php
@@ -143,13 +143,13 @@
                                                     1 => ['Presente', 'success'],
                                                     2 => ['Justificado', 'warning'],
                                                     0 => ['Ausente', 'danger'],
-                                                    default => ['â', 'outline']
+                                                    default => ['—', 'outline']
                                                 };
                                                 ?>
                                                 <span class="badge badge-<?= $cls ?>"><?= $lbl ?></span>
                                             </td>
                                             <td><span
-                                                    style="font-size: 12px; color: var(--color-text-muted);"><?= e($as['observaciones'] ?? 'â') ?></span>
+                                                    style="font-size: 12px; color: var(--color-text-muted);"><?= e($as['observaciones'] ?? '—') ?></span>
                                             </td>
                                         </tr>
                                     <?php endforeach; endif; ?>

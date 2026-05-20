@@ -182,11 +182,16 @@ const FormValidator = (() => {
      * @param {string} title - Título del modal.
      * @param {string} imageSrc - Ruta de la imagen de ayuda.
      */
-    function showHelp(title, imageSrc) {
+    function showHelp(title, imageSrc, descriptionText = '') {
         if (typeof CadaModal !== 'undefined' && CadaModal.alert) {
+            let textHtml = '';
+            if (descriptionText) {
+                textHtml += `<p style="font-size: 14px; color: var(--color-text, #e2e8f0); margin-bottom: 16px; text-align: left; line-height: 1.5;">${descriptionText}</p>`;
+            }
+            textHtml += `<img src="${imageSrc}" alt="Guía del formulario" style="width:100%; border-radius:8px;">`;
             CadaModal.alert({
                 title: title,
-                text: `<img src="${imageSrc}" alt="Guía del formulario" style="width:100%; border-radius:8px; margin-top:12px;">`,
+                text: textHtml,
                 type: 'info',
                 confirmText: 'Cerrar'
             });

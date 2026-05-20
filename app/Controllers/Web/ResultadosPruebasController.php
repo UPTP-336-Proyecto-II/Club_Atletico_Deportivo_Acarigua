@@ -40,25 +40,37 @@ final class ResultadosPruebasController extends Controller
     public function store(Request $request): Response
     {
         $id = (int) $request->param('id');
-        $eventoId = (int) $request->input('actividad_id', 0);
+        $fechaEvaluacion = (string) $request->input('fecha_evaluacion', date('Y-m-d'));
 
-        // Si no hay evento, intentar buscar o crear uno genérico para hoy (Tipo: Pruebas Físicas = 2)
+        // Validar que la fecha de evaluación no sea futura
+        if (strtotime($fechaEvaluacion) > strtotime(date('Y-m-d'))) {
+            $msg = 'La fecha de evaluación no puede ser en el futuro.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json([
+                    'success' => false,
+                    'message' => $msg
+                ], 422);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/resultados-pruebas/atleta/$id");
+        }
+
+        $db = Database::connection();
+        $entrenadorId = (int) $request->input('entrenador_id');
+        if (!$entrenadorId) {
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
+        }
+
+        $eventoId = 0;
+
+        // Buscar si ya existe una actividad de Pruebas Físicas en esa fecha para ese entrenador
+        $eventoId = (int) $db->query("SELECT actividad_id FROM actividades WHERE fecha = '$fechaEvaluacion' AND tipo_actividad = 2 AND usuario_id = $entrenadorId LIMIT 1")->fetchColumn();
+        
         if (!$eventoId) {
-            $db = Database::connection();
-            $fecha = date('Y-m-d');
-            
-            // Buscar si ya existe una actividad de Pruebas Físicas hoy
-            $eventoId = (int) $db->query("SELECT actividad_id FROM actividades WHERE fecha = '$fecha' AND tipo_actividad = 2 LIMIT 1")->fetchColumn();
-            
-            if (!$eventoId) {
-                // Si no hay, buscar el primer entrenador disponible
-                $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
-                
-                if ($entrenadorId) {
-                    $stmt = $db->prepare("INSERT INTO actividades (usuario_id, tipo_actividad, fecha, ubicacion) VALUES (?, 2, ?, ?)");
-                    $stmt->execute([$entrenadorId, $fecha, 'Cancha Principal']);
-                    $eventoId = (int) $db->lastInsertId();
-                }
+            if ($entrenadorId) {
+                $stmt = $db->prepare("INSERT INTO actividades (usuario_id, tipo_actividad, fecha, ubicacion) VALUES (?, 2, ?, ?)");
+                $stmt->execute([$entrenadorId, $fechaEvaluacion, 'Cancha Principal']);
+                $eventoId = (int) $db->lastInsertId();
             }
         }
 
@@ -71,20 +83,17 @@ final class ResultadosPruebasController extends Controller
             return $this->redirect("/admin/resultados-pruebas/atleta/$id");
         }
 
-        // Validar que no exista otra prueba física registrada hoy (o la fecha del evento) para este atleta
-        $fechaEvento = $db->query("SELECT fecha FROM actividades WHERE actividad_id = $eventoId")->fetchColumn();
-        if ($fechaEvento) {
-            $exists = (int) $db->query("SELECT COUNT(*) FROM resultados_pruebas rp 
-                                        INNER JOIN actividades a ON rp.actividad_id = a.actividad_id 
-                                        WHERE rp.atleta_id = $id AND DATE(a.fecha) = '$fechaEvento'")->fetchColumn();
-            if ($exists > 0) {
-                $msg = 'Ya existe un resultado de prueba física registrado para este atleta en la fecha de esta actividad (' . date('d/m/Y', strtotime($fechaEvento)) . '). Por favor, edita el registro existente.';
-                if ($request->isAjax() || $request->isJson()) {
-                    return Response::json(['success' => false, 'message' => $msg], 422);
-                }
-                flash('error', $msg);
-                return $this->redirect("/admin/resultados-pruebas/atleta/$id");
+        // Validar que no exista otra prueba física registrada para este atleta en la fecha seleccionada
+        $exists = (int) $db->query("SELECT COUNT(*) FROM resultados_pruebas rp 
+                                    INNER JOIN actividades a ON rp.actividad_id = a.actividad_id 
+                                    WHERE rp.atleta_id = $id AND DATE(a.fecha) = '$fechaEvaluacion'")->fetchColumn();
+        if ($exists > 0) {
+            $msg = 'Ya existe un resultado de prueba física registrado para este atleta en la fecha seleccionada (' . date('d/m/Y', strtotime($fechaEvaluacion)) . '). Por favor, edita el registro existente.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json(['success' => false, 'message' => $msg], 422);
             }
+            flash('error', $msg);
+            return $this->redirect("/admin/resultados-pruebas/atleta/$id");
         }
 
         $data = [
@@ -139,6 +148,7 @@ final class ResultadosPruebasController extends Controller
             (new ResultadoPrueba())->insert($data);
             
             if ($request->isAjax() || $request->isJson()) {
+                flash('success', 'Prueba física registrada correctamente.');
                 return Response::json(['success' => true, 'message' => 'Prueba física registrada correctamente.']);
             }
             
@@ -166,7 +176,55 @@ final class ResultadosPruebasController extends Controller
             return $this->redirect('/admin/atletas');
         }
 
+        $db = Database::connection();
+        $originalFecha = $db->query("SELECT a.fecha FROM resultados_pruebas rp INNER JOIN actividades a ON rp.actividad_id = a.actividad_id WHERE rp.test_id = $id")->fetchColumn();
+        $fechaEvaluacion = (string) $request->input('fecha_evaluacion', $originalFecha ?: date('Y-m-d'));
+        
+        $entrenadorId = (int) $request->input('entrenador_id');
+        if (!$entrenadorId) {
+            $entrenadorId = (int) $db->query("SELECT a.usuario_id FROM resultados_pruebas rp INNER JOIN actividades a ON rp.actividad_id = a.actividad_id WHERE rp.test_id = $id")->fetchColumn();
+        }
+        if (!$entrenadorId) {
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
+        }
+
+        $eventoId = 0;
+
+        // Buscar si ya existe una actividad de Pruebas Físicas en esa fecha para ese entrenador
+        $eventoId = (int) $db->query("SELECT actividad_id FROM actividades WHERE fecha = '$fechaEvaluacion' AND tipo_actividad = 2 AND usuario_id = $entrenadorId LIMIT 1")->fetchColumn();
+        
+        if (!$eventoId) {
+            if ($entrenadorId) {
+                $stmt = $db->prepare("INSERT INTO actividades (usuario_id, tipo_actividad, fecha, ubicacion) VALUES (?, 2, ?, ?)");
+                $stmt->execute([$entrenadorId, $fechaEvaluacion, 'Cancha Principal']);
+                $eventoId = (int) $db->lastInsertId();
+            }
+        }
+
+        if (!$eventoId) {
+            $msg = 'No se pudo determinar un evento o entrenador para registrar la prueba.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json(['success' => false, 'message' => $msg], 400);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/atletas/{$prueba['atleta_id']}?tab=tab-pruebas");
+        }
+
+        // Validar que no exista otra prueba física registrada para este atleta en la fecha seleccionada (excluyendo la actual)
+        $exists = (int) $db->query("SELECT COUNT(*) FROM resultados_pruebas rp 
+                                    INNER JOIN actividades a ON rp.actividad_id = a.actividad_id 
+                                    WHERE rp.atleta_id = {$prueba['atleta_id']} AND DATE(a.fecha) = '$fechaEvaluacion' AND rp.test_id != $id")->fetchColumn();
+        if ($exists > 0) {
+            $msg = 'Ya existe otra prueba física registrada para este atleta en la fecha seleccionada (' . date('d/m/Y', strtotime($fechaEvaluacion)) . '). Por favor, edita el registro existente.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json(['success' => false, 'message' => $msg], 422);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/atletas/{$prueba['atleta_id']}?tab=tab-pruebas");
+        }
+
         $data = [
+            'actividad_id'      => $eventoId,
             'test_de_fuerza'    => $this->num($request->input('test_de_fuerza')),
             'test_resistencia'  => $this->num($request->input('test_resistencia')),
             'test_velocidad'    => $this->num($request->input('test_velocidad')),
@@ -204,7 +262,7 @@ final class ResultadosPruebasController extends Controller
             $data['test_coordinacion'] === null && 
             $data['test_de_reaccion'] === null) {
             
-            $msg = 'No puedes guardar una evaluación física completamente vacía. Ingresa al menos un puntaje.';
+            $msg = 'Debes ingresar al menos el resultado de una prueba física para guardar los cambios.';
             if ($request->isAjax() || $request->isJson()) {
                 return Response::json(['success' => false, 'message' => $msg], 422);
             }
@@ -216,6 +274,7 @@ final class ResultadosPruebasController extends Controller
             (new ResultadoPrueba())->update($id, $data);
 
             if ($request->isAjax() || $request->isJson()) {
+                flash('success', 'Prueba física actualizada correctamente.');
                 return Response::json(['success' => true, 'message' => 'Prueba actualizada correctamente.']);
             }
 

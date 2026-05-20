@@ -30,7 +30,7 @@
     padding: 8px 20px;
 }
 
-/* â?? Card Estilizado â?? */
+/* ✦ Card Estilizado ✦ */
 .af-card {
     border: none;
     padding: 0;
@@ -43,7 +43,7 @@
     flex-direction: column;
 }
 
-/* â?? Tabs Premium â?? */
+/* ✦ Tabs Premium ✦ */
 .af-tabs-wrapper {
     background: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
@@ -117,7 +117,7 @@
 
 .ft-tab.active::after { transform: scaleX(1); }
 
-/* â?? Cuerpo del formulario â?? */
+/* ✦ Cuerpo del formulario ✦ */
 .af-body {
     padding: 32px 40px;
     min-height: 450px;
@@ -134,7 +134,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* â?? SecciÃ³n Header â?? */
+/* ✦ Sección Header ✦ */
 .af-section-header {
     display: flex;
     gap: 16px;
@@ -168,7 +168,7 @@
     color: var(--color-text-muted);
 }
 
-/* â?? Grid Responsivo â?? */
+/* ✦ Grid Responsivo ✦ */
 .af-grid {
     display: grid;
     gap: 20px;
@@ -211,7 +211,7 @@ select.form-control {
     cursor: pointer;
 }
 
-/* â?? Upload de Foto â?? */
+/* ✦ Upload de Foto ✦ */
 .af-file-upload {
     display: flex;
     align-items: center;
@@ -274,7 +274,7 @@ select.form-control {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* â?? Widget TelÃ©fono â?? */
+/* ✦ Widget Teléfono ✦ */
 .phone-field {
     display: flex;
     align-items: stretch;
@@ -320,7 +320,7 @@ select.form-control {
     color: var(--color-text-muted);
 }
 
-/* â?? Footer â?? */
+/* ✦ Footer ✦ */
 .af-footer {
     padding: 24px 40px;
     background: var(--color-surface);

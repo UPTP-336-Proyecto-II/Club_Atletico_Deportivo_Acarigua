@@ -1,50 +1,58 @@
-            <!-- Tab: Ficha MÃ©dica -->
+            <!-- Tab: Ficha Médica -->
             <div id="tab-ficha" class="tab-content" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                    <h3 style="margin: 0;"><i class="ph ph-first-aid"></i> InformaciÃ³n MÃ©dica</h3>
-                    <?php if (can('admin')): ?>
-                        <button type="button" class="btn btn-outline btn-sm" id="btn-editar-ficha">
-                            <i class="ph ph-pencil-simple"></i> Editar
-                        </button>
-                    <?php endif; ?>
-                </div>
-
                 <?php
                 $tieneData = !empty($atleta['grupo_sanguineo']) || !empty($atleta['alergias']) ||
                     !empty($atleta['antecedentes_familiares']) || !empty($atleta['antecedentes_quirurgicos']) ||
                     !empty($atleta['condicion_cronica']) || !empty($atleta['medicacion_actual']);
                 ?>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 style="margin: 0;"><i class="ph ph-first-aid"></i> Información Médica</h3>
+                    <?php if (can('admin')): ?>
+                        <button type="button" class="btn btn-outline btn-sm" id="btn-editar-ficha"
+                            style="<?= !$tieneData ? 'display: none;' : '' ?>">
+                            <i class="ph ph-pencil-simple"></i> Editar
+                        </button>
+                    <?php endif; ?>
+                </div>
 
                 <?php if ($tieneData): ?>
                     <!-- Vista de Solo Lectura -->
-                    <!-- Fila 1: Datos Cortos (Grupo SanguÃ­neo, CondiciÃ³n CrÃ³nica, MedicaciÃ³n) -->
+                    <!-- Fila 1: Datos Cortos (Grupo Sanguíneo, Alergias, Condición Crónica, Medicación) -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                        <!-- Grupo SanguÃ­neo -->
+                        <!-- Grupo Sanguíneo -->
                         <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 20px;">
-                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Grupo SanguÃ­neo</div>
+                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Grupo Sanguíneo</div>
                             <div style="font-weight: 600; font-size: 18px; color: var(--color-primary);">
                                 <?= !empty($atleta['grupo_sanguineo']) ? e($atleta['grupo_sanguineo']) : '<span style="color:var(--color-text-muted); font-size:14px; font-weight:400;">Sin registrar</span>' ?>
                             </div>
                         </div>
 
-                        <!-- CondiciÃ³n CrÃ³nica -->
+                        <!-- Alergias -->
                         <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 20px;">
-                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">CondiciÃ³n CrÃ³nica</div>
+                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Alergias</div>
+                            <div style="font-weight: 500;">
+                                <?= !empty($atleta['alergias']) ? e($atleta['alergias']) : '<span style="color:var(--color-text-muted);">Ninguna</span>' ?>
+                            </div>
+                        </div>
+
+                        <!-- Condición Crónica -->
+                        <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 20px;">
+                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Condición Crónica</div>
                             <div style="font-weight: 500;">
                                 <?= !empty($atleta['condicion_cronica']) ? e($atleta['condicion_cronica']) : '<span style="color:var(--color-text-muted);">Ninguna</span>' ?>
                             </div>
                         </div>
 
-                        <!-- MedicaciÃ³n Actual -->
+                        <!-- Medicación Actual -->
                         <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 20px;">
-                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">MedicaciÃ³n Actual</div>
+                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Medicación Actual</div>
                             <div style="font-weight: 500;">
                                 <?= !empty($atleta['medicacion_actual']) ? e($atleta['medicacion_actual']) : '<span style="color:var(--color-text-muted);">Ninguna</span>' ?>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Fila 2: Datos Largos (Antecedentes Familiares, Antecedentes QuirÃºrgicos / Lesiones) -->
+                    <!-- Fila 2: Datos Largos (Antecedentes Familiares, Antecedentes Quirúrgicos / Lesiones) -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
                         <!-- Antecedentes Familiares -->
                         <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 20px;">
@@ -54,31 +62,31 @@
                             </div>
                         </div>
 
-                        <!-- Antecedentes QuirÃºrgicos -->
+                        <!-- Antecedentes Quirúrgicos -->
                         <div style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 20px;">
-                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Antecedentes QuirÃºrgicos / Lesiones Previas</div>
+                            <div style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 6px;">Antecedentes Quirúrgicos / Lesiones Previas</div>
                             <div style="font-weight: 500; line-height: 1.6;">
                                 <?= !empty($atleta['antecedentes_quirurgicos']) ? nl2br(e($atleta['antecedentes_quirurgicos'])) : '<span style="color:var(--color-text-muted);">Sin antecedentes registrados</span>' ?>
                             </div>
                         </div>
                     </div>
                 <?php else: ?>
-                    <!-- Estado vacÃ­o -->
+                    <!-- Estado vacío -->
                     <div
                         style="background: var(--color-bg-alt); border-radius: var(--radius); padding: 48px; text-align: center; margin-bottom: 24px;">
                         <i class="ph ph-first-aid"
                             style="font-size: 48px; color: var(--color-text-muted); opacity: 0.4;"></i>
                         <p style="color: var(--color-text-muted); margin-top: 12px; margin-bottom: 16px;">No se ha
-                            registrado ficha mÃ©dica para este atleta.</p>
+                            registrado ficha médica para este atleta.</p>
                         <?php if (can('admin')): ?>
                             <button type="button" class="btn btn-primary btn-sm" id="btn-crear-ficha">
-                                <i class="ph ph-plus"></i> Registrar Ficha MÃ©dica
+                                <i class="ph ph-plus"></i> Registrar Ficha Médica
                             </button>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
 
-                <!-- SecciÃ³n: Discapacidades -->
+                <!-- Sección: Discapacidades -->
                 <div style="border-top: 1px solid var(--color-border); padding-top: 24px;">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -100,7 +108,7 @@
                                         <th>Porcentaje</th>
                                         <th>Fecha Registro</th>
                                         <?php if (can('admin')): ?>
-                                            <th style="width:60px;">AcciÃ³n</th><?php endif; ?>
+                                            <th style="width:60px;">Acción</th><?php endif; ?>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -109,9 +117,9 @@
                                             <td><?= e($disc['nombre_tipo'] ?? 'Sin tipo') ?></td>
                                             <td><?= !empty($disc['nro_carnet']) ? e($disc['nro_carnet']) : '<span class="text-muted">Sin carnet</span>' ?>
                                             </td>
-                                            <td><?= isset($disc['porcentaje_discapacidad']) ? e($disc['porcentaje_discapacidad']) . '%' : 'â' ?>
+                                            <td><?= isset($disc['porcentaje_discapacidad']) ? e($disc['porcentaje_discapacidad']) . '%' : '—' ?>
                                             </td>
-                                            <td><?= !empty($disc['fecha_registro']) ? e(date('d/m/Y', strtotime($disc['fecha_registro']))) : 'â' ?>
+                                            <td><?= !empty($disc['fecha_registro']) ? e(date('d/m/Y', strtotime($disc['fecha_registro']))) : '—' ?>
                                             </td>
                                             <?php if (can('admin')): ?>
                                                 <td>
@@ -150,21 +158,21 @@
                 </div>
             </div>
 
-            <!-- Modal: Editar Ficha MÃ©dica -->
+            <!-- Modal: Editar Ficha Médica -->
             <div id="modal-ficha-medica" class="modal-overlay" style="display:none;">
-                <form action="<?= e(url("/admin/ficha-medica/{$atleta['atleta_id']}")) ?>" method="POST"
+                <form id="form-ficha-medica" action="<?= e(url("/admin/ficha-medica/{$atleta['atleta_id']}")) ?>" method="POST"
                     class="modal-container" style="max-width: 600px;" novalidate>
                     <div class="modal-header">
-                        <h3 class="modal-title"><i class="ph ph-heartbeat"></i> Editar Ficha MÃ©dica</h3>
+                        <h3 class="modal-title"><i class="ph ph-heartbeat"></i> Editar Ficha Médica</h3>
                         <button type="button" class="modal-close" data-close-modal>&times;</button>
                     </div>
                     <?= csrf_field() ?>
                     <div class="modal-body">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Grupo SanguÃ­neo</label>
+                                <label class="form-label">Grupo Sanguíneo</label>
                                 <select name="grupo_sanguineo" class="form-control">
-                                    <option value="">â Seleccionar â</option>
+                                    <option value="">— Seleccionar —</option>
                                     <?php foreach (['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $gs): ?>
                                         <option value="<?= $gs ?>" <?= ($atleta['grupo_sanguineo'] ?? '') === $gs ? 'selected' : '' ?>><?= $gs ?></option>
                                     <?php endforeach; ?>
@@ -173,7 +181,7 @@
                             <div class="form-group">
                                 <label class="form-label">Alergias</label>
                                 <input type="text" name="alergias" class="form-control"
-                                    value="<?= e($atleta['alergias'] ?? '') ?>" placeholder="Ej: Penicilina, ManÃ­...">
+                                    value="<?= e($atleta['alergias'] ?? '') ?>" placeholder="Ej: Penicilina, Maní...">
                             </div>
                         </div>
 
@@ -184,20 +192,20 @@
                         </div>
 
                         <div class="form-group" style="margin-bottom: 16px;">
-                            <label class="form-label">Antecedentes QuirÃºrgicos / Lesiones Previas</label>
+                            <label class="form-label">Antecedentes Quirúrgicos / Lesiones Previas</label>
                             <textarea name="antecedentes_quirurgicos" class="form-control" rows="2"
                                 placeholder="Operaciones o fracturas importantes..."><?= e($atleta['antecedentes_quirurgicos'] ?? '') ?></textarea>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div class="form-group">
-                                <label class="form-label">CondiciÃ³n CrÃ³nica</label>
+                                <label class="form-label">Condición Crónica</label>
                                 <input type="text" name="condicion_cronica" class="form-control"
                                     value="<?= e($atleta['condicion_cronica'] ?? '') ?>"
                                     placeholder="Ej: Asma, Diabetes...">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">MedicaciÃ³n Actual</label>
+                                <label class="form-label">Medicación Actual</label>
                                 <input type="text" name="medicacion_actual" class="form-control"
                                     value="<?= e($atleta['medicacion_actual'] ?? '') ?>"
                                     placeholder="Medicamentos regulares...">
@@ -207,6 +215,9 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-ghost" data-close-modal>Cancelar</button>
                         <button type="submit" class="btn btn-primary"><i class="ph ph-floppy-disk"></i> Guardar</button>
+                        <button type="button" class="btn-help" id="btn-help-ficha-medica" title="¿Cómo llenar esta sección?">
+                            <i class="ph ph-question"></i>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -223,13 +234,10 @@
                     </div>
                     <?= csrf_field() ?>
                     <div class="modal-body">
-                        <div id="discapacidad-error"
-                            style="display:none; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;">
-                        </div>
                         <div class="form-group" style="margin-bottom: 16px;">
-                            <label class="form-label">Tipo de Discapacidad *</label>
+                            <label class="form-label"><span class="required">*</span> Tipo de Discapacidad</label>
                             <select name="tipo_discapacidad_id" id="input-tipo-disc" class="form-control" required>
-                                <option value="">â Seleccionar â</option>
+                                <option value="">— Seleccionar —</option>
                                 <?php foreach ($tipos_discapacidades ?? [] as $tipo): ?>
                                     <option value="<?= $tipo['tipo_discapacidad_id'] ?>"><?= e($tipo['nombre_tipo']) ?>
                                     </option>
@@ -237,12 +245,12 @@
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom: 16px;">
-                            <label class="form-label">Nro. de Carnet *</label>
+                            <label class="form-label"><span class="required">*</span> Nro. de Carnet</label>
                             <input type="text" name="nro_carnet" id="input-carnet-disc" class="form-control"
                                 placeholder="Ej: V-12345678-D" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Porcentaje de Discapacidad *</label>
+                            <label class="form-label"><span class="required">*</span> Porcentaje de Discapacidad</label>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <input type="number" name="porcentaje_discapacidad" id="input-porcentaje-disc"
                                     class="form-control" min="1" max="100" placeholder="Ej: 50" required>
@@ -254,6 +262,9 @@
                         <button type="button" class="btn btn-ghost" data-close-modal>Cancelar</button>
                         <button type="submit" class="btn btn-primary"><i class="ph ph-check"></i> <span
                                 id="submit-text-discapacidad">Agregar</span></button>
+                        <button type="button" class="btn-help" id="btn-help-discapacidad" title="¿Cómo llenar esta sección?">
+                            <i class="ph ph-question"></i>
+                        </button>
                     </div>
                 </form>
             </div>
