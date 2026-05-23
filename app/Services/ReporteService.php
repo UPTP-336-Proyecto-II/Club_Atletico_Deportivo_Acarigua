@@ -99,9 +99,11 @@ final class ReporteService
         if (!$categoria) return null;
 
         $stmt = $db->prepare("
-            SELECT a.atleta_id, a.nombre, a.apellido, a.cedula, a.telefono, a.estatus, a.fecha_nac
+            SELECT a.atleta_id, a.nombre, a.apellido, a.cedula, a.telefono, a.estatus, a.fecha_nac,
+                   r.telefono AS representante_telefono
             FROM atletas a
-            WHERE a.categoria_id = :id
+            LEFT JOIN representantes r ON r.representante_id = a.representante_id
+            WHERE a.categoria_id = :id AND a.estatus IN (1, 2)
             ORDER BY a.apellido, a.nombre
         ");
         $stmt->execute([':id' => $categoriaId]);
@@ -518,29 +520,31 @@ final class ReporteService
             elseif ($lx > $cx + 15) $anchor = 'start';
             $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly, 1) . '" text-anchor="' . $anchor . '" font-size="9" font-weight="bold" fill="#333">' . $labels[$i] . '</text>';
             
-            // Valor numérico debajo de la etiqueta (con formato color-coded si hay penúltimo)
+            // Valor numérico debajo de la etiqueta (con formato de color sin usar tspan para evitar bugs de TCPDF)
             if (!empty($valoresPenultima)) {
-                $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="' . $anchor . '" font-size="8">';
-                $svg .= '<tspan fill="#800020" font-weight="bold">' . round($valores[$i]) . '</tspan>';
-                $svg .= '<tspan fill="#666"> / </tspan>';
-                $svg .= '<tspan fill="#10B981">' . round($valoresPenultima[$i]) . '</tspan>';
-                $svg .= '</text>';
+                // Barra en el centro
+                $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="middle" font-size="8" fill="#666">/</text>';
+                // Última (Rojo) a la izquierda
+                $svg .= '<text x="' . round($lx - 5, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="end" font-size="8" font-weight="bold" fill="#800020">' . round($valores[$i]) . '</text>';
+                // Penúltima (Verde) a la derecha
+                $svg .= '<text x="' . round($lx + 5, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="start" font-size="8" fill="#10B981">' . round($valoresPenultima[$i]) . '</text>';
             } else {
                 $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="' . $anchor . '" font-size="8" fill="#800020">' . round($valores[$i]) . '/100</text>';
             }
         }
 
-        // Fecha del test / Legend
+        // Fecha del test / Legend (Usamos textos posicionados para colorear en TCPDF de forma segura)
         $fechaTest = !empty($ultima['fecha_evento']) ? date('d/m/Y', strtotime($ultima['fecha_evento'])) : '—';
         if (!empty($valoresPenultima)) {
             $fechaAnt = !empty($pruebas[1]['fecha_evento']) ? date('d/m/Y', strtotime($pruebas[1]['fecha_evento'])) : '—';
-            $svg .= '<text x="' . $cx . '" y="' . ($size + 5) . '" text-anchor="middle" font-size="8">';
-            $svg .= '<tspan fill="#800020" font-weight="bold">● Última: ' . $fechaTest . '</tspan>';
-            $svg .= '<tspan fill="#666">   |   </tspan>';
-            $svg .= '<tspan fill="#10B981" font-weight="bold">● Anterior: ' . $fechaAnt . '</tspan>';
-            $svg .= '</text>';
+            // Última a la izquierda
+            $svg .= '<text x="' . ($cx - 15) . '" y="' . ($size + 5) . '" text-anchor="end" font-size="8" font-weight="bold" fill="#800020">Última: ' . $fechaTest . '</text>';
+            // Separador en el centro
+            $svg .= '<text x="' . $cx . '" y="' . ($size + 5) . '" text-anchor="middle" font-size="8" fill="#666">|</text>';
+            // Anterior a la derecha
+            $svg .= '<text x="' . ($cx + 15) . '" y="' . ($size + 5) . '" text-anchor="start" font-size="8" font-weight="bold" fill="#10B981">Anterior: ' . $fechaAnt . '</text>';
         } else {
-            $svg .= '<text x="' . $cx . '" y="' . ($size + 5) . '" text-anchor="middle" font-size="8" fill="#800020" font-weight="bold">● Última evaluación: ' . $fechaTest . '</text>';
+            $svg .= '<text x="' . $cx . '" y="' . ($size + 5) . '" text-anchor="middle" font-size="8" fill="#800020" font-weight="bold">Última evaluación: ' . $fechaTest . '</text>';
         }
 
         $svg .= '</svg>';
@@ -657,11 +661,19 @@ final class ReporteService
         // Calendario Anual (SVG 12 meses)
         $calendarioSvg = $this->generarSvgCalendario($historialAsist);
 
-        // Tabla detallada de asistencias (últimas 15)
+        // Tabla detallada de asistencias (máximo 31 del mes actual)
         $asistDetalleRows = '';
         $contadorAsist = 0;
+        $mesActual = date('Y-m'); // Año y mes actual: "YYYY-MM"
+        
         foreach ($historialAsist as $ha) {
-            if ($contadorAsist >= 15) break; // Limitar a las 15 más recientes
+            $fechaAsist = date('Y-m', strtotime($ha['fecha']));
+            if ($fechaAsist !== $mesActual) {
+                continue; // Saltar si no es del mes actual
+            }
+            
+            if ($contadorAsist >= 31) break; // Limitar a un máximo de 31
+            
             $tipoEv = match ((int)($ha['tipo_actividad'] ?? 1)) {
                 0 => 'Partido',
                 1 => 'Entrenamiento',
@@ -848,10 +860,9 @@ final class ReporteService
     </table>
 </div>
 
-<div class="section">
-    <div class="section-header">Discapacidades Registradas</div>
-    {$discapacidadesTable}
-</div>
+<div style="line-height: 25px; height: 25px;">&nbsp;</div>
+<div style="font-weight: bold; font-size: 12px; color: #800020; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #800020; display: inline-block; padding-bottom: 3px;">Discapacidades Registradas</div>
+{$discapacidadesTable}
 
 <!-- ===================== SALTO DE PÁGINA ===================== -->
 <br pagebreak="true" />
@@ -890,7 +901,7 @@ final class ReporteService
     {$calendarioSvg}
     
     <br>
-    <div style="font-weight: bold; font-size: 11px; color: #800020; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase;">Registro Detallado de Sesiones</div>
+    <div style="font-weight: bold; font-size: 11px; color: #800020; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase;">Registro Detallado de Sesiones (Mes Actual)</div>
     {$asistDetalleTable}
 </div>
 
@@ -925,31 +936,32 @@ HTML;
     private function construirHtmlCategoria(array $cat, array $atletas): string
     {
         $esc = fn($v) => htmlspecialchars((string) ($v ?? '—'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $fechaGeneracion = $esc(date('d/m/Y h:i A'));
         $rows = '';
         foreach ($atletas as $index => $a) {
-            $estatusTexto = ((int)$a['estatus'] === 1) ? 'Activo' : (((int)$a['estatus'] === 2) ? 'Lesionado' : 'Suspendido');
             $edad = $a['fecha_nac'] ? (new DateTime($a['fecha_nac']))->diff(new DateTime('today'))->y : '—';
             $rows .= sprintf(
                 '<tr>
                     <td width="5%%" style="color:#999;">%d</td>
-                    <td width="35%%" style="text-align:left; font-weight:bold; color:#1a1a1a;">%s</td>
+                    <td width="30%%" style="text-align:left; font-weight:bold; color:#1a1a1a;">%s</td>
                     <td width="15%%">%s</td>
-                    <td width="12%%">%s años</td>
-                    <td width="18%%">%s</td>
-                    <td width="15%%"><span style="font-weight:bold; color:#800020;">%s</span></td>
+                    <td width="10%%">%s años</td>
+                    <td width="20%%">%s</td>
+                    <td width="20%%">%s</td>
                 </tr>',
-                $index + 1, $esc($a['apellido'] . ', ' . $a['nombre']), $esc($a['cedula']), $esc($edad), $esc($a['telefono']), $esc($estatusTexto)
+                $index + 1,
+                $esc($a['nombre'] . ' ' . $a['apellido']),
+                $esc($a['cedula']),
+                $esc($edad),
+                $esc($a['telefono']),
+                $esc($a['representante_telefono'] ?? '—')
             );
         }
 
         return <<<HTML
 <style>
     body { font-family: helvetica, sans-serif; color: #333; line-height: 1.4; }
-    .document-header { text-align: center; padding-bottom: 20px; margin-bottom: 25px; border-bottom: 2px solid #800020; }
-    .club-brand { font-size: 30px; font-weight: bold; color: #800020; letter-spacing: 4px; margin-bottom: 4px; }
-    .club-full-name { font-size: 11px; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 12px; }
-    .report-title { background-color: #800020; color: #ffffff; padding: 8px 25px; font-size: 16px; display: inline-block; font-weight: bold; text-transform: uppercase; }
+    .document-header { text-align: center; padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #800020; }
+    .report-title { background-color: #800020; color: #ffffff; padding: 8px 25px; font-size: 14px; display: inline-block; font-weight: bold; text-transform: uppercase; }
     .category-summary { margin: 25px 0; padding: 0; background-color: #ffffff; border: 1px solid #e0e0e0; border-top: 5px solid #800020; }
     .summary-header { background-color: #fcfcfc; padding: 15px; text-align: center; border-bottom: 1px solid #f0f0f0; }
     .summary-title { font-size: 24px; font-weight: bold; color: #1a1a1a; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
@@ -964,10 +976,7 @@ HTML;
     table.member-list tr:nth-child(even) { background-color: #fafafa; }
 </style>
 <div class="document-header">
-    <div class="club-brand">CADA</div>
-    <div class="club-full-name">Club Atlético Deportivo Acarigua</div>
     <div class="report-title">Reporte de Categoría Deportiva</div>
-    <div class="report-meta">Documento oficial · Generado el {$fechaGeneracion}</div>
 </div>
 <div class="category-summary">
     <div class="summary-header"><div class="summary-title">{$esc($cat['nombre_categoria'])}</div></div>
@@ -995,11 +1004,11 @@ HTML;
     <thead>
         <tr>
             <th width="5%">#</th>
-            <th width="35%" style="text-align:left;">Atleta (Apellido, Nombre)</th>
+            <th width="30%" style="text-align:left;">Atleta (Nombres, Apellidos)</th>
             <th width="15%">Cédula</th>
-            <th width="12%">Edad</th>
-            <th width="18%">Teléfono</th>
-            <th width="15%">Estatus</th>
+            <th width="10%">Edad</th>
+            <th width="20%">Teléfono Atleta</th>
+            <th width="20%">Tlf. Representante</th>
         </tr>
     </thead>
     <tbody>
