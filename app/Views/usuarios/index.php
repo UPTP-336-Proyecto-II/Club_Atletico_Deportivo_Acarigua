@@ -61,9 +61,9 @@
                         <a href="<?= e(url("/admin/usuarios/{$p['usuario_id']}/editar")) ?>" class="btn btn-sm btn-outline" title="Editar">
                             <i class="ph ph-pencil-simple"></i>
                         </a>
-                        <form method="POST" action="<?= e(url("/admin/usuarios/{$p['usuario_id']}/eliminar")) ?>" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar a este usuario?')">
+                        <form method="POST" action="<?= e(url("/admin/usuarios/{$p['usuario_id']}/eliminar")) ?>" style="display:inline;" class="form-eliminar-usuario">
                             <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--color-danger);" title="Eliminar">
+                            <button type="button" class="btn btn-sm btn-ghost btn-eliminar-usuario" style="color: var(--color-danger);" title="Eliminar">
                                 <i class="ph ph-trash"></i>
                             </button>
                         </form>
@@ -83,3 +83,22 @@
         </tbody>
     </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-eliminar-usuario').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = btn.closest('form');
+            CadaModal.confirm({
+                title: '¿Eliminar Usuario?',
+                text: '¿Estás seguro de que deseas eliminar a este usuario? Esta acción no se puede deshacer.',
+                type: 'danger',
+                confirmText: 'Sí, Eliminar',
+                cancelText: 'Cancelar'
+            }).then(confirmed => {
+                if (confirmed) form.submit();
+            });
+        });
+    });
+});
+</script>

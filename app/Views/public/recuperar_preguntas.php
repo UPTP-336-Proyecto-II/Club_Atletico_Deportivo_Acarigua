@@ -22,7 +22,7 @@
 
         <?php include view_path('partials.flash'); ?>
 
-        <form method="POST" action="<?= e(url('/recuperar/preguntas')) ?>">
+        <form method="POST" action="<?= e(url('/recuperar/preguntas')) ?>" novalidate>
             <?= csrf_field() ?>
 
             <?php foreach ($preguntas as $i => $pregunta): ?>

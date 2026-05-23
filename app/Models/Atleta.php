@@ -110,7 +110,23 @@ final class Atleta extends Model
             WHERE a.atleta_id = :id
             LIMIT 1
         ";
-        return $this->queryOne($sql, [':id' => $id]);
+        $atleta = $this->queryOne($sql, [':id' => $id]);
+
+        // Cargar discapacidades (relación uno-a-muchos vía ficha_medica)
+        if ($atleta && !empty($atleta['ficha_id'])) {
+            $atleta['discapacidades'] = $this->query(
+                "SELECT d.*, t.nombre_tipo, t.descripcion AS tipo_descripcion
+                 FROM discapacidades d
+                 LEFT JOIN tipos_discapacidades t ON t.tipo_discapacidad_id = d.tipo_discapacidad_id
+                 WHERE d.ficha_id = :ficha_id
+                 ORDER BY d.fecha_registro DESC",
+                [':ficha_id' => $atleta['ficha_id']]
+            );
+        } else if ($atleta) {
+            $atleta['discapacidades'] = [];
+        }
+
+        return $atleta;
     }
 
     public function countByEstatus(): array

@@ -194,10 +194,17 @@ final class PerfilController extends Controller
             'telefono'     => $data['telefono'],
             'direccion_id' => $direccionId,
         ];
-
         // Foto de perfil
         $fotoFile = $request->file('foto');
-        if ($fotoFile && $fotoFile['error'] === UPLOAD_ERR_OK) {
+        if ($request->input('eliminar_foto') === '1') {
+            if (!empty($actual['foto'])) {
+                $oldFile = BASE_PATH . '/public/' . $actual['foto'];
+                if (file_exists($oldFile)) {
+                    @unlink($oldFile);
+                }
+            }
+            $updateData['foto'] = null;
+        } elseif ($fotoFile && $fotoFile['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($fotoFile['name'], PATHINFO_EXTENSION));
             $allowed = ['jpg', 'jpeg', 'png', 'webp'];
             if (in_array($ext, $allowed)) {
@@ -212,7 +219,6 @@ final class PerfilController extends Controller
         }
 
         $usuarioModel->update($userId, $updateData);
-
         // Refrescar la cookie JWT con los datos nuevos
         $updatedUser = $usuarioModel->findCompleto($userId);
         $db = Database::connection();
@@ -257,10 +263,20 @@ final class PerfilController extends Controller
             return $this->redirect('/admin/perfil?tab=seguridad');
         }
 
+        // Verificar si se solicitó algún cambio (nueva contraseña o preguntas de seguridad)
+        $hasPasswordChange = ($newPassword !== '');
+        $hasQuestionsChange = (!empty($pregunta1) || !empty($respuesta1) || !empty($pregunta2) || !empty($respuesta2));
+
+        if (!$hasPasswordChange && !$hasQuestionsChange) {
+            $this->withErrors(['new_password' => 'Debe ingresar una nueva contraseña o configurar las preguntas de seguridad.']);
+            flash('error', 'No se detectó ningún cambio. Debe rellenar al menos una sección.');
+            return $this->redirect('/admin/perfil?tab=seguridad');
+        }
+
         $usuarioModel = new Usuario();
 
-        // Cambio de contraseña (opcional: solo si llenó los campos)
-        if ($newPassword !== '') {
+        // Cambio de contraseña
+        if ($hasPasswordChange) {
             if (strlen($newPassword) < 8 || !preg_match('/[A-Za-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword) || !preg_match('/[^A-Za-z0-9]/', $newPassword)) {
                 $this->withErrors(['new_password' => 'La nueva contraseña debe tener al menos 8 caracteres, una letra, un número y un símbolo.']);
                 return $this->redirect('/admin/perfil?tab=seguridad');
@@ -271,7 +287,6 @@ final class PerfilController extends Controller
             }
 
             // Validar que no sea igual a la cédula
-            $user = Auth::user();
             $pwdNum = preg_replace('/[^0-9]/', '', $newPassword);
             $cedNum = preg_replace('/[^0-9]/', '', (string)$user['cedula']);
 
@@ -284,17 +299,27 @@ final class PerfilController extends Controller
             ]);
         }
 
-        // Actualizar preguntas de seguridad (si seleccionó nuevas)
-        if (!empty($pregunta1) && !empty($respuesta1) && !empty($pregunta2) && !empty($respuesta2)) {
+        // Actualizar preguntas de seguridad
+        if ($hasQuestionsChange) {
+            if (empty($pregunta1) || empty($respuesta1) || empty($pregunta2) || empty($respuesta2)) {
+                $this->withErrors(['pregunta_1' => 'Para configurar las preguntas de seguridad, debe completar las dos preguntas y sus respuestas.']);
+                flash('error', 'Debe completar todas las preguntas y respuestas de seguridad.');
+                return $this->redirect('/admin/perfil?tab=seguridad');
+            }
             if ($pregunta1 === $pregunta2) {
                 $this->withErrors(['pregunta_2' => 'Las preguntas deben ser diferentes.']);
+                return $this->redirect('/admin/perfil?tab=seguridad');
+            }
+            if (strlen(trim($respuesta1)) < 3 || strlen(trim($respuesta2)) < 3) {
+                $this->withErrors(['respuesta_1' => 'Las respuestas deben tener al menos 3 caracteres.']);
+                flash('error', 'Las respuestas de seguridad son muy cortas.');
                 return $this->redirect('/admin/perfil?tab=seguridad');
             }
 
             $respModel = new RespuestaSeguridad();
             $respModel->deleteByUser($userId);
-            $respModel->saveRespuesta($userId, (int) $pregunta1, $respuesta1);
-            $respModel->saveRespuesta($userId, (int) $pregunta2, $respuesta2);
+            $respModel->saveRespuesta($userId, (int) $pregunta1, trim($respuesta1));
+            $respModel->saveRespuesta($userId, (int) $pregunta2, trim($respuesta2));
         }
 
         flash('success', 'Seguridad actualizada correctamente.');

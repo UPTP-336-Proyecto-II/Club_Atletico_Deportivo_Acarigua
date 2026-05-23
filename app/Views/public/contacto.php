@@ -2,7 +2,7 @@
     <h2 class="section__title">Contacto</h2>
     <p class="section__subtitle">Escríbenos y te responderemos a la brevedad.</p>
 
-    <form class="contact-form card" method="POST" action="<?= e(url('/contacto')) ?>">
+    <form class="contact-form card" method="POST" action="<?= e(url('/contacto')) ?>" novalidate>
         <?= csrf_field() ?>
         <div class="form-group">
             <label class="form-label" for="nombre"><span class="required">*</span> Nombre</label>

@@ -23,13 +23,16 @@ $breadcrumb = $breadcrumb ?? [$title];
     <link rel="stylesheet" href="<?= e(asset('css/phosphor/style.css')) ?>">
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="<?= e(asset('css/main.css')) ?>">
-    <link rel="stylesheet" href="<?= e(asset('css/admin.css')) ?>">
-    <link rel="stylesheet" href="<?= e(asset('css/modal.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/main.css')) ?>?v=<?= filemtime(BASE_PATH . '/public/assets/css/main.css') ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/admin.css')) ?>?v=<?= filemtime(BASE_PATH . '/public/assets/css/admin.css') ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/modal.css')) ?>?v=<?= filemtime(BASE_PATH . '/public/assets/css/modal.css') ?>">
+
+
 
     <!-- Scripts Base -->
     <script src="<?= e(asset('js/core/theme.js')) ?>"></script>
     <script src="<?= e(asset('js/core/modal.js')) ?>"></script>
+    <script src="<?= e(asset('js/core/form-validator.js')) ?>"></script>
 </head>
 <body class="admin-body">
     <div class="admin-layout" id="admin-layout">
@@ -115,8 +118,15 @@ $breadcrumb = $breadcrumb ?? [$title];
         document.querySelectorAll('.sidebar__has-sub > a').forEach(a => {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
-                a.parentElement.classList.toggle('is-open');
-                a.nextElementSibling?.classList.toggle('is-open');
+                // No abrir grupos deshabilitados
+                if (a.closest('.sidebar__disabled')) return;
+                
+                const parent = a.parentElement;
+                const submenu = a.nextElementSibling;
+                if (!submenu) return;
+
+                parent.classList.toggle('is-open');
+                submenu.classList.toggle('is-open');
             });
         });
     })();
