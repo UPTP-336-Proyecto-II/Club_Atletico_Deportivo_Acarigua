@@ -15,15 +15,15 @@ final class Direccion extends Model
         return [['id' => 1, 'nombre' => 'Venezuela']]; // Hardcoded default
     }
 
-    public function estados(): array
+    public function estados(int $paisId = 1): array
     {
-        return $this->query('SELECT estado_id, estado AS nombre FROM estados ORDER BY estado');
+        return $this->query('SELECT estado_id, estado FROM estados ORDER BY estado');
     }
 
     public function municipios(int $estadoId): array
     {
         return $this->query(
-            'SELECT municipio_id, municipio AS nombre FROM municipios WHERE estado_id = :e ORDER BY municipio',
+            'SELECT municipio_id, municipio FROM municipios WHERE estado_id = :e ORDER BY municipio',
             [':e' => $estadoId]
         );
     }
@@ -31,7 +31,7 @@ final class Direccion extends Model
     public function parroquias(int $municipioId): array
     {
         return $this->query(
-            'SELECT parroquia_id, parroquia AS nombre FROM parroquias WHERE municipio_id = :m ORDER BY parroquia',
+            'SELECT parroquia_id, parroquia FROM parroquias WHERE municipio_id = :m ORDER BY parroquia',
             [':m' => $municipioId]
         );
     }

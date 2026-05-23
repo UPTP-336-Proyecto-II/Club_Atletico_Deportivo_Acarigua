@@ -97,18 +97,25 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/medidas/atleta/{id}', [MedidasAntropometricasController::class, 'atleta']);
     $r->post('/medidas/atleta/{id}', [MedidasAntropometricasController::class, 'store'], [CsrfMiddleware::class]);
     $r->post('/medidas/{id}/eliminar', [MedidasAntropometricasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/medidas/{id}/editar', [MedidasAntropometricasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Pruebas físicas
     $r->get('/resultados-pruebas', [ResultadosPruebasController::class, 'index']);
     $r->get('/resultados-pruebas/atleta/{id}', [ResultadosPruebasController::class, 'atleta']);
     $r->post('/resultados-pruebas/atleta/{id}', [ResultadosPruebasController::class, 'store'], [CsrfMiddleware::class]);
+    $r->post('/resultados-pruebas/{id}/eliminar', [ResultadosPruebasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/resultados-pruebas/{id}/editar', [ResultadosPruebasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Ficha médica (lectura entrenador; escritura admin)
     $r->get('/ficha-medica/{id}', [FichaMedicaController::class, 'show']);
     $r->post('/ficha-medica/{id}', [FichaMedicaController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/ficha-medica/{id}/discapacidad', [FichaMedicaController::class, 'storeDiscapacidad'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/ficha-medica/{id}/discapacidad/{disc_id}/editar', [FichaMedicaController::class, 'updateDiscapacidad'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/ficha-medica/{id}/discapacidad/{disc_id}/eliminar', [FichaMedicaController::class, 'destroyDiscapacidad'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Reportes
     $r->get('/reportes', [ReportesController::class, 'index']);
+    $r->get('/reportes/atletas/listado', [ReportesController::class, 'listaAtletas']);
     $r->get('/reportes/atleta/{id}', [ReportesController::class, 'fichaAtleta']);
     $r->get('/reportes/asistencia', [ReportesController::class, 'asistencia']);
     $r->get('/reportes/categoria/{id}', [ReportesController::class, 'categoria']);

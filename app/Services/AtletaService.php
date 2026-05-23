@@ -33,10 +33,10 @@ final class AtletaService
                 'fecha_nac'         => $data['fecha_nacimiento'],
                 'sexo'              => $data['sexo'] ?? 'M', // Por default para evitar error
                 'cedula'            => $data['cedula'] ?: null,
-                'telefono'          => $data['telefono'] ?? null,
-                'posicion_juego_id' => $data['posicion_de_juego'] ?? null,
-                'pierna_dominante'  => $data['pierna_dominante'] ?? null,
-                'categoria_id'      => $data['categoria_id'] ?? null,
+                'telefono'          => $data['telefono'] ?: null,
+                'posicion_juego_id' => !empty($data['posicion_de_juego']) ? $data['posicion_de_juego'] : null,
+                'pierna_dominante'  => !empty($data['pierna_dominante']) ? $data['pierna_dominante'] : null,
+                'categoria_id'      => !empty($data['categoria_id']) ? $data['categoria_id'] : null,
                 'representante_id'  => $representanteId,
                 'direccion_id'      => $direccionId,
                 'foto'              => $fotoPath,
@@ -85,10 +85,10 @@ final class AtletaService
                 'fecha_nac'         => $data['fecha_nacimiento'],
                 'sexo'              => $data['sexo'] ?? $actual['sexo'],
                 'cedula'            => $data['cedula'] ?: null,
-                'telefono'          => $data['telefono'] ?? null,
-                'posicion_juego_id' => $data['posicion_de_juego'] ?? null,
-                'pierna_dominante'  => $data['pierna_dominante'] ?? null,
-                'categoria_id'      => $data['categoria_id'] ?? null,
+                'telefono'          => $data['telefono'] ?: null,
+                'posicion_juego_id' => !empty($data['posicion_de_juego']) ? $data['posicion_de_juego'] : null,
+                'pierna_dominante'  => !empty($data['pierna_dominante']) ? $data['pierna_dominante'] : null,
+                'categoria_id'      => !empty($data['categoria_id']) ? $data['categoria_id'] : null,
                 'representante_id'  => $representanteId,
                 'direccion_id'      => $direccionId,
                 'estatus'           => $data['estatus'] ?? $actual['estatus'],
@@ -127,8 +127,25 @@ final class AtletaService
     private function guardarRepresentante(array $data, int $direccionId, int $representanteIdExistente = 0): int
     {
         $representanteModel = new Representante(); // Apunta a representante
-        $existente = !empty($data['tutor_cedula']) ? $representanteModel->findByCedula($data['tutor_cedula']) : null;
         
+        // 1. Si tenemos un ID existente de representante, actualizamos ese registro
+        if ($representanteIdExistente > 0) {
+            $existente = $representanteModel->find($representanteIdExistente);
+            if ($existente) {
+                $representanteModel->update($representanteIdExistente, [
+                    'nombre'        => $data['tutor_nombres'] ?? $existente['nombre'],
+                    'apellido'      => $data['tutor_apellidos'] ?? $existente['apellido'],
+                    'cedula'        => $data['tutor_cedula'] ?? $existente['cedula'],
+                    'telefono'      => $data['tutor_telefono'] ?? $existente['telefono'],
+                    'tipo_relacion' => $data['tutor_relacion'] ?? $existente['tipo_relacion'],
+                    'direccion_id'  => $direccionId,
+                ]);
+                return $representanteIdExistente;
+            }
+        }
+
+        // 2. Si no hay ID existente, pero se proporciona cédula, intentamos buscarlo
+        $existente = !empty($data['tutor_cedula']) ? $representanteModel->findByCedula($data['tutor_cedula']) : null;
         if ($existente) {
             $representanteModel->update((int) $existente['representante_id'], [
                 'nombre'        => $data['tutor_nombres'] ?? $existente['nombre'],
@@ -139,6 +156,8 @@ final class AtletaService
             ]);
             return (int) $existente['representante_id'];
         }
+
+        // 3. Si no existe de ninguna forma, insertamos uno nuevo
         return $representanteModel->insert([
             'nombre'        => $data['tutor_nombres'] ?? 'Sin Nombre',
             'apellido'      => $data['tutor_apellidos'] ?? '',
@@ -206,6 +225,83 @@ final class AtletaService
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             throw new RuntimeException('No se pudo guardar la foto.');
         }
+
+        // Optimizar y redimensionar la imagen si excede el tamaño ideal
+        $this->optimizarImagen($dest, $mime);
+
         return config('app.uploads.atletas_dir') . '/' . $basename;
+    }
+
+    /**
+     * Redimensiona y optimiza una imagen subida para ahorrar espacio, ancho de banda
+     * y mejorar los tiempos de renderizado en el navegador del cliente.
+     */
+    private function optimizarImagen(string $filePath, string $mime): void
+    {
+        try {
+            $info = getimagesize($filePath);
+            if (!$info) return;
+
+            list($width, $height) = $info;
+            $maxDim = 600; // Resolución ideal óptima para fotos de perfil 180x180
+
+            // Si es más pequeña que el límite, no hace falta redimensionarla
+            if ($width <= $maxDim && $height <= $maxDim) {
+                return;
+            }
+
+            // Calcular proporciones manteniendo relación de aspecto
+            $ratio = $width / $height;
+            if ($ratio > 1) {
+                $newWidth = $maxDim;
+                $newHeight = (int) round($maxDim / $ratio);
+            } else {
+                $newHeight = $maxDim;
+                $newWidth = (int) round($maxDim * $ratio);
+            }
+
+            // Crear el recurso de imagen de origen según el tipo MIME
+            $srcImage = match ($mime) {
+                'image/jpeg' => @imagecreatefromjpeg($filePath),
+                'image/png'  => @imagecreatefrompng($filePath),
+                'image/webp' => @imagecreatefromwebp($filePath),
+                default      => null
+            };
+
+            if (!$srcImage) return;
+
+            // Crear el lienzo de destino
+            $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+            if (!$dstImage) {
+                imagedestroy($srcImage);
+                return;
+            }
+
+            // Manejo y preservación de transparencias para PNG y WebP
+            if ($mime === 'image/png' || $mime === 'image/webp') {
+                imagealphablending($dstImage, false);
+                imagesavealpha($dstImage, true);
+                $transparent = imagecolorallocatealpha($dstImage, 255, 255, 255, 127);
+                imagefilledrectangle($dstImage, 0, 0, $newWidth, $newHeight, $transparent);
+            }
+
+            // Redimensionar con interpolación bilineal de alta calidad
+            imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            // Guardar sobreescribiendo el archivo original con compresión óptima
+            match ($mime) {
+                'image/jpeg' => imagejpeg($dstImage, $filePath, 85),
+                'image/png'  => imagepng($dstImage, $filePath, 6),
+                'image/webp' => imagewebp($dstImage, $filePath, 80),
+                default      => null
+            };
+
+            // Liberar memoria
+            imagedestroy($srcImage);
+            imagedestroy($dstImage);
+        } catch (Throwable $e) {
+            // Registramos el error de GD pero no bloqueamos el flujo de guardado principal
+            Logger::error($e);
+        }
     }
 }

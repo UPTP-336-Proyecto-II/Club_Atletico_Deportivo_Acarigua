@@ -38,9 +38,12 @@ final class ReportesController extends Controller
         if (!$reporte) {
             return Response::html('<h1>Atleta no encontrado</h1>', 404);
         }
-        // Si es PDF, descarga; si es HTML, renderiza inline (permite imprimir)
+        // Si es PDF, renderiza inline por defecto para visualizar. Si piden descarga, se descarga.
         if (str_starts_with($reporte['mime'], 'application/pdf')) {
-            return Response::download($reporte['content'], $reporte['filename'], $reporte['mime']);
+            if ($request->query('action') === 'download') {
+                return Response::download($reporte['content'], $reporte['filename'], $reporte['mime']);
+            }
+            return Response::inline($reporte['content'], $reporte['filename'], $reporte['mime']);
         }
         return Response::html($reporte['content']);
     }
@@ -58,12 +61,34 @@ final class ReportesController extends Controller
 
     public function categoria(Request $request): Response
     {
-        return $this->view('reportes.index', [
-            'title' => 'Reporte por categoría',
-            'active' => 'reportes',
-            'breadcrumb' => ['Inicio', 'Reportes', 'Categoría'],
-            'stats' => [],
-            'atletas' => [],
-        ], 'admin');
+        $id = (int) $request->param('id');
+        if ($id <= 0) {
+            return $this->index($request);
+        }
+
+        $reporte = (new ReporteService())->reportePorCategoria($id);
+        if (!$reporte) {
+            return Response::html('<h1>Categoría no encontrada</h1>', 404);
+        }
+
+        if (str_starts_with($reporte['mime'], 'application/pdf')) {
+            if ($request->query('action') === 'download') {
+                return Response::download($reporte['content'], $reporte['filename'], $reporte['mime']);
+            }
+            return Response::inline($reporte['content'], $reporte['filename'], $reporte['mime']);
+        }
+        return Response::html($reporte['content']);
+    }
+    public function listaAtletas(Request $request): Response
+    {
+        $reporte = (new ReporteService())->listaAtletas();
+        
+        if (str_starts_with($reporte['mime'], 'application/pdf')) {
+            if ($request->query('action') === 'download') {
+                return Response::download($reporte['content'], $reporte['filename'], $reporte['mime']);
+            }
+            return Response::inline($reporte['content'], $reporte['filename'], $reporte['mime']);
+        }
+        return Response::html($reporte['content']);
     }
 }

@@ -52,6 +52,15 @@ final class Response
             ->body($content);
     }
 
+    public static function inline(string $content, string $filename, string $mime = 'application/pdf'): self
+    {
+        return (new self())
+            ->header('Content-Type', $mime)
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"')
+            ->header('Content-Length', (string) strlen($content))
+            ->body($content);
+    }
+
     public function send(): void
     {
         if (!headers_sent()) {

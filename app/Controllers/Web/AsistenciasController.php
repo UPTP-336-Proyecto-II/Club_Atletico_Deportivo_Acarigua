@@ -70,14 +70,22 @@ final class AsistenciasController extends Controller
             'fecha_evento' => 'required|date',
             'entrenador_id' => 'required|integer',
             'categoria_id' => 'required|integer',
+            'hora_inicio' => 'required',
+            'hora_fin' => 'required',
         ]);
         if (!$v->validate()) {
             $this->withErrors($v->errors());
             return $this->redirect('/admin/asistencias/crear');
         }
 
-        if (strtotime($data['fecha_evento']) > strtotime(date('Y-m-d'))) {
+        $minDate = strtotime(date('Y-m-d') . ' -1 day');
+        $eventDate = strtotime($data['fecha_evento']);
+        if ($eventDate > strtotime(date('Y-m-d'))) {
             flash('error', 'No se pueden registrar asistencias en fechas futuras.');
+            return $this->redirect('/admin/asistencias/crear');
+        }
+        if ($eventDate < $minDate) {
+            flash('error', 'Solo se pueden registrar asistencias de hoy o del día anterior.');
             return $this->redirect('/admin/asistencias/crear');
         }
 
@@ -89,9 +97,17 @@ final class AsistenciasController extends Controller
             $aid = (int) $aid;
             if (!$aid)
                 continue;
+
+            $est = $estatuses[$aid] ?? 'Ausente';
+            $estatusVal = match ($est) {
+                'Presente', '1' => 1,
+                'Justificado', 'Permiso', '2' => 2,
+                default => 0,
+            };
+
             $detalles[] = [
                 'atleta_id' => $aid,
-                'estatus' => ($estatuses[$aid] ?? 'Ausente') === 'Presente' ? 1 : 0,
+                'estatus' => $estatusVal,
                 'observaciones' => $observaciones[$aid] ?? null,
             ];
         }
@@ -237,9 +253,17 @@ final class AsistenciasController extends Controller
             $aid = (int) $aid;
             if (!$aid)
                 continue;
+            
+            $est = $estatuses[$aid] ?? 'Ausente';
+            $estatusVal = match ($est) {
+                'Presente', '1' => 1,
+                'Justificado', 'Permiso', '2' => 2,
+                default => 0,
+            };
+
             $detalles[] = [
                 'atleta_id' => $aid,
-                'estatus' => $estatuses[$aid] ?? 'Ausente',
+                'estatus' => $estatusVal,
                 'observaciones' => $observaciones[$aid] ?? null,
             ];
         }

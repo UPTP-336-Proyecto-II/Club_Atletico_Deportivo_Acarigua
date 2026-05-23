@@ -43,7 +43,7 @@ const CadaModal = {
             btnConfirm.style.width = '100%';
             
             titleEl.textContent = options.title || 'Información';
-            textEl.textContent = options.text || '';
+            textEl.innerHTML = options.text || '';
             
             const type = options.type || 'info';
             box.className = 'cada-modal-box ' + type;
@@ -97,7 +97,7 @@ const CadaModal = {
             btnConfirm.style.width = 'auto';
             
             titleEl.textContent = options.title || '¿Estás seguro?';
-            textEl.textContent = options.text || '';
+            textEl.innerHTML = options.text || '';
             
             const type = options.type || 'warning';
             box.className = 'cada-modal-box ' + type;

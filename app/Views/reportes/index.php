@@ -86,8 +86,8 @@
                         </td>
                         <td><span style="color: var(--color-text-muted);"><i class="ph ph-identification-card"></i> <?= e($a['cedula'] ?? '—') ?></span></td>
                         <td style="text-align: right; padding-right: 24px;">
-                            <a href="<?= e(url("/admin/reportes/atleta/{$a['atleta_id']}")) ?>" class="btn btn-sm btn-outline" target="_blank" title="Exportar PDF">
-                                <i class="ph ph-download-simple"></i> PDF
+                            <a href="<?= e(url("/admin/reportes/atleta/{$a['atleta_id']}")) ?>" class="btn btn-sm btn-outline" target="_blank" title="Imprimir o Ver PDF">
+                                <i class="ph ph-file-pdf"></i> Imprimir PDF
                             </a>
                         </td>
                     </tr>
@@ -100,33 +100,21 @@
         </div>
     </div>
 
-    <!-- Sidebar: Otros Reportes (Mock) -->
+    <!-- Sidebar: Otros Reportes -->
     <div style="display: flex; flex-direction: column; gap: 24px;">
         <div class="card">
-            <h3 style="margin-top: 0; font-size: 16px;"><i class="ph ph-microsoft-excel-logo" style="color: #107c41;"></i> Exportaciones Masivas</h3>
-            <p class="text-muted" style="font-size: 13px;">Descarga la data global en formato hoja de cálculo para análisis externo.</p>
+            <h3 style="margin-top: 0; font-size: 16px;"><i class="ph ph-files" style="color: var(--color-primary);"></i> Reportes Globales</h3>
+            <p class="text-muted" style="font-size: 13px;">Genera documentos consolidados de toda la institución.</p>
             
             <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-                <button class="btn btn-outline" style="justify-content: flex-start;" disabled>
-                    <i class="ph ph-download-simple"></i> Padrón de Atletas (CSV)
-                </button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" disabled>
-                    <i class="ph ph-download-simple"></i> Asistencias Mensuales (Excel)
-                </button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" disabled>
-                    <i class="ph ph-download-simple"></i> Resultados de Pruebas (Excel)
-                </button>
+                <a href="<?= e(url('/admin/reportes/atletas/listado')) ?>" class="btn btn-outline" style="justify-content: flex-start; padding: 12px 16px; border-width: 2px;" target="_blank">
+                    <i class="ph ph-file-pdf" style="color: var(--color-danger); font-size: 24px;"></i> 
+                    <div style="text-align: left;">
+                        <div style="font-weight: 700; font-size: 14px;">Listado General de Atletas</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Formato PDF Profesional</div>
+                    </div>
+                </a>
             </div>
-        </div>
-
-        <div class="card" style="background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(37, 99, 235, 0.05) 100%); border-color: var(--color-primary-light);">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <i class="ph ph-info" style="font-size: 24px; color: var(--color-primary);"></i>
-                <h4 style="margin: 0; color: var(--color-primary);">Nota del Sistema</h4>
-            </div>
-            <p style="margin: 0; font-size: 13px; color: var(--color-text); line-height: 1.5;">
-                Las exportaciones masivas a Excel/CSV se encuentran en desarrollo por el equipo de backend y estarán disponibles próximamente. Por ahora, puede generar los PDFs individuales sin problema.
-            </p>
         </div>
     </div>
 </div>

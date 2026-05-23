@@ -45,6 +45,7 @@
         </div>
     </a>
 
+    <?php /*
     <a href="<?= e(url('/admin/reportes')) ?>" class="quick-card">
         <div class="qc-icon green"><i class="ph ph-chart-bar"></i></div>
         <div>
@@ -68,6 +69,7 @@
             <div class="qc-desc">Tests de rendimiento</div>
         </div>
     </a>
+    */ ?>
 
     <a href="<?= e(url('/admin/categorias')) ?>" class="quick-card">
         <div class="qc-icon red"><i class="ph ph-folders"></i></div>

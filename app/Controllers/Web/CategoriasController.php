@@ -39,11 +39,18 @@ final class CategoriasController extends Controller
         $data = $this->input($request);
         $v = Validator::make($data, [
             'nombre_categoria' => 'required|min:2|max:50',
-            'edad_min'         => 'required|integer|min:3|max:100',
-            'edad_max'         => 'required|integer|min:3|max:100',
+            'edad_min'         => 'required|integer|min:6|max:100',
+            'edad_max'         => 'required|integer|min:6|max:100',
             'sexo_categoria'   => 'required|in:M,F,X',
             'usuario_id'       => 'required|integer',
             'estatus'          => 'required|in:activa,inactiva',
+        ], [
+            'nombre_categoria' => 'El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.',
+            'edad_min'         => 'La edad mínima es obligatoria y debe ser de al menos 6 años.',
+            'edad_max'         => 'La edad máxima es obligatoria y debe ser de al menos 6 años.',
+            'sexo_categoria'   => 'El género de la categoría es obligatorio.',
+            'usuario_id'       => 'El entrenador responsable es obligatorio.',
+            'estatus'          => 'El estatus es obligatorio.',
         ]);
         if (!$v->validate()) {
             $this->withOld($data)->withErrors($v->errors());
@@ -89,11 +96,18 @@ final class CategoriasController extends Controller
         $data = $this->input($request);
         $v = Validator::make($data, [
             'nombre_categoria' => 'required|min:2|max:50',
-            'edad_min'         => 'required|integer|min:3|max:100',
-            'edad_max'         => 'required|integer|min:3|max:100',
+            'edad_min'         => 'required|integer|min:6|max:100',
+            'edad_max'         => 'required|integer|min:6|max:100',
             'sexo_categoria'   => 'required|in:M,F,X',
             'usuario_id'       => 'required|integer',
             'estatus'          => 'required|in:activa,inactiva',
+        ], [
+            'nombre_categoria' => 'El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.',
+            'edad_min'         => 'La edad mínima es obligatoria y debe ser de al menos 6 años.',
+            'edad_max'         => 'La edad máxima es obligatoria y debe ser de al menos 6 años.',
+            'sexo_categoria'   => 'El género de la categoría es obligatorio.',
+            'usuario_id'       => 'El entrenador responsable es obligatorio.',
+            'estatus'          => 'El estatus es obligatorio.',
         ]);
         if (!$v->validate()) {
             $this->withOld($data)->withErrors($v->errors());

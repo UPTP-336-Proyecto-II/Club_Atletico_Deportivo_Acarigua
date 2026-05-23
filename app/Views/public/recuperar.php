@@ -21,7 +21,7 @@
 
         <?php include view_path('partials.flash'); ?>
 
-        <form method="POST" action="<?= e(url('/recuperar')) ?>">
+        <form method="POST" action="<?= e(url('/recuperar')) ?>" novalidate>
             <?= csrf_field() ?>
             <div class="form-group">
                 <label class="form-label" for="correo"><span class="required">*</span> Correo electrónico</label>
