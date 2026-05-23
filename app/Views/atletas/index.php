@@ -133,9 +133,20 @@
                 </td>
                 <td style="text-align: right; padding-right: 24px;">
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="<?= can('admin') ? 'Editar Perfil' : 'Ver Perfil' ?>" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
-                            <i class="ph <?= can('admin') ? 'ph-pencil-simple' : 'ph-eye' ?>"></i>
+                        <a href="<?= e(url('/admin/atletas/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Ver Perfil" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-eye"></i>
                         </a>
+                        <a href="<?= e(url('/admin/reportes/atleta/' . $a['atleta_id'])) ?>" class="btn btn-sm btn-ghost" title="Reporte Individual" target="_blank" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                            <i class="ph ph-file-pdf"></i>
+                        </a>
+                        <?php if (can('admin')): ?>
+                            <form method="POST" action="<?= e(url('/admin/atletas/' . $a['atleta_id'] . '/eliminar')) ?>" style="display:inline;">
+                                <?= csrf_field() ?>
+                                <button type="button" class="btn btn-sm btn-ghost text-danger btn-eliminar-atleta" title="Eliminar Atleta" data-nombre="<?= e($a['nombre'] . ' ' . $a['apellido']) ?>" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="ph ph-trash"></i>
+                                </button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
@@ -413,6 +424,29 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalBtnText;
         }
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-eliminar-atleta').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = btn.closest('form');
+            const nombre = btn.getAttribute('data-nombre');
+
+            CadaModal.confirm({
+                title: '¿Eliminar Atleta?',
+                text: `¿Estás seguro de que deseas eliminar permanentemente a <strong>${nombre}</strong>?<br><br><small style="color:var(--color-text-muted);">Nota: Si el atleta ya tiene registros de asistencia, pruebas físicas o historial antropométrico, la base de datos no permitirá borrarlo por integridad de datos, y se sugerirá desactivarlo en su lugar.</small>`,
+                type: 'danger',
+                confirmText: 'Sí, Eliminar',
+                cancelText: 'Cancelar'
+            }).then(confirmed => {
+                if (confirmed) {
+                    form.submit();
+                }
+            });
+        });
     });
 });
 </script>

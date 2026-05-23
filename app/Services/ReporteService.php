@@ -22,11 +22,12 @@ final class ReporteService
         $atleta = (new Atleta())->findCompleto($atletaId);
         if (!$atleta) return null;
 
-        $antropometria = (new MedidaAntropometrica())->historial($atletaId);
-        $pruebas       = (new ResultadoPrueba())->historial($atletaId);
-        $asistencia    = (new Asistencia())->resumenAtleta($atletaId);
+        $antropometria    = (new MedidaAntropometrica())->historial($atletaId);
+        $pruebas          = (new ResultadoPrueba())->historial($atletaId);
+        $asistencia       = (new Asistencia())->resumenAtleta($atletaId);
+        $historialAsist   = (new Asistencia())->historialAtleta($atletaId);
 
-        $html = $this->construirHtml($atleta, $antropometria, $pruebas, $asistencia);
+        $html = $this->construirHtml($atleta, $antropometria, $pruebas, $asistencia, $historialAsist);
 
         $filename = 'ficha_' . preg_replace('/[^a-z0-9]+/i', '_', $atleta['nombre'] . '_' . $atleta['apellido']) . '_' . date('Ymd');
         
@@ -47,8 +48,6 @@ final class ReporteService
 
     /**
      * Genera un listado general de todos los atletas registrados.
-     *
-     * @return array{mime:string, filename:string, content:string}
      */
     public function listaAtletas(): array
     {
@@ -83,9 +82,6 @@ final class ReporteService
 
     /**
      * Genera un reporte detallado de los atletas de una categoría específica.
-     *
-     * @param int $categoriaId
-     * @return array{mime:string, filename:string, content:string}|null
      */
     public function reportePorCategoria(int $categoriaId): ?array
     {
@@ -130,7 +126,437 @@ final class ReporteService
         ];
     }
 
-    private function construirHtml(array $a, array $antropo, array $pruebas, array $asistencia): string
+    /* ======================================================================
+     *  MÉTODOS AUXILIARES PARA GRÁFICOS VECTORIALES
+     * ====================================================================== */
+
+    /**
+     * Genera un calendario anual en formato SVG (Para evitar timeouts de TCPDF)
+     */
+    private function generarSvgCalendario(array $historial): string
+    {
+        // Almacenar TODOS los estatus de cada día para poder representar días mixtos
+        $mapaAsistRaw = [];
+        foreach ($historial as $row) {
+            $fecha = $row['fecha'] ?? null;
+            if (!$fecha) continue;
+            $key = date('Y-m-d', strtotime($fecha));
+            $est = (int)($row['estatus'] ?? -1);
+            if (!isset($mapaAsistRaw[$key])) {
+                $mapaAsistRaw[$key] = [];
+            }
+            $mapaAsistRaw[$key][] = $est;
+        }
+
+        // Consolidar: si hay estatus mixtos, guardar ambos; si son iguales, guardar uno
+        $mapaAsist = [];
+        foreach ($mapaAsistRaw as $key => $estatuses) {
+            $unique = array_unique($estatuses);
+            if (count($unique) === 1) {
+                $mapaAsist[$key] = ['tipo' => 'simple', 'est' => $unique[0]];
+            } else {
+                // Priorizar: mostrar el "mejor" arriba-izquierda y el "peor" abajo-derecha
+                sort($unique); // 0(ausente), 1(presente), 2(justificado)
+                $mejor = max($unique);
+                $peor = min($unique);
+                // Si tiene presente(1) y ausente(0) => verde/rojo
+                $mapaAsist[$key] = ['tipo' => 'mixto', 'est1' => $mejor, 'est2' => $peor];
+            }
+        }
+
+        $mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        $diasStr = ['L','M','X','J','V','S','D'];
+        
+        $hoy = new DateTime('today');
+        $mesesData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $dt = clone $hoy;
+            $dt->modify("-$i months");
+            $mesesData[] = [
+                'anio' => (int)$dt->format('Y'),
+                'mes' => (int)$dt->format('n'),
+                'nombre' => $mesesNombres[(int)$dt->format('n') - 1] . ' ' . $dt->format('Y')
+            ];
+        }
+
+        $w = 520;
+        $h = 350;
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $w . '" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" style="font-family: helvetica, sans-serif;">';
+        $svg .= '<rect width="100%" height="100%" fill="#ffffff" />';
+        
+        $cols = 4;
+        $monthW = 115;
+        $monthH = 90;
+        $padX = ($w - ($cols * $monthW)) / ($cols + 1);
+        $padY = 15;
+        
+        foreach ($mesesData as $index => $mData) {
+            $col = $index % $cols;
+            $row = floor($index / $cols);
+            
+            $x = $padX + $col * ($monthW + $padX);
+            $y = $padY + $row * ($monthH + $padY);
+            
+            // Month title
+            $svg .= '<text x="' . ($x + $monthW/2) . '" y="' . ($y + 10) . '" text-anchor="middle" font-size="10" font-weight="bold" fill="#800020">' . $mData['nombre'] . '</text>';
+            
+            // Days header
+            $cellW = $monthW / 7;
+            $cellH = 11;
+            $dy = $y + 15;
+            for ($d=0; $d<7; $d++) {
+                $svg .= '<text x="' . ($x + $d*$cellW + $cellW/2) . '" y="' . ($dy + 8) . '" text-anchor="middle" font-size="7" fill="#888">' . $diasStr[$d] . '</text>';
+            }
+            
+            // Days logic
+            $primerDia = new DateTime(sprintf('%04d-%02d-01', $mData['anio'], $mData['mes']));
+            $diasEnMes = (int)$primerDia->format('t');
+            $diaSemanaInicio = ((int)$primerDia->format('N')) - 1; // 0=Lun, 6=Dom
+            
+            $dy += 12;
+            $currentCol = $diaSemanaInicio;
+            $currentRow = 0;
+            
+            for ($dia = 1; $dia <= $diasEnMes; $dia++) {
+                $fechaKey = sprintf('%04d-%02d-%02d', $mData['anio'], $mData['mes'], $dia);
+                
+                $rx = $x + $currentCol * $cellW;
+                $ry = $dy + $currentRow * $cellH;
+                $cw = $cellW - 2;
+                $ch = $cellH - 2;
+                $cx1 = $rx + 1;
+                $cy1 = $ry + 1;
+
+                $colorMap = fn($e) => match($e) {
+                    1 => '#2ea44f', 0 => '#cf222e', 2 => '#dbab09', default => '#f1f3f5'
+                };
+
+                if (isset($mapaAsist[$fechaKey])) {
+                    $info = $mapaAsist[$fechaKey];
+                    if ($info['tipo'] === 'mixto') {
+                        // Día con estatus mixtos: dos triángulos diagonales
+                        $color1 = $colorMap($info['est1']);
+                        $color2 = $colorMap($info['est2']);
+                        // Triángulo superior-izquierdo (mejor estatus)
+                        $svg .= '<polygon points="' . $cx1 . ',' . $cy1 . ' ' . ($cx1+$cw) . ',' . $cy1 . ' ' . $cx1 . ',' . ($cy1+$ch) . '" fill="' . $color1 . '" />';
+                        // Triángulo inferior-derecho (peor estatus)
+                        $svg .= '<polygon points="' . ($cx1+$cw) . ',' . $cy1 . ' ' . ($cx1+$cw) . ',' . ($cy1+$ch) . ' ' . $cx1 . ',' . ($cy1+$ch) . '" fill="' . $color2 . '" />';
+                        $colorText = '#fff';
+                    } else {
+                        $colorBg = $colorMap($info['est']);
+                        $colorText = ($info['est'] >= 0 && $info['est'] <= 2) ? '#fff' : '#555';
+                        $svg .= '<rect x="' . $cx1 . '" y="' . $cy1 . '" width="' . $cw . '" height="' . $ch . '" fill="' . $colorBg . '" rx="2" ry="2" />';
+                    }
+                } else {
+                    $svg .= '<rect x="' . $cx1 . '" y="' . $cy1 . '" width="' . $cw . '" height="' . $ch . '" fill="#f1f3f5" rx="2" ry="2" />';
+                    $colorText = '#555';
+                }
+                $svg .= '<text x="' . ($rx + $cellW/2) . '" y="' . ($ry + 8) . '" text-anchor="middle" font-size="6" fill="' . $colorText . '">' . $dia . '</text>';
+                
+                $currentCol++;
+                if ($currentCol > 6) {
+                    $currentCol = 0;
+                    $currentRow++;
+                }
+            }
+        }
+        
+        // Legend
+        $ly = $h - 10;
+        $svg .= '<rect x="' . ($w/2 - 160) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#2ea44f" rx="2" ry="2" /><text x="' . ($w/2 - 145) . '" y="' . $ly . '" font-size="8" fill="#555">Presente</text>';
+        $svg .= '<rect x="' . ($w/2 - 85) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#cf222e" rx="2" ry="2" /><text x="' . ($w/2 - 70) . '" y="' . $ly . '" font-size="8" fill="#555">Ausente</text>';
+        $svg .= '<rect x="' . ($w/2 - 15) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#dbab09" rx="2" ry="2" /><text x="' . ($w/2) . '" y="' . $ly . '" font-size="8" fill="#555">Justificado</text>';
+        $svg .= '<rect x="' . ($w/2 + 60) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#f1f3f5" stroke="#ccc" stroke-width="0.5" rx="2" ry="2" /><text x="' . ($w/2 + 75) . '" y="' . $ly . '" font-size="8" fill="#555">Sin sesión</text>';
+        // Leyenda de día mixto
+        $mx = $w/2 + 130;
+        $svg .= '<polygon points="' . $mx . ',' . ($ly-8) . ' ' . ($mx+10) . ',' . ($ly-8) . ' ' . $mx . ',' . ($ly+2) . '" fill="#2ea44f" />';
+        $svg .= '<polygon points="' . ($mx+10) . ',' . ($ly-8) . ' ' . ($mx+10) . ',' . ($ly+2) . ' ' . $mx . ',' . ($ly+2) . '" fill="#cf222e" />';
+        $svg .= '<text x="' . ($mx + 15) . '" y="' . $ly . '" font-size="8" fill="#555">Mixto</text>';
+        
+        $svg .= '</svg>';
+        
+        $tmpPath = dirname(__DIR__, 2) . '/public/assets/uploads/tmp_calendario_' . uniqid() . '.svg';
+        if (!is_dir(dirname(__DIR__, 2) . '/public/assets/uploads')) {
+            mkdir(dirname(__DIR__, 2) . '/public/assets/uploads', 0777, true);
+        }
+        file_put_contents($tmpPath, $svg);
+        return '<div style="text-align: center; margin-top: 15px;"><img src="' . $tmpPath . '" width="' . $w . '" height="' . $h . '" /></div>';
+    }
+
+    /**
+     * Genera un gráfico SVG de líneas y columnas para evolución del peso, altura e IMC.
+     */
+    private function generarSvgGrafica(array $antropo): string
+    {
+        if (count($antropo) < 2) {
+            return '<p style="font-size: 10px; color: #888; text-align: center; margin-top: 10px;">Se necesitan al menos 2 mediciones para generar la gráfica de evolución.</p>';
+        }
+
+        $w = 520;
+        $h = 240;
+        $padL = 50;
+        $padR = 50;
+        $padT = 30;
+        $padB = 50;
+        $chartW = $w - $padL - $padR;
+        $chartH = $h - $padT - $padB;
+
+        $pesos = array_map(fn($m) => (float)($m['peso'] ?? 0), $antropo);
+        $alturas = array_map(fn($m) => (float)($m['altura'] ?? 0), $antropo);
+        $fechas = array_map(fn($m) => date('d/m/y', strtotime($m['fecha_medicion'])), $antropo);
+        
+        $imcs = [];
+        foreach ($antropo as $m) {
+            $p = (float)($m['peso'] ?? 0);
+            $a = (float)($m['altura'] ?? 0) / 100;
+            $imcs[] = ($p > 0 && $a > 0) ? ($p / ($a * $a)) : 0;
+        }
+
+        $n = count($antropo);
+
+        // Escalas fijas de la gráfica real
+        $maxKgCm = 180;
+        $stepKgCm = 30;
+        $numLines = $maxKgCm / $stepKgCm; // 6 líneas
+
+        $maxIMC = 30; // De 0 a 30, step 5 (también 6 líneas)
+        $stepIMC = 5;
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $w . '" height="' . $h . '" viewBox="0 0 ' . $w . ' ' . $h . '" style="font-family: helvetica, sans-serif;">';
+
+        // Fondo
+        $svg .= '<rect x="' . $padL . '" y="' . $padT . '" width="' . $chartW . '" height="' . $chartH . '" fill="#ffffff" stroke="#e0e0e0" stroke-width="0.5" />';
+
+        // Líneas horizontales de referencia
+        for ($i = 0; $i <= $numLines; $i++) {
+            $y = $padT + $chartH - ($chartH * $i / $numLines);
+            $valKgCm = $i * $stepKgCm;
+            $valIMC = $i * $stepIMC;
+            $svg .= '<line x1="' . $padL . '" y1="' . $y . '" x2="' . ($padL + $chartW) . '" y2="' . $y . '" stroke="#e8e8e8" stroke-width="0.5" />';
+            $svg .= '<text x="' . ($padL - 6) . '" y="' . ($y + 3) . '" text-anchor="end" font-size="8" fill="#555">' . $valKgCm . '</text>';
+            $svg .= '<text x="' . ($padL + $chartW + 6) . '" y="' . ($y + 3) . '" text-anchor="start" font-size="8" fill="#555">' . $valIMC . '</text>';
+        }
+
+        // Etiquetas de ejes (Títulos)
+        $svg .= '<text x="' . $padL . '" y="' . ($padT - 10) . '" text-anchor="middle" font-size="9" fill="#555">Kg/Cm</text>';
+        $svg .= '<text x="' . ($padL + $chartW) . '" y="' . ($padT - 10) . '" text-anchor="middle" font-size="9" fill="#555">IMC</text>';
+
+        // Calcular puntos X (Centrados)
+        $xStep = $chartW / $n;
+        $barWidth = min(35, $xStep * 0.45); // Ancho de las columnas
+
+        $puntosAltura = [];
+        $puntosIMC = [];
+
+        for ($i = 0; $i < $n; $i++) {
+            $xCenter = $padL + ($i * $xStep) + ($xStep / 2);
+            
+            // Columna de Peso (Naranja/Amarillo)
+            $hPeso = ($pesos[$i] / $maxKgCm) * $chartH;
+            $yPeso = $padT + $chartH - $hPeso;
+            $svg .= '<rect x="' . ($xCenter - $barWidth/2) . '" y="' . $yPeso . '" width="' . $barWidth . '" height="' . $hPeso . '" fill="#ffa600" />';
+
+            // Puntos para líneas
+            $yAltura = $padT + $chartH - (($alturas[$i] / $maxKgCm) * $chartH);
+            $puntosAltura[] = $xCenter . ',' . $yAltura;
+            
+            $yIMC = $padT + $chartH - (($imcs[$i] / $maxIMC) * $chartH);
+            $puntosIMC[] = $xCenter . ',' . $yIMC;
+            
+            // Etiqueta X (Fecha)
+            $svg .= '<text x="' . $xCenter . '" y="' . ($padT + $chartH + 15) . '" text-anchor="middle" font-size="8" fill="#555">' . $fechas[$i] . '</text>';
+        }
+
+        // Línea de Altura (Morado, dashed)
+        $polyAltura = implode(' ', $puntosAltura);
+        $svg .= '<polyline points="' . $polyAltura . '" fill="none" stroke="#7a5195" stroke-width="2" stroke-dasharray="5,5" />';
+        foreach ($puntosAltura as $pt) {
+            [$cx, $cy] = explode(',', $pt);
+            $svg .= '<circle cx="' . $cx . '" cy="' . $cy . '" r="3" fill="#7a5195" stroke="#fff" stroke-width="1.5" />';
+        }
+
+        // Línea de IMC (Verde, solid)
+        $polyIMC = implode(' ', $puntosIMC);
+        $svg .= '<polyline points="' . $polyIMC . '" fill="none" stroke="#00C851" stroke-width="2" />';
+        foreach ($puntosIMC as $pt) {
+            [$cx, $cy] = explode(',', $pt);
+            $svg .= '<circle cx="' . $cx . '" cy="' . $cy . '" r="3" fill="#00C851" stroke="#fff" stroke-width="1.5" />';
+        }
+
+        // Leyenda Inferior
+        $ly = $h - 15;
+        // Legend Peso
+        $svg .= '<rect x="' . ($w / 2 - 100) . '" y="' . ($ly - 5) . '" width="15" height="7" fill="#ffa600" />';
+        $svg .= '<text x="' . ($w / 2 - 80) . '" y="' . ($ly + 2) . '" font-size="8" fill="#555">Peso (kg)</text>';
+        // Legend Altura
+        $svg .= '<line x1="' . ($w / 2 - 30) . '" y1="' . ($ly - 1) . '" x2="' . ($w / 2 - 10) . '" y2="' . ($ly - 1) . '" stroke="#7a5195" stroke-width="2" stroke-dasharray="3,3" />';
+        $svg .= '<circle cx="' . ($w / 2 - 20) . '" cy="' . ($ly - 1) . '" r="2.5" fill="#7a5195" stroke="#fff" stroke-width="1" />';
+        $svg .= '<text x="' . ($w / 2 - 5) . '" y="' . ($ly + 2) . '" font-size="8" fill="#555">Altura (cm)</text>';
+        // Legend IMC
+        $svg .= '<line x1="' . ($w / 2 + 50) . '" y1="' . ($ly - 1) . '" x2="' . ($w / 2 + 70) . '" y2="' . ($ly - 1) . '" stroke="#00C851" stroke-width="2" />';
+        $svg .= '<circle cx="' . ($w / 2 + 60) . '" cy="' . ($ly - 1) . '" r="2.5" fill="#00C851" stroke="#fff" stroke-width="1" />';
+        $svg .= '<text x="' . ($w / 2 + 75) . '" y="' . ($ly + 2) . '" font-size="8" fill="#555">IMC</text>';
+
+        $svg .= '</svg>';
+
+        // Guardar SVG en archivo temporal para que TCPDF lo lea como imagen
+        $tmpPath = dirname(__DIR__, 2) . '/public/assets/uploads/tmp_grafica_' . uniqid() . '.svg';
+        file_put_contents($tmpPath, $svg);
+
+        return '<div style="text-align: center; margin-top: 10px;"><img src="' . $tmpPath . '" width="' . $w . '" height="' . $h . '" /></div>';
+    }
+
+    /**
+     * Genera un gráfico de radar SVG pentagonal (5 ejes) para los tests físicos.
+     */
+    private function generarSvgRadar(array $pruebas): string
+    {
+        if (empty($pruebas)) {
+            return '<p style="font-size: 10px; color: #888; text-align: center; margin-top: 10px;">Sin pruebas físicas registradas para generar el gráfico de radar.</p>';
+        }
+
+        // Tomar la prueba más reciente (índice 0)
+        $ultima = $pruebas[0];
+        $labels = ['Fuerza', 'Resistencia', 'Velocidad', 'Coordinación', 'Reacción'];
+        $keys = ['test_de_fuerza', 'test_resistencia', 'test_velocidad', 'test_coordinacion', 'test_de_reaccion'];
+        $valores = [];
+        foreach ($keys as $k) {
+            $valores[] = min(100, max(0, (float)($ultima[$k] ?? 0)));
+        }
+
+        // Tomar la penúltima prueba (índice 1) si existe
+        $valoresPenultima = [];
+        if (count($pruebas) > 1) {
+            $penultima = $pruebas[1];
+            foreach ($keys as $k) {
+                $valoresPenultima[] = min(100, max(0, (float)($penultima[$k] ?? 0)));
+            }
+        }
+
+        $size = 320; // Increased size to prevent cutoffs
+        $cx = $size / 2;
+        $cy = $size / 2;
+        $maxR = 90; // Reduced relative radius to leave room for text
+        $n = 5;
+        // Sentido ANTI-HORARIO desde arriba para coincidir con ECharts
+        $angulos = [];
+        for ($i = 0; $i < $n; $i++) {
+            $angulos[] = -(2 * M_PI * $i / $n) - (M_PI / 2);
+        }
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . $size . '" height="' . ($size + 15) . '" viewBox="0 0 ' . $size . ' ' . ($size + 15) . '" style="font-family: helvetica, sans-serif;">';
+
+        // Anillos concéntricos de referencia (20, 40, 60, 80, 100)
+        $niveles = [20, 40, 60, 80, 100];
+        foreach ($niveles as $nivel) {
+            $r = $maxR * ($nivel / 100);
+            $puntos = [];
+            for ($i = 0; $i < $n; $i++) {
+                $px = $cx + $r * cos($angulos[$i]);
+                $py = $cy + $r * sin($angulos[$i]);
+                $puntos[] = round($px, 1) . ',' . round($py, 1);
+            }
+            $svg .= '<polygon points="' . implode(' ', $puntos) . '" fill="none" stroke="#ddd" stroke-width="0.5" />';
+            // Etiqueta del nivel al lado del primer eje (movemos ligeramente a la derecha para no solapar el 100 del top)
+            $labelX = $cx + 5;
+            $labelY = $cy + $r * sin($angulos[0]) - 3;
+            $svg .= '<text x="' . round($labelX, 1) . '" y="' . round($labelY, 1) . '" font-size="7" fill="#bbb">' . $nivel . '</text>';
+        }
+
+        // Ejes radiales
+        for ($i = 0; $i < $n; $i++) {
+            $px = $cx + $maxR * cos($angulos[$i]);
+            $py = $cy + $maxR * sin($angulos[$i]);
+            $svg .= '<line x1="' . round($cx, 1) . '" y1="' . round($cy, 1) . '" x2="' . round($px, 1) . '" y2="' . round($py, 1) . '" stroke="#ccc" stroke-width="0.5" />';
+        }
+
+        // 1. Polígono de datos de la penúltima prueba (si existe, para dibujar primero y que quede detrás)
+        if (!empty($valoresPenultima)) {
+            $puntosPenultima = [];
+            for ($i = 0; $i < $n; $i++) {
+                $r = $maxR * ($valoresPenultima[$i] / 100);
+                $px = $cx + $r * cos($angulos[$i]);
+                $py = $cy + $r * sin($angulos[$i]);
+                $puntosPenultima[] = round($px, 1) . ',' . round($py, 1);
+            }
+            $svg .= '<polygon points="' . implode(' ', $puntosPenultima) . '" fill="rgba(16,185,129,0.1)" stroke="#10B981" stroke-width="1.5" stroke-dasharray="4,4" />';
+        }
+
+        // 2. Polígono de datos de la última prueba
+        $puntosDatos = [];
+        for ($i = 0; $i < $n; $i++) {
+            $r = $maxR * ($valores[$i] / 100);
+            $px = $cx + $r * cos($angulos[$i]);
+            $py = $cy + $r * sin($angulos[$i]);
+            $puntosDatos[] = round($px, 1) . ',' . round($py, 1);
+        }
+        $svg .= '<polygon points="' . implode(' ', $puntosDatos) . '" fill="rgba(128,0,32,0.15)" stroke="#800020" stroke-width="2" />';
+
+        // 3. Puntos pequeños de la penúltima prueba
+        if (!empty($valoresPenultima)) {
+            for ($i = 0; $i < $n; $i++) {
+                $r = $maxR * ($valoresPenultima[$i] / 100);
+                $px = $cx + $r * cos($angulos[$i]);
+                $py = $cy + $r * sin($angulos[$i]);
+                $svg .= '<circle cx="' . round($px, 1) . '" cy="' . round($py, 1) . '" r="2.5" fill="#10B981" stroke="#fff" stroke-width="1" />';
+            }
+        }
+
+        // 4. Puntos grandes de la última prueba
+        for ($i = 0; $i < $n; $i++) {
+            $r = $maxR * ($valores[$i] / 100);
+            $px = $cx + $r * cos($angulos[$i]);
+            $py = $cy + $r * sin($angulos[$i]);
+            $svg .= '<circle cx="' . round($px, 1) . '" cy="' . round($py, 1) . '" r="3.5" fill="#800020" stroke="#fff" stroke-width="1.5" />';
+
+            // Etiquetas de los ejes (alejadas)
+            $lr = $maxR + 25;
+            $lx = $cx + $lr * cos($angulos[$i]);
+            $ly = $cy + $lr * sin($angulos[$i]);
+            $anchor = 'middle';
+            if ($lx < $cx - 15) $anchor = 'end';
+            elseif ($lx > $cx + 15) $anchor = 'start';
+            $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly, 1) . '" text-anchor="' . $anchor . '" font-size="9" font-weight="bold" fill="#333">' . $labels[$i] . '</text>';
+            
+            // Valor numérico debajo de la etiqueta (con formato color-coded si hay penúltimo)
+            if (!empty($valoresPenultima)) {
+                $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="' . $anchor . '" font-size="8">';
+                $svg .= '<tspan fill="#800020" font-weight="bold">' . round($valores[$i]) . '</tspan>';
+                $svg .= '<tspan fill="#666"> / </tspan>';
+                $svg .= '<tspan fill="#10B981">' . round($valoresPenultima[$i]) . '</tspan>';
+                $svg .= '</text>';
+            } else {
+                $svg .= '<text x="' . round($lx, 1) . '" y="' . round($ly + 10, 1) . '" text-anchor="' . $anchor . '" font-size="8" fill="#800020">' . round($valores[$i]) . '/100</text>';
+            }
+        }
+
+        // Fecha del test / Legend
+        $fechaTest = !empty($ultima['fecha_evento']) ? date('d/m/Y', strtotime($ultima['fecha_evento'])) : '—';
+        if (!empty($valoresPenultima)) {
+            $fechaAnt = !empty($pruebas[1]['fecha_evento']) ? date('d/m/Y', strtotime($pruebas[1]['fecha_evento'])) : '—';
+            $svg .= '<text x="' . $cx . '" y="' . ($size + 5) . '" text-anchor="middle" font-size="8">';
+            $svg .= '<tspan fill="#800020" font-weight="bold">● Última: ' . $fechaTest . '</tspan>';
+            $svg .= '<tspan fill="#666">   |   </tspan>';
+            $svg .= '<tspan fill="#10B981" font-weight="bold">● Anterior: ' . $fechaAnt . '</tspan>';
+            $svg .= '</text>';
+        } else {
+            $svg .= '<text x="' . $cx . '" y="' . ($size + 5) . '" text-anchor="middle" font-size="8" fill="#800020" font-weight="bold">● Última evaluación: ' . $fechaTest . '</text>';
+        }
+
+        $svg .= '</svg>';
+
+        // Guardar SVG en archivo temporal
+        $tmpPath = dirname(__DIR__, 2) . '/public/assets/uploads/tmp_radar_' . uniqid() . '.svg';
+        file_put_contents($tmpPath, $svg);
+
+        return '<div style="text-align: center; margin-top: 5px;"><img src="' . $tmpPath . '" width="' . $size . '" height="' . ($size + 15) . '" /></div>';
+    }
+
+    /* ======================================================================
+     *  HTML DE LA FICHA TÉCNICA - 4 PÁGINAS
+     * ====================================================================== */
+
+    private function construirHtml(array $a, array $antropo, array $pruebas, array $asistencia, array $historialAsist): string
     {
         $esc = fn($v) => htmlspecialchars((string) ($v ?? '—'), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
@@ -138,71 +564,241 @@ final class ReporteService
         $fechaNac = $a['fecha_nac'] ?? null;
         $edad = $fechaNac ? (new DateTime($fechaNac))->diff(new DateTime('today'))->y : null;
 
-        $antropoRows = '';
-        foreach ($antropo as $m) {
-            $antropoRows .= sprintf(
-                '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
-                $esc($m['fecha_medicion']), $esc($m['peso']), $esc($m['altura']),
-                $esc($m['envergadura']), $esc($m['porcentaje_grasa']), $esc($m['porcentaje_musculatura'])
-            );
-        }
-        $antropoTable = $antropoRows ? "<table class=\"data-table\"><thead><tr><th>Fecha</th><th>Peso (kg)</th><th>Altura (cm)</th><th>Envergadura</th><th>% Grasa</th><th>% Musc.</th></tr></thead><tbody>$antropoRows</tbody></table>" : '<p>Sin mediciones antropométricas registradas.</p>';
+        // Foto del atleta usando ruta absoluta resuelta con BASE_PATH
+        $fotoHtml = '';
+        if (!empty($a['foto'])) {
+            $fotoPath = realpath(BASE_PATH . '/public' . $a['foto']);
+            if ($fotoPath && file_exists($fotoPath)) {
+                // Redimensionar la imagen a 180x180 para reducir el peso del base64
+                // y acelerar la generación del PDF (de 12s a ~2s).
+                $mime = mime_content_type($fotoPath) ?: 'image/jpeg';
+                $imgOriginal = null;
+                if (str_contains($mime, 'jpeg') || str_contains($mime, 'jpg')) {
+                    $imgOriginal = @imagecreatefromjpeg($fotoPath);
+                } elseif (str_contains($mime, 'png')) {
+                    $imgOriginal = @imagecreatefrompng($fotoPath);
+                } elseif (str_contains($mime, 'webp')) {
+                    $imgOriginal = @imagecreatefromwebp($fotoPath);
+                }
 
-        $pruebasRows = '';
-        foreach ($pruebas as $p) {
-            $pruebasRows .= sprintf(
-                '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
-                $esc($p['fecha_evento']), $esc($p['test_de_fuerza']), $esc($p['test_resistencia']),
-                $esc($p['test_velocidad']), $esc($p['test_coordinacion']), $esc($p['test_de_reaccion'])
-            );
+                if ($imgOriginal) {
+                    $thumb = imagecreatetruecolor(180, 180);
+                    imagecopyresampled($thumb, $imgOriginal, 0, 0, 0, 0, 180, 180, imagesx($imgOriginal), imagesy($imgOriginal));
+                    ob_start();
+                    imagejpeg($thumb, null, 80);
+                    $imgData = ob_get_clean();
+                    imagedestroy($imgOriginal);
+                    imagedestroy($thumb);
+                    $b64 = base64_encode($imgData);
+                } else {
+                    // Fallback: usar la imagen original si GD no puede procesarla
+                    $b64 = base64_encode(file_get_contents($fotoPath));
+                }
+                // TCPDF writeHTML() requiere data URI estándar, NO el prefijo @
+                $fotoHtml = '<img src="data:image/jpeg;base64,' . $b64 . '" width="90" height="90" style="border-radius: 6px; border: 2px solid #800020;" />';
+            }
         }
-        $pruebasTable = $pruebasRows ? "<table class=\"data-table\"><thead><tr><th>Fecha</th><th>Fuerza</th><th>Resistencia</th><th>Velocidad</th><th>Coordinación</th><th>Reacción</th></tr></thead><tbody>$pruebasRows</tbody></table>" : '<p>Sin pruebas físicas registradas.</p>';
 
+        // Estatus
+        $estatusVal = (int) ($a['estatus'] ?? 1);
+        $estatusTexto = match ($estatusVal) {
+            1 => 'Activo',
+            2 => 'Lesionado',
+            0 => 'Suspendido',
+            3 => 'Inactivo',
+            default => 'Desconocido'
+        };
+
+        // Dirección
+        $direccionParts = array_filter([$a['localidad'] ?? null, $a['parroquia'] ?? null, $a['municipio'] ?? null, $a['estado'] ?? null]);
+        $direccion = $direccionParts ? $esc(implode(', ', $direccionParts)) : '—';
+
+        // Ficha Médica
+        $gsVal = trim($a['grupo_sanguineo'] ?? '');
+        $gs = ($gsVal !== '' && $gsVal !== '—') ? $esc($gsVal) : 'Sin Asignar';
+        
+        $alergiasVal = trim($a['alergias'] ?? '');
+        $alergias = $alergiasVal !== '' ? $esc($alergiasVal) : 'Ninguna';
+        
+        $cronicaVal = trim($a['condicion_cronica'] ?? '');
+        $cronica = $cronicaVal !== '' ? $esc($cronicaVal) : 'Ninguna';
+        
+        $medicacionVal = trim($a['medicacion_actual'] ?? '');
+        $medicacion = $medicacionVal !== '' ? $esc($medicacionVal) : 'Ninguna';
+        
+        $antecedentesFam = !empty($a['antecedentes_familiares']) ? nl2br($esc($a['antecedentes_familiares'])) : 'Sin antecedentes registrados';
+        $antecedentesQuir = !empty($a['antecedentes_quirurgicos']) ? nl2br($esc($a['antecedentes_quirurgicos'])) : 'Sin antecedentes registrados';
+
+        // Discapacidades
+        $discapacidadesRows = '';
+        if (!empty($a['discapacidades'])) {
+            foreach ($a['discapacidades'] as $disc) {
+                $discapacidadesRows .= sprintf(
+                    '<tr><td>%s</td><td>%s</td><td>%s%%</td><td>%s</td></tr>',
+                    $esc($disc['nombre_tipo'] ?? '—'),
+                    $esc($disc['nro_carnet'] ?? '—'),
+                    $esc($disc['porcentaje_discapacidad'] ?? '—'),
+                    $esc(date('d/m/Y', strtotime($disc['fecha_registro'])))
+                );
+            }
+        }
+        $discapacidadesTable = $discapacidadesRows ? 
+            "<table class=\"data-table\" cellpadding=\"4\"><thead><tr><th>Tipo de Discapacidad</th><th>Nro. Carnet</th><th>Porcentaje</th><th>Fecha Registro</th></tr></thead><tbody>$discapacidadesRows</tbody></table>" : 
+            '<p style="font-size: 10px; color: #666; margin-top: 5px;">No se registran discapacidades para este atleta.</p>';
+
+        // ============ ASISTENCIAS ============
         $asiMap = [1 => 0, 0 => 0, 2 => 0];
         foreach ($asistencia as $row) { $asiMap[(int)$row['estatus']] = (int) $row['total']; }
-        $totalAsi = array_sum($asiMap) ?: 1;
-        $pctPresente = round(($asiMap[1] / $totalAsi) * 100, 1);
+        $totalAsi = array_sum($asiMap);
+        $pctPresente = $totalAsi > 0 ? round(($asiMap[1] / $totalAsi) * 100, 1) : 0;
+        $pctAusente = $totalAsi > 0 ? round(($asiMap[0] / $totalAsi) * 100, 1) : 0;
+        $pctJustificado = $totalAsi > 0 ? round(($asiMap[2] / $totalAsi) * 100, 1) : 0;
 
-        $direccionParts = array_filter([$a['localidad'] ?? null, $a['parroquia_nombre'] ?? null, $a['municipio_nombre'] ?? null, $a['estado_nombre'] ?? null]);
-        $direccion = $direccionParts ? $esc(implode(', ', $direccionParts)) : '—';
-        $estatusTexto = ((int)$a['estatus'] === 1) ? 'Activo' : (((int)$a['estatus'] === 2) ? 'Lesionado' : 'Suspendido');
+        // Calendario Anual (SVG 12 meses)
+        $calendarioSvg = $this->generarSvgCalendario($historialAsist);
+
+        // Tabla detallada de asistencias (últimas 15)
+        $asistDetalleRows = '';
+        $contadorAsist = 0;
+        foreach ($historialAsist as $ha) {
+            if ($contadorAsist >= 15) break; // Limitar a las 15 más recientes
+            $tipoEv = match ((int)($ha['tipo_actividad'] ?? 1)) {
+                0 => 'Partido',
+                1 => 'Entrenamiento',
+                2 => 'Prueba Física',
+                3 => 'Evento Especial',
+                default => 'Otro'
+            };
+            $estColor = match ((int)($ha['estatus'] ?? 0)) {
+                1 => '#2ea44f',
+                0 => '#cf222e',
+                2 => '#dbab09',
+                default => '#888'
+            };
+            $estTexto = match ((int)($ha['estatus'] ?? 0)) {
+                1 => 'Presente',
+                0 => 'Ausente',
+                2 => 'Justificado',
+                default => '—'
+            };
+            $asistDetalleRows .= sprintf(
+                '<tr><td>%s</td><td>%s</td><td style="color: %s; font-weight: bold;">%s</td><td style="font-size: 9px;">%s</td></tr>',
+                $esc(date('d/m/Y', strtotime($ha['fecha']))),
+                $esc($tipoEv),
+                $estColor,
+                $esc($estTexto),
+                $esc($ha['observaciones'] ?? '—')
+            );
+            $contadorAsist++;
+        }
+        $asistDetalleTable = $asistDetalleRows ?
+            "<table class=\"data-table\" cellpadding=\"4\"><thead><tr><th>Fecha</th><th>Tipo</th><th>Estatus</th><th>Observaciones</th></tr></thead><tbody>$asistDetalleRows</tbody></table>" :
+            '<p style="font-size: 10px; color: #666; margin-top: 5px;">Sin registros de asistencia.</p>';
+
+        // ============ ANTROPOMETRÍA ============
+        $antropoRows = '';
+        foreach ($antropo as $m) {
+            $peso = (float)($m['peso'] ?? 0);
+            $altura = (float)($m['altura'] ?? 0);
+            $imcText = '—';
+            if ($peso > 0 && $altura > 0) {
+                $alturaM = $altura / 100;
+                $imc = $peso / ($alturaM * $alturaM);
+                $imcLabel = 'Normal';
+                if ($imc < 18.5) $imcLabel = 'Bajo peso';
+                elseif ($imc >= 25 && $imc < 30) $imcLabel = 'Sobrepeso';
+                elseif ($imc >= 30) $imcLabel = 'Obesidad';
+                $imcText = sprintf('%.1f (%s)', $imc, $imcLabel);
+            }
+            $antropoRows .= sprintf(
+                '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
+                $esc(date('d/m/Y', strtotime($m['fecha_medicion']))),
+                $esc($m['peso']),
+                $esc($m['altura']),
+                $esc(!empty($m['porcentaje_grasa']) ? $m['porcentaje_grasa'] . '%' : '—'),
+                $esc(!empty($m['porcentaje_musculatura']) ? $m['porcentaje_musculatura'] . '%' : '—'),
+                $esc($m['envergadura']),
+                $esc($m['largo_de_pierna']),
+                $esc($m['largo_de_torso']),
+                $esc($imcText)
+            );
+        }
+        $antropoTable = $antropoRows ? 
+            "<table class=\"data-table\" cellpadding=\"4\"><thead><tr><th>Fecha</th><th>Peso (kg)</th><th>Altura (cm)</th><th>% Grasa</th><th>% Musc.</th><th>Env. (cm)</th><th>Pierna (cm)</th><th>Torso (cm)</th><th>IMC</th></tr></thead><tbody>$antropoRows</tbody></table>" : 
+            '<p style="font-size: 10px; color: #666; margin-top: 5px;">Sin mediciones antropométricas registradas.</p>';
+
+        // SVG Gráfica
+        $svgGrafica = $this->generarSvgGrafica($antropo);
+
+        // ============ PRUEBAS FÍSICAS ============
+        $pruebasRows = '';
+        foreach ($pruebas as $p) {
+            // Ya no mostramos "Registro Manual" ni el evento por defecto
+            $pruebasRows .= sprintf(
+                '<tr><td>%s</td><td>%s/100</td><td>%s/100</td><td>%s/100</td><td>%s/100</td><td>%s/100</td></tr>',
+                $esc(date('d/m/Y', strtotime($p['fecha_evento']))),
+                $esc($p['test_de_fuerza'] ?? 0),
+                $esc($p['test_resistencia'] ?? 0),
+                $esc($p['test_velocidad'] ?? 0),
+                $esc($p['test_coordinacion'] ?? 0),
+                $esc($p['test_de_reaccion'] ?? 0)
+            );
+        }
+        $pruebasTable = $pruebasRows ? 
+            "<table class=\"data-table\" cellpadding=\"4\"><thead><tr><th>Fecha Evaluación</th><th>Fuerza</th><th>Resistencia</th><th>Velocidad</th><th>Coordinación</th><th>Reacción</th></tr></thead><tbody>$pruebasRows</tbody></table>" : 
+            '<p style="font-size: 10px; color: #666; margin-top: 5px;">Sin pruebas físicas registradas.</p>';
+
+        // SVG Radar
+        $svgRadar = $this->generarSvgRadar($pruebas);
+
         $fechaGeneracion = $esc(date('d/m/Y h:i A'));
 
+        // ============ HTML FINAL - 4 PÁGINAS ============
         return <<<HTML
 <style>
-    body { font-family: helvetica, sans-serif; color: #333; line-height: 1.4; }
-    .document-header { text-align: center; padding-bottom: 20px; margin-bottom: 30px; border-bottom: 2px solid #800020; }
-    .club-brand { font-size: 32px; font-weight: bold; color: #800020; letter-spacing: 4px; margin-bottom: 5px; }
-    .club-full-name { font-size: 14px; font-weight: bold; color: #555; text-transform: uppercase; margin-bottom: 10px; }
-    .report-title { background-color: #800020; color: #ffffff; padding: 8px 15px; font-size: 18px; display: inline-block; margin-top: 10px; text-transform: uppercase; font-weight: bold; }
-    .report-meta { color: #888; font-size: 10px; margin-top: 10px; }
+    body { font-family: helvetica, sans-serif; color: #333; line-height: 1.8; }
     .section { margin-bottom: 25px; }
-    .section-header { background-color: #f8f9fa; border-left: 5px solid #800020; padding: 8px 12px; margin-bottom: 15px; font-size: 15px; font-weight: bold; color: #800020; text-transform: uppercase; }
-    table.info-grid { width: 100%; margin-bottom: 10px; }
-    table.info-grid td { padding: 6px 4px; vertical-align: top; border-bottom: 1px solid #f0f0f0; }
-    .info-label { font-weight: bold; color: #800020; width: 40%; font-size: 11px; }
-    .info-value { color: #333; width: 60%; font-size: 11px; }
+    .section-header { 
+        background-color: #f8f9fa; 
+        border-bottom: 2px solid #800020; 
+        padding: 8px 10px; 
+        margin-bottom: 15px; 
+        font-size: 14px; 
+        font-weight: bold; 
+        color: #800020; 
+        text-transform: uppercase; 
+        letter-spacing: 1px;
+    }
+    table.info-grid { width: 100%; margin-bottom: 12px; }
+    table.info-grid td { padding: 6px; vertical-align: top; border-bottom: 1px solid #f0f0f0; line-height: 1.5; }
+    .info-label { font-weight: bold; color: #800020; width: 35%; font-size: 11px; }
+    .info-value { color: #333; width: 65%; font-size: 11px; }
     table.data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    table.data-table th { background-color: #800020; color: #ffffff; font-size: 10px; font-weight: bold; padding: 10px 5px; text-align: center; border: 1px solid #800020; }
-    table.data-table td { font-size: 10px; padding: 8px 5px; text-align: center; border: 1px solid #e9ecef; }
+    table.data-table th { background-color: #800020; color: #ffffff; font-size: 10px; font-weight: bold; padding: 8px 5px; text-align: center; border: 1px solid #800020; }
+    table.data-table td { font-size: 10px; padding: 7px 5px; text-align: center; border: 1px solid #e9ecef; }
     table.data-table tr:nth-child(even) { background-color: #f8f9fa; }
-    .status-badge { color: #800020; border: 1px solid #800020; padding: 2px 10px; font-size: 12px; font-weight: bold; }
+    .status-badge { color: #800020; border: 1px solid #800020; padding: 3px 12px; font-size: 12px; font-weight: bold; }
+    .stat-box { text-align: center; border: 1px solid #e0e0e0; background-color: #fcfcfc; padding: 10px 5px; }
+    .stat-number { font-size: 20px; font-weight: bold; display: block; margin-top: 5px; }
+    .stat-label { font-size: 9px; color: #555; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 3px; }
+    .stat-pct { font-size: 9px; color: #777; display: block; margin-top: 3px; }
 </style>
-<div class="document-header">
-    <div class="club-brand">CADA</div>
-    <div class="club-full-name">Club Atlético Deportivo Acarigua</div>
-    <div class="report-title">Ficha Técnica Individual</div>
-    <div class="report-meta">Generado el {$fechaGeneracion}</div>
-</div>
+
+<!-- ===================== PÁGINA 1: DATOS PERSONALES, REPRESENTANTE Y MÉDICOS ===================== -->
+
 <div class="section">
     <table width="100%">
         <tr>
-            <td width="70%">
-                <h2 style="margin:0; color:#1a1a1a; font-size: 22px;">{$nombreCompleto}</h2>
-                <p style="margin:5px 0 15px 0;"><span class="status-badge">{$esc($estatusTexto)}</span></p>
+            <td width="75%">
+                <h2 style="margin:0; color:#1a1a1a; font-size: 20px;">{$nombreCompleto}</h2>
+                <p style="margin:5px 0 12px 0;"><span class="status-badge">Estatus: {$esc($estatusTexto)}</span></p>
+            </td>
+            <td width="25%" style="text-align: right; vertical-align: top;">
+                {$fotoHtml}
             </td>
         </tr>
     </table>
+    <div style="line-height: 18px; height: 18px;">&nbsp;</div>
     <table class="info-grid">
         <tr>
             <td width="48%">
@@ -211,6 +807,8 @@ final class ReporteService
                     <tr><td class="info-label">Nacimiento:</td><td class="info-value">{$esc($fechaNac)} ({$esc($edad)} años)</td></tr>
                     <tr><td class="info-label">Teléfono:</td><td class="info-value">{$esc($a['telefono'])}</td></tr>
                     <tr><td class="info-label">Categoría:</td><td class="info-value">{$esc($a['nombre_categoria'])}</td></tr>
+                    <tr><td class="info-label">Posición:</td><td class="info-value">{$esc($a['nombre_posicion'] ?? 'Sin definir')}</td></tr>
+                    <tr><td class="info-label">Pierna Dom.:</td><td class="info-value">{$esc(ucfirst($a['pierna_dominante'] ?? 'Sin definir'))}</td></tr>
                 </table>
             </td>
             <td width="4%"></td>
@@ -219,14 +817,108 @@ final class ReporteService
                     <tr><td class="info-label">Representante:</td><td class="info-value">{$esc(($a['tutor_nombres'] ?? '') . ' ' . ($a['tutor_apellidos'] ?? ''))}</td></tr>
                     <tr><td class="info-label">C.I. Rep:</td><td class="info-value">{$esc($a['tutor_cedula'])}</td></tr>
                     <tr><td class="info-label">Tlf. Rep:</td><td class="info-value">{$esc($a['tutor_telefono'])}</td></tr>
+                    <tr><td class="info-label">Relación:</td><td class="info-value">{$esc(ucfirst($a['tutor_relacion'] ?? '—'))}</td></tr>
                     <tr><td class="info-label">Dirección:</td><td class="info-value">{$direccion}</td></tr>
                 </table>
             </td>
         </tr>
     </table>
 </div>
-<div class="section"><div class="section-header">Historial Antropométrico</div>{$antropoTable}</div>
-<div class="section"><div class="section-header">Pruebas Físicas</div>{$pruebasTable}</div>
+
+<div class="section">
+    <div class="section-header">Información Médica</div>
+    <table class="info-grid">
+        <tr>
+            <td width="48%">
+                <table width="100%">
+                    <tr><td class="info-label">Grupo Sanguíneo:</td><td class="info-value">{$gs}</td></tr>
+                    <tr><td class="info-label">Alergias:</td><td class="info-value">{$alergias}</td></tr>
+                    <tr><td class="info-label">Cond. Crónica:</td><td class="info-value">{$cronica}</td></tr>
+                    <tr><td class="info-label">Medicación:</td><td class="info-value">{$medicacion}</td></tr>
+                </table>
+            </td>
+            <td width="4%"></td>
+            <td width="48%">
+                <table width="100%">
+                    <tr><td class="info-label">Antecedentes<br>Familiares:</td><td class="info-value">{$antecedentesFam}</td></tr>
+                    <tr><td class="info-label">Antecedentes<br>Quirúrgicos:</td><td class="info-value">{$antecedentesQuir}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-header">Discapacidades Registradas</div>
+    {$discapacidadesTable}
+</div>
+
+<!-- ===================== SALTO DE PÁGINA ===================== -->
+<br pagebreak="true" />
+
+<!-- ===================== PÁGINA 2: CONTROL DE ASISTENCIAS ===================== -->
+
+<div class="section">
+    <div class="section-header">Control de Asistencias</div>
+    
+    <table width="100%" cellpadding="0" cellspacing="0" style="border: none; margin-bottom: 10px;">
+        <tr>
+            <td width="25%" class="stat-box" style="border-right: 1px solid #e0e0e0;">
+                <span class="stat-label">Total Sesiones</span>
+                <span class="stat-number" style="color: #333;">{$totalAsi}</span>
+            </td>
+            <td width="25%" class="stat-box" style="border-right: 1px solid #e0e0e0;">
+                <span class="stat-label">Presentes</span>
+                <span class="stat-number" style="color: #2ea44f;">{$asiMap[1]}</span>
+                <span class="stat-pct">{$pctPresente}%</span>
+            </td>
+            <td width="25%" class="stat-box" style="border-right: 1px solid #e0e0e0;">
+                <span class="stat-label">Inasistencias</span>
+                <span class="stat-number" style="color: #cf222e;">{$asiMap[0]}</span>
+                <span class="stat-pct">{$pctAusente}%</span>
+            </td>
+            <td width="25%" class="stat-box">
+                <span class="stat-label">Justificadas</span>
+                <span class="stat-number" style="color: #dbab09;">{$asiMap[2]}</span>
+                <span class="stat-pct">{$pctJustificado}%</span>
+            </td>
+        </tr>
+    </table>
+
+    <br>
+    <div style="font-weight: bold; font-size: 11px; color: #800020; margin-top: 20px; margin-bottom: 8px; text-transform: uppercase;">Calendario Anual de Asistencias (Últimos 12 Meses)</div>
+    {$calendarioSvg}
+    
+    <br>
+    <div style="font-weight: bold; font-size: 11px; color: #800020; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase;">Registro Detallado de Sesiones</div>
+    {$asistDetalleTable}
+</div>
+
+<!-- ===================== SALTO DE PÁGINA ===================== -->
+<br pagebreak="true" />
+
+<!-- ===================== PÁGINA 3: HISTORIAL ANTROPOMÉTRICO Y GRÁFICA ===================== -->
+
+<div class="section">
+    <div class="section-header">Evolución de Peso y Altura</div>
+    {$svgGrafica}
+    
+    <div style="font-weight: bold; font-size: 12px; color: #800020; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #800020; display: inline-block; padding-bottom: 3px;">Historial Antropométrico</div>
+    {$antropoTable}
+</div>
+
+<!-- ===================== SALTO DE PÁGINA ===================== -->
+<br pagebreak="true" />
+
+<!-- ===================== PÁGINA 4: EVALUACIONES FÍSICAS Y RADAR ===================== -->
+
+<div class="section">
+    <div class="section-header">Perfil de Rendimiento Físico</div>
+    {$svgRadar}
+
+    <div style="font-weight: bold; font-size: 12px; color: #800020; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid #800020; display: inline-block; padding-bottom: 3px;">Historial de Evaluaciones Físicas</div>
+    {$pruebasTable}
+</div>
 HTML;
     }
 

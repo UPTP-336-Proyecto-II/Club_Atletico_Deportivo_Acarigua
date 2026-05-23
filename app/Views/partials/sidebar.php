@@ -40,18 +40,26 @@
         </li>
 
         <!-- Control y Seguimiento -->
-        <li class="sidebar__has-sub <?= in_array($active, ['asistencias', 'medidas', 'resultados_pruebas']) ? 'is-open' : '' ?>">
+        <li class="sidebar__has-sub <?= in_array($active, ['asistencias']) ? 'is-open' : '' ?>">
             <a href="#">
                 <span class="icon"><i class="ph ph-clipboard-text"></i></span>
                 <span class="nav-text">Control y Seguimiento</span>
             </a>
-            <ul class="sidebar__submenu <?= in_array($active, ['asistencias', 'medidas', 'resultados_pruebas']) ? 'is-open' : '' ?>">
+            <ul class="sidebar__submenu <?= in_array($active, ['asistencias']) ? 'is-open' : '' ?>">
                 <li>
                     <a href="<?= e(url('/admin/asistencias')) ?>" class="<?= $active === 'asistencias' ? 'active' : '' ?>">
                         <span class="icon"><i class="ph ph-calendar-check"></i></span>
                         <span class="nav-text">Asistencias</span>
                     </a>
                 </li>
+                <?php /*
+                ============================================================
+                ANTROPOMETRÍA Y PRUEBAS FÍSICAS — OCULTOS TEMPORALMENTE
+                Estos módulos son redundantes porque el registro y consulta
+                de medidas y pruebas ya se realiza desde el perfil del atleta
+                (tabs Antropometría y Pruebas Físicas).
+                Descomentar si se implementa registro masivo o comparativas.
+                ============================================================
                 <li>
                     <a href="<?= e(url('/admin/medidas')) ?>" class="<?= $active === 'medidas' ? 'active' : '' ?>">
                         <span class="icon"><i class="ph ph-ruler"></i></span>
@@ -64,10 +72,20 @@
                         <span class="nav-text">Pruebas Físicas</span>
                     </a>
                 </li>
+                */ ?>
             </ul>
         </li>
 
-        <!-- Análisis Deportivo (futuro — deshabilitado visualmente) -->
+        <?php /*
+        ============================================================
+        ANÁLISIS DEPORTIVO — OCULTO TEMPORALMENTE
+        Módulo planificado para comparativas antropométricas,
+        de rendimiento e historial de partidos.
+        No implementado en este trayecto por limitación de tiempo.
+        Nota: historial_partidos no está vinculado a actividades,
+        se requiere definir la relación antes de implementar.
+        ============================================================
+        <!-- Análisis Deportivo -->
         <li class="sidebar__has-sub sidebar__disabled">
             <a href="#" class="sidebar__link-disabled" title="Próximamente">
                 <span class="icon"><i class="ph ph-chart-line-up"></i></span>
@@ -94,7 +112,16 @@
                 </li>
             </ul>
         </li>
+        */ ?>
 
+        <?php /*
+        ============================================================
+        MÓDULO DE REPORTES — OCULTO TEMPORALMENTE
+        Los reportes individuales se generan desde el perfil del atleta
+        y los de categoría desde la vista de categorías.
+        Descomentar este bloque si se requiere un centro de reportes
+        centralizado con reportes adicionales (asistencia, evolución, etc.)
+        ============================================================
         <!-- Reportes -->
         <li class="sidebar__has-sub <?= $active === 'reportes' ? 'is-open' : '' ?>">
             <a href="#">
@@ -108,13 +135,11 @@
                         <span class="nav-text">Ficha Individual</span>
                     </a>
                 </li>
-                <!-- Roster y Asistencia se habilitarán cuando estén listos -->
             </ul>
         </li>
-    </ul>
+        */ ?>
 
-    <?php if (\App\Core\Auth::isAdmin()): ?>
-        <ul class="sidebar__nav" style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+        <?php if (\App\Core\Auth::isAdmin()): ?>
             <!-- Administración -->
             <li class="sidebar__has-sub <?= in_array($active, ['usuarios', 'configuracion']) ? 'is-open' : '' ?>">
                 <a href="#">
@@ -136,6 +161,6 @@
                     </li>
                 </ul>
             </li>
-        </ul>
-    <?php endif; ?>
+        <?php endif; ?>
+    </ul>
 </aside>

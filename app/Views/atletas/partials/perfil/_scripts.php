@@ -997,8 +997,8 @@
                 radarDataSeries.push({
                     value: [
                         p1.test_de_fuerza || 0,
-                        p1.test_velocidad || 0,
                         p1.test_resistencia || 0,
+                        p1.test_velocidad || 0,
                         p1.test_coordinacion || 0,
                         p1.test_de_reaccion || 0
                     ],
@@ -1017,8 +1017,8 @@
                     radarDataSeries.push({
                         value: [
                             p2.test_de_fuerza || 0,
-                            p2.test_velocidad || 0,
                             p2.test_resistencia || 0,
+                            p2.test_velocidad || 0,
                             p2.test_coordinacion || 0,
                             p2.test_de_reaccion || 0
                         ],
@@ -1049,8 +1049,8 @@
                 radar: {
                     indicator: [
                         { name: 'Fuerza', max: 100 },
-                        { name: 'Velocidad', max: 100 },
                         { name: 'Resistencia', max: 100 },
+                        { name: 'Velocidad', max: 100 },
                         { name: 'Coordinación', max: 100 },
                         { name: 'Reacción', max: 100 }
                     ],

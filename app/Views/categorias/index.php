@@ -74,9 +74,9 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
                             <a href="<?= e(url("/admin/categorias/{$c['categoria_id']}/editar")) ?>" class="btn btn-ghost btn-sm" title="Editar">
                                 <i class="ph ph-pencil-simple"></i>
                             </a>
-                            <form method="POST" action="<?= e(url("/admin/categorias/{$c['categoria_id']}/eliminar")) ?>" data-confirm="¿Está seguro de eliminar esta categoría?" style="display:inline;">
+                            <form method="POST" action="<?= e(url("/admin/categorias/{$c['categoria_id']}/eliminar")) ?>" style="display:inline;">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-ghost btn-sm text-danger" title="Eliminar">
+                                <button type="button" class="btn btn-ghost btn-sm text-danger btn-eliminar-categoria" title="Eliminar" data-total-atletas="<?= (int) ($c['total_atletas'] ?? 0) ?>" data-nombre="<?= e($c['nombre_categoria']) ?>">
                                     <i class="ph ph-trash"></i>
                                 </button>
                             </form>
@@ -136,9 +136,6 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
                 <a href="<?= e(url('/admin/reportes/categoria/' . $c['categoria_id'])) ?>" class="btn btn-primary" style="flex: 1; font-size: 13px;" target="_blank">
                     <i class="ph ph-file-pdf"></i> Reporte
                 </a>
-                <a href="<?= e(url('/admin/reportes/asistencia?categoria_id=' . $c['categoria_id'])) ?>" class="btn btn-ghost" title="Asistencias">
-                    <i class="ph ph-calendar-check"></i>
-                </a>
             </div>
         </div>
     <?php endforeach; endif; ?>
@@ -151,3 +148,35 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
     border-color: var(--color-primary-light);
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-eliminar-categoria').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = btn.closest('form');
+            const totalAtletas = parseInt(btn.getAttribute('data-total-atletas') || '0', 10);
+            const nombre = btn.getAttribute('data-nombre');
+
+            if (totalAtletas > 0) {
+                CadaModal.alert({
+                    title: 'No se puede eliminar',
+                    text: `La categoría <strong>${nombre}</strong> tiene <strong>${totalAtletas}</strong> atleta(s) asignado(s). Debe reasignar, desactivar o eliminar a los atletas antes de poder eliminar la categoría.`,
+                    type: 'error',
+                    confirmText: 'Entendido'
+                });
+                return;
+            }
+
+            CadaModal.confirm({
+                title: '¿Eliminar Categoría?',
+                text: `¿Estás seguro de que deseas eliminar la categoría <strong>${nombre}</strong>? Esta acción no se puede deshacer.`,
+                type: 'danger',
+                confirmText: 'Sí, Eliminar',
+                cancelText: 'Cancelar'
+            }).then(confirmed => {
+                if (confirmed) form.submit();
+            });
+        });
+    });
+});
+</script>
