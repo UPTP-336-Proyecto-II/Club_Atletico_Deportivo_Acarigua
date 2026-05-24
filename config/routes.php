@@ -33,7 +33,6 @@ use App\Middleware\CsrfMiddleware;
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/nosotros', [HomeController::class, 'nosotros']);
 $router->get('/contacto', [HomeController::class, 'contacto']);
-$router->post('/contacto', [HomeController::class, 'enviarContacto'], [CsrfMiddleware::class]);
 
 $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login'], [CsrfMiddleware::class]);
@@ -127,6 +126,7 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
 
     // Configuración (sólo admin)
     $r->get('/configuracion', [ConfiguracionController::class, 'index'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/configuracion', [ConfiguracionController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 });
 
 // ---------------------------------------------------------------------------

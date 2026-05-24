@@ -12,6 +12,7 @@ $breadcrumb = $breadcrumb ?? [$title];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <title><?= e($title) ?> - <?= e(config('app.name')) ?></title>
+    <link rel="icon" type="image/x-icon" href="<?= e(asset('img/favicon.ico')) ?>">
     <!-- Precarga de fuentes para evitar parpadeo (FOUT) -->
     <link rel="preload" href="<?= e(asset('fonts/Inter-Regular.woff2')) ?>" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="<?= e(asset('fonts/Inter-SemiBold.woff2')) ?>" as="font" type="font/woff2" crossorigin>

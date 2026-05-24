@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-05-2026 a las 05:54:04
+-- Tiempo de generación: 24-05-2026 a las 06:16:03
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -121,10 +121,11 @@ INSERT INTO `configuraciones` (`configuracion_id`, `clave`, `valor`, `descripcio
 (2, 'mision', 'El Club Atlético Deportivo Acarigua, pretende la formación de atletas profesionales, altamente capacitados; física, motriz y cognitivamente en el balón pies, proactivos y capaces de aportar valores agregados a través de los Principios Cristianos que gerencien su desarrollo humanístico para la excelencia de su carrera futbolística.', 'Misión de la comunidad/club', '2026-05-09 03:51:59'),
 (3, 'vision', 'Ser una institución competitiva con fundamentos cristianos, profesionalmente capacitada para ejercer una academia modelo de impacto para la sociedad venezolana, inspirando a los atletas en su desarrollo integral, en el ámbito deportivo y recreativo, validando su potencial e identidad para proporcionarles un nivel de seguridad a cada uno de ellos.', 'Visión de la comunidad/club', '2026-05-09 03:51:59'),
 (4, 'correo_contacto', 'clubatleticodeportivoacarigua@gmail.com', 'Correo electrónico oficial del club', '2026-05-09 03:51:59'),
-(5, 'google_maps_url', 'https://goo.gl/maps/...', 'URL de ubicación en Google Maps', '2026-05-09 03:51:59'),
-(6, 'facebook_url', 'https://facebook.com/club', 'Enlace al perfil de Facebook', '2026-05-09 03:51:59'),
-(7, 'instagram_url', 'https://instagram.com/club', 'Enlace al perfil de Instagram', '2026-05-09 03:51:59'),
-(8, 'telefono_whatsapp', '+584120000000', 'Número de contacto con WhatsApp', '2026-05-09 03:51:59');
+(5, 'google_maps_url', 'https://www.google.com/maps/place/Estadio+de+F%C3%BAtbol+%22Tecnol%C3%B3gico%22/@9.5461005,-69.1884635,692m/data=!3m2!1e3!4b1!4m6!3m5!1s0x8e7dc3d930fe4093:0xb91420c522a2bf52!8m2!3d9.5461005!4d-69.1884635!16s%2Fg%2F11clvlb06l?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D', 'URL de ubicación en Google Maps', '2026-05-24 04:04:05'),
+(6, 'facebook_url', 'https://www.facebook.com/p/CLUB-atl%C3%A9tico-Deportivo-acarigua-100086449924024/', 'Enlace al perfil de Facebook', '2026-05-24 04:05:37'),
+(7, 'instagram_url', 'https://www.instagram.com/deportivoacarigua_oficial/', 'Enlace al perfil de Instagram', '2026-05-24 04:13:45'),
+(8, 'telefono_whatsapp', '+584121556442', 'Número de contacto con WhatsApp', '2026-05-24 04:14:47'),
+(9, 'requisitos_inscripcion', 'Requisitos para la inscripción:\r\n- Mínimo 6 años de edad.\r\n- Copia de cédula del representante.\r\n- Copia de cédula del niño o partida de nacimiento si no tiene cédula.\r\n- Carta de residencia.\r\n- 5$ la inscripción al BCV.\r\n\r\n\r\nHorario de entrenamiento: Lunes a Viernes de 4:00 PM a 6:00 PM.', 'Requisitos para la inscripción de atletas', '2026-05-24 04:15:35');
 
 -- --------------------------------------------------------
 
@@ -2160,7 +2161,7 @@ ALTER TABLE `categorias`
 -- AUTO_INCREMENT de la tabla `configuraciones`
 --
 ALTER TABLE `configuraciones`
-  MODIFY `configuracion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `configuracion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `direcciones`

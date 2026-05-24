@@ -1,5 +1,12 @@
 <section class="hero">
-    <div class="hero__bg"></div>
+    <div class="hero__carousel" id="heroCarousel">
+        <?php for ($i = 1; $i <= 7; $i++): ?>
+            <div class="carousel-slide <?= $i === 1 ? 'active' : '' ?>" 
+                 style="background-image: linear-gradient(rgba(220,38,38,0.65), rgba(17,24,39,0.85)), url('<?= e(asset('img/carrusel/' . $i . '.jpeg')) ?>');<?= $i === 2 ? ' background-position: center top;' : '' ?>">
+            </div>
+        <?php endfor; ?>
+    </div>
+    
     <div class="hero__content">
         <span class="hero__badge">Fundado 2019</span>
         <h1 class="hero__title">Club Atlético<br>Deportivo Acarigua</h1>
@@ -13,6 +20,42 @@
         </div>
     </div>
 </section>
+
+<style>
+.hero__carousel {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    background-color: #111;
+}
+.carousel-slide {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+.carousel-slide.active {
+    opacity: 1;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const slides = document.querySelectorAll('.carousel-slide');
+    let currentSlide = 0;
+    
+    if(slides.length > 0) {
+        setInterval(() => {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }, 5000); // Cambia de imagen cada 5 segundos
+    }
+});
+</script>
 
 <section class="section" id="caracteristicas">
     <h2 class="section__title">Gestión deportiva integral</h2>

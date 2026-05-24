@@ -2,7 +2,9 @@
 <header class="site-header">
     <div class="site-header__inner">
         <a href="<?= e(url('/')) ?>" class="brand">
-            <div class="brand__logo" aria-label="Escudo CADA">CADA</div>
+            <div class="brand__logo" aria-label="Escudo CADA">
+                <img src="<?= e(asset('img/logo.png')) ?>" alt="CADA" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:inherit;">
+            </div>
             <div class="brand__text">
                 <div class="title">Club Atlético</div>
                 <div class="subtitle">Deportivo Acarigua</div>

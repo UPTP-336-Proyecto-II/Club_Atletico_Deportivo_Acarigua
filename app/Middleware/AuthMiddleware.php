@@ -19,6 +19,24 @@ final class AuthMiddleware
             flash('error', 'Debes iniciar sesión.');
             return Response::redirect('/login');
         }
+
+        // Verificar expiración de sesión basada en la configuración de la BD
+        $tiempoSesionMin = (int) config_db('tiempo_sesion', 120);
+        $tiempoSesionSeg = $tiempoSesionMin * 60;
+        $lastActivity = $_SESSION['_last_activity'] ?? 0;
+
+        if ($lastActivity > 0 && (time() - $lastActivity) > $tiempoSesionSeg) {
+            Auth::logout();
+            if ($request->isJson()) {
+                return Response::json(['error' => 'Sesión expirada'], 401);
+            }
+            flash('error', 'Tu sesión ha expirado por inactividad. Inicia sesión nuevamente.');
+            return Response::redirect('/login');
+        }
+
+        // Actualizar marca de última actividad
+        $_SESSION['_last_activity'] = time();
+
         // Check if user needs to set up account (first login)
         if (isset($_SESSION['must_change_password']) && $_SESSION['must_change_password'] === true) {
             $allowedPaths = ['/admin/setup', '/admin/setup/save', '/logout'];
