@@ -4,7 +4,6 @@ declare(strict_types=1);
 const ROL_SUPERUSER   = 1;
 const ROL_ADMIN       = 2;
 const ROL_ENTRENADOR  = 3;
-const ROL_MEDICO      = 4;
 
 const ESTATUS_ATLETA = [
     1 => 'Activo',

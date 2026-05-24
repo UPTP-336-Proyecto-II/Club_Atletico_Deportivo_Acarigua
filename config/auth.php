@@ -23,7 +23,6 @@ return [
         'super_user'   => 1,
         'admin'        => 2,
         'entrenador'   => 3,
-        'medico'       => 4,
     ],
 
     'login' => [

@@ -41,9 +41,11 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
             </div>
             <h3 style="margin-bottom: 8px;">No hay categorías registradas</h3>
             <p class="text-muted" style="max-width: 400px; margin: 0 auto 24px;">Las categorías permiten agrupar a los atletas por edad y asignarles un entrenador específico.</p>
-            <a href="<?= e(url('/admin/categorias/crear')) ?>" class="btn btn-outline">
-                <i class="ph ph-plus"></i> Crear Primera Categoría
-            </a>
+            <?php if (can('admin')): ?>
+                <a href="<?= e(url('/admin/categorias/crear')) ?>" class="btn btn-outline">
+                    <i class="ph ph-plus"></i> Crear Primera Categoría
+                </a>
+            <?php endif; ?>
         </div>
     <?php else: foreach ($items as $c): ?>
         <div class="card" style="margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">

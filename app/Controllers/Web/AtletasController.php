@@ -362,10 +362,24 @@ final class AtletasController extends Controller
         }
 
         // 1. Cédula/Folio obligatoria si es mayor de 9 años
+        $cedulaRules = [];
         if ($age > 9) {
-            $rules['cedula'] = ['required', "regex:$cedRegex"];
+            $cedulaRules[] = 'required';
+            $cedulaRules[] = "regex:$cedRegex";
         } elseif (!empty($data['cedula'])) {
-            $rules['cedula'] = ["regex:$cedRegex"];
+            $cedulaRules[] = "regex:$cedRegex";
+        }
+
+        if (!empty($data['cedula'])) {
+            if ($ignoreId) {
+                $cedulaRules[] = "unique:atletas,cedula,atleta_id:$ignoreId";
+            } else {
+                $cedulaRules[] = 'unique:atletas,cedula';
+            }
+        }
+
+        if (!empty($cedulaRules)) {
+            $rules['cedula'] = $cedulaRules;
         }
 
         // 2. Teléfono personal obligatorio si es mayor de edad
@@ -415,7 +429,7 @@ final class AtletasController extends Controller
         }
 
         $messages = [
-            'cedula' => 'La cédula debe tener el formato V-12.345.678, E-12.345.678 o P-AÑO-ACTA-FOLIO (partida de nacimiento). Es obligatoria para mayores de 9 años.',
+            'cedula' => 'La cédula del atleta ya está registrada o tiene un formato inválido (Ej: V-12.345.678, E-12.345.678 o P-AÑO-ACTA-FOLIO). Es obligatoria para mayores de 9 años y debe ser única.',
             'telefono' => 'El teléfono debe comenzar con 0412, 0414, 0416, 0422 o 0424 y tener 11 dígitos. Es obligatorio para mayores de edad.',
             'tutor_representante' => 'Para registrar al atleta como menor de edad, primero debe asignar y guardar los datos de su representante en la sección correspondiente de su perfil.',
             'tutor_nombres' => 'El nombre del representante es obligatorio.',
