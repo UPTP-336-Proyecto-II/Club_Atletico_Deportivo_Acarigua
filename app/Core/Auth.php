@@ -71,7 +71,8 @@ final class Auth
     public static function setCookie(array $user): void
     {
         $cfg = config('auth.cookie');
-        $ttl = (int) config('auth.jwt.ttl');
+        // El tiempo_sesion de DB está en minutos, lo convertimos a segundos. Fallback al config.
+        $ttl = (int) (config_db('tiempo_sesion', config('auth.jwt.ttl') / 60) * 60);
 
         $now = time();
         $token = JWT::encode([

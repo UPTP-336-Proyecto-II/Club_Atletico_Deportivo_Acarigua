@@ -46,7 +46,7 @@ body.admin-body {
 .sidebar__brand .brand__logo {
     width: 40px;
     height: 40px;
-    background: var(--color-primary);
+    background: transparent;
     color: #fff;
     border-radius: 10px;
     display: flex;
@@ -55,7 +55,7 @@ body.admin-body {
     font-weight: 800;
     font-size: 12px;
     flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: none;
 }
 .sidebar__brand .title { color: #fff; font-size: 15px; font-weight: 700; }
 .sidebar__brand .subtitle { color: #94A3B8; font-size: 11px; margin-top: -2px; }

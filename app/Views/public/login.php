@@ -5,7 +5,9 @@
     <div class="login-card">
         <div class="login-card__brand">
             <a href="<?= e(url('/')) ?>" class="brand">
-                <div class="brand__logo">CADA</div>
+                <div class="brand__logo">
+                    <img src="<?= e(asset('img/logo.png')) ?>" alt="CADA" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:inherit;">
+                </div>
                 <div class="brand__text" style="text-align:left">
                     <div class="title">Club Atlético</div>
                     <div class="subtitle">Deportivo Acarigua</div>

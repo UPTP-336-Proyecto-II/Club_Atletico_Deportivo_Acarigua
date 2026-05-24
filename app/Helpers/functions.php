@@ -169,3 +169,13 @@ if (!function_exists('view_path')) {
         return BASE_PATH . '/app/Views/' . str_replace('.', '/', $view) . '.php';
     }
 }
+
+if (!function_exists('config_db')) {
+    /**
+     * Obtiene un valor de configuración desde la base de datos (tabla configuraciones).
+     */
+    function config_db(string $key, mixed $default = null): mixed
+    {
+        return \App\Models\Configuracion::get($key, $default);
+    }
+}
