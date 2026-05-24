@@ -1,7 +1,9 @@
 <?php $active = $active ?? ''; ?>
 <aside class="sidebar">
     <a href="<?= e(url('/admin')) ?>" class="sidebar__brand" style="text-decoration:none;">
-        <div class="brand__logo">CADA</div>
+        <div class="brand__logo">
+            <img src="<?= e(asset('img/logo.png')) ?>" alt="CADA" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:inherit;">
+        </div>
         <div class="brand__text">
             <div class="title">Club Atlético</div>
             <div class="subtitle">Deportivo Acarigua</div>

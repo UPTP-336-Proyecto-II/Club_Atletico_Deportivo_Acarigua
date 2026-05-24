@@ -180,7 +180,8 @@ const FormValidator = (() => {
     /**
      * Abre un CadaModal con la imagen de ayuda del formulario.
      * @param {string} title - Título del modal.
-     * @param {string} imageSrc - Ruta de la imagen de ayuda.
+     * @param {string|null} imageSrc - Ruta de la imagen de ayuda (null para omitir).
+     * @param {string} descriptionText - Texto HTML descriptivo.
      */
     function showHelp(title, imageSrc, descriptionText = '') {
         if (typeof CadaModal !== 'undefined' && CadaModal.alert) {
@@ -188,7 +189,9 @@ const FormValidator = (() => {
             if (descriptionText) {
                 textHtml += `<p style="font-size: 14px; color: var(--color-text, #e2e8f0); margin-bottom: 16px; text-align: left; line-height: 1.5;">${descriptionText}</p>`;
             }
-            textHtml += `<img src="${imageSrc}" alt="Guía del formulario" style="width:100%; border-radius:8px;">`;
+            if (imageSrc) {
+                textHtml += `<img src="${imageSrc}" alt="Guía del formulario" style="width:100%; border-radius:8px;">`;
+            }
             CadaModal.alert({
                 title: title,
                 text: textHtml,
@@ -198,5 +201,14 @@ const FormValidator = (() => {
         }
     }
 
-    return { init, validate, showErrors, showHelp, markError, clearMark, getLabel };
+    /**
+     * Muestra errores de campos específicos vía CadaModal.
+     * @param {Object} fieldErrors - Objeto { nombre_campo: 'mensaje error' }
+     */
+    function showFieldErrors(fieldErrors) {
+        const errors = Object.values(fieldErrors);
+        showErrors(errors);
+    }
+
+    return { init, validate, showErrors, showFieldErrors, showHelp, markError, clearMark, getLabel };
 })();
