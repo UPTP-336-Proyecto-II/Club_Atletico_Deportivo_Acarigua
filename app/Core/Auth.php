@@ -188,11 +188,6 @@ final class Auth
         return self::hasRole(ROL_ENTRENADOR);
     }
 
-    public static function isMedico(): bool
-    {
-        return self::hasRole(ROL_MEDICO);
-    }
-
     /** Para tests o flujos especiales. */
     public static function setUser(?array $user): void
     {

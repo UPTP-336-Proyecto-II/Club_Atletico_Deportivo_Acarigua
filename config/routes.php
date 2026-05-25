@@ -81,6 +81,7 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/usuarios/{id}/editar', [UsuariosController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/usuarios/{id}', [UsuariosController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/usuarios/{id}/eliminar', [UsuariosController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios/{id}/restablecer', [UsuariosController::class, 'restablecer'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Asistencias (admin + entrenador)
     $r->get('/asistencias', [AsistenciasController::class, 'index']);
@@ -95,15 +96,15 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/medidas', [MedidasAntropometricasController::class, 'index']);
     $r->get('/medidas/atleta/{id}', [MedidasAntropometricasController::class, 'atleta']);
     $r->post('/medidas/atleta/{id}', [MedidasAntropometricasController::class, 'store'], [CsrfMiddleware::class]);
-    $r->post('/medidas/{id}/eliminar', [MedidasAntropometricasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
-    $r->post('/medidas/{id}/editar', [MedidasAntropometricasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/medidas/{id}/eliminar', [MedidasAntropometricasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user', 'entrenador']]]);
+    $r->post('/medidas/{id}/editar', [MedidasAntropometricasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user', 'entrenador']]]);
 
     // Pruebas físicas
     $r->get('/resultados-pruebas', [ResultadosPruebasController::class, 'index']);
     $r->get('/resultados-pruebas/atleta/{id}', [ResultadosPruebasController::class, 'atleta']);
     $r->post('/resultados-pruebas/atleta/{id}', [ResultadosPruebasController::class, 'store'], [CsrfMiddleware::class]);
-    $r->post('/resultados-pruebas/{id}/eliminar', [ResultadosPruebasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
-    $r->post('/resultados-pruebas/{id}/editar', [ResultadosPruebasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/resultados-pruebas/{id}/eliminar', [ResultadosPruebasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user', 'entrenador']]]);
+    $r->post('/resultados-pruebas/{id}/editar', [ResultadosPruebasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user', 'entrenador']]]);
 
     // Ficha médica (lectura entrenador; escritura admin)
     $r->get('/ficha-medica/{id}', [FichaMedicaController::class, 'show']);

@@ -61,6 +61,12 @@
                         <a href="<?= e(url("/admin/usuarios/{$p['usuario_id']}/editar")) ?>" class="btn btn-sm btn-outline" title="Editar">
                             <i class="ph ph-pencil-simple"></i>
                         </a>
+                        <form method="POST" action="<?= e(url("/admin/usuarios/{$p['usuario_id']}/restablecer")) ?>" style="display:inline;" class="form-restablecer-usuario">
+                            <?= csrf_field() ?>
+                            <button type="button" class="btn btn-sm btn-outline btn-restablecer-usuario" style="color: var(--color-warning);" title="Restablecer Credenciales">
+                                <i class="ph ph-key"></i>
+                            </button>
+                        </form>
                         <form method="POST" action="<?= e(url("/admin/usuarios/{$p['usuario_id']}/eliminar")) ?>" style="display:inline;" class="form-eliminar-usuario">
                             <?= csrf_field() ?>
                             <button type="button" class="btn btn-sm btn-ghost btn-eliminar-usuario" style="color: var(--color-danger);" title="Eliminar">
@@ -86,6 +92,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Confirmar eliminación de usuario
     document.querySelectorAll('.btn-eliminar-usuario').forEach(btn => {
         btn.addEventListener('click', () => {
             const form = btn.closest('form');
@@ -94,6 +101,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 text: '¿Estás seguro de que deseas eliminar a este usuario? Esta acción no se puede deshacer.',
                 type: 'danger',
                 confirmText: 'Sí, Eliminar',
+                cancelText: 'Cancelar'
+            }).then(confirmed => {
+                if (confirmed) form.submit();
+            });
+        });
+    });
+
+    // Confirmar restablecimiento de credenciales
+    document.querySelectorAll('.btn-restablecer-usuario').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = btn.closest('form');
+            CadaModal.confirm({
+                title: '¿Restablecer Credenciales?',
+                text: '¿Estás seguro de que deseas restablecer las credenciales de este usuario? Su contraseña volverá a ser su número de cédula y se eliminarán sus respuestas de seguridad para forzarlo a reconfigurar su cuenta al ingresar.',
+                type: 'warning',
+                confirmText: 'Sí, Restablecer',
                 cancelText: 'Cancelar'
             }).then(confirmed => {
                 if (confirmed) form.submit();

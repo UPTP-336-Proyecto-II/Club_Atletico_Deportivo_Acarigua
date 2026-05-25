@@ -19,9 +19,9 @@ foreach ($flashTypes as $type):
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof CadaModal !== 'undefined') {
                 CadaModal.alert({
-                    title: '<?= e($title) ?>',
-                    text: '<?= e($message) ?>',
-                    type: '<?= e($typeMod) ?>',
+                    title: <?= json_encode($title) ?>,
+                    text: <?= json_encode($message) ?>,
+                    type: <?= json_encode($typeMod) ?>,
                     confirmText: 'Aceptar'
                 });
             }
@@ -39,7 +39,7 @@ foreach ($flashTypes as $type):
             if (typeof CadaModal !== 'undefined') {
                 CadaModal.alert({
                     title: '¡Errores de Validación!',
-                    text: '• <?= e($errorMsg) ?>',
+                    text: <?= json_encode('• ' . implode("\n• ", $errors)) ?>,
                     type: 'error',
                     confirmText: 'Corregir ahora'
                 });

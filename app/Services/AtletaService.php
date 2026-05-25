@@ -126,27 +126,15 @@ final class AtletaService
 
     private function guardarRepresentante(array $data, int $direccionId, int $representanteIdExistente = 0): int
     {
-        $representanteModel = new Representante(); // Apunta a representante
+        $representanteModel = new Representante(); // Apunta a representantes
         
-        // 1. Si tenemos un ID existente de representante, actualizamos ese registro
-        if ($representanteIdExistente > 0) {
-            $existente = $representanteModel->find($representanteIdExistente);
-            if ($existente) {
-                $representanteModel->update($representanteIdExistente, [
-                    'nombre'        => $data['tutor_nombres'] ?? $existente['nombre'],
-                    'apellido'      => $data['tutor_apellidos'] ?? $existente['apellido'],
-                    'cedula'        => $data['tutor_cedula'] ?? $existente['cedula'],
-                    'telefono'      => $data['tutor_telefono'] ?? $existente['telefono'],
-                    'tipo_relacion' => $data['tutor_relacion'] ?? $existente['tipo_relacion'],
-                    'direccion_id'  => $direccionId,
-                ]);
-                return $representanteIdExistente;
-            }
-        }
+        $nuevaCedula = !empty($data['tutor_cedula']) ? $data['tutor_cedula'] : 'S/N';
 
-        // 2. Si no hay ID existente, pero se proporciona cédula, intentamos buscarlo
-        $existente = !empty($data['tutor_cedula']) ? $representanteModel->findByCedula($data['tutor_cedula']) : null;
+        // 1. Buscar si ya existe un representante con esta nueva cédula (independiente de si es registro o edición)
+        $existente = ($nuevaCedula !== 'S/N') ? $representanteModel->findByCedula($nuevaCedula) : null;
+
         if ($existente) {
+            // Si ya existe, actualizamos sus datos para mantenerlo al día
             $representanteModel->update((int) $existente['representante_id'], [
                 'nombre'        => $data['tutor_nombres'] ?? $existente['nombre'],
                 'apellido'      => $data['tutor_apellidos'] ?? $existente['apellido'],
@@ -154,18 +142,64 @@ final class AtletaService
                 'tipo_relacion' => $data['tutor_relacion'] ?? $existente['tipo_relacion'],
                 'direccion_id'  => $direccionId,
             ]);
-            return (int) $existente['representante_id'];
+            
+            $nuevoId = (int) $existente['representante_id'];
+
+            // Si es una edición y el atleta tenía un representante previo asignado que ahora es diferente
+            // al que encontramos por cédula, comprobamos si el anterior quedó huérfano para eliminarlo.
+            if ($representanteIdExistente > 0 && $representanteIdExistente !== $nuevoId) {
+                $this->eliminarRepresentanteSiHuerfano($representanteIdExistente);
+            }
+
+            return $nuevoId;
         }
 
-        // 3. Si no existe de ninguna forma, insertamos uno nuevo
+        // 2. Si no existe ningún representante con esa cédula en la BD:
+        // Si tenemos un ID existente de representante asignado a este atleta, simplemente actualizamos ese registro.
+        if ($representanteIdExistente > 0) {
+            $previo = $representanteModel->find($representanteIdExistente);
+            if ($previo) {
+                $representanteModel->update($representanteIdExistente, [
+                    'nombre'        => $data['tutor_nombres'] ?? $previo['nombre'],
+                    'apellido'      => $data['tutor_apellidos'] ?? $previo['apellido'],
+                    'cedula'        => $nuevaCedula,
+                    'telefono'      => $data['tutor_telefono'] ?? $previo['telefono'],
+                    'tipo_relacion' => $data['tutor_relacion'] ?? $previo['tipo_relacion'],
+                    'direccion_id'  => $direccionId,
+                ]);
+                return $representanteIdExistente;
+            }
+        }
+
+        // 3. Si no existe de ninguna forma y es un nuevo atleta, registramos uno nuevo
         return $representanteModel->insert([
             'nombre'        => $data['tutor_nombres'] ?? 'Sin Nombre',
             'apellido'      => $data['tutor_apellidos'] ?? '',
-            'cedula'        => $data['tutor_cedula'] ?? 'S/N',
+            'cedula'        => $nuevaCedula,
             'telefono'      => $data['tutor_telefono'] ?? '',
             'tipo_relacion' => $data['tutor_relacion'] ?? 'representante',
             'direccion_id'  => $direccionId,
         ]);
+    }
+
+    /**
+     * Elimina un representante de la base de datos si ningún atleta está vinculado a él.
+     */
+    private function eliminarRepresentanteSiHuerfano(int $representanteId): void
+    {
+        try {
+            $db = Database::connection();
+            // Verificar si hay atletas vinculados
+            $stmt = $db->prepare('SELECT COUNT(*) FROM atletas WHERE representante_id = ?');
+            $stmt->execute([$representanteId]);
+            $count = (int) $stmt->fetchColumn();
+            
+            if ($count === 0) {
+                $db->prepare('DELETE FROM representantes WHERE representante_id = ?')->execute([$representanteId]);
+            }
+        } catch (Throwable $e) {
+            Logger::error($e);
+        }
     }
 
     private function guardarFichaMedica(int $atletaId, array $data): void
