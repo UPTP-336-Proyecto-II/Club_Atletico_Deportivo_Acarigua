@@ -96,13 +96,13 @@ $get = function(string $k, $d = '') use ($item) { return old($k, $item[$k] ?? $d
                             $telVal   = $get('telefono', '');
                             $telPref  = '0412';
                             $telNum   = '';
-                            foreach (['0412','0414','0416','0422','0424','0426'] as $_p) {
+                            foreach (['0412','0414','0416','0422','0424','0426','0255','0256'] as $_p) {
                                 if (str_starts_with($telVal, $_p)) { $telPref = $_p; $telNum = substr($telVal, 4); break; }
                             }
                         ?>
                         <div class="phone-field" id="phone-wrap-perfil_telefono">
                             <select class="phone-prefix" id="perfil_telefono_prefix">
-                                <?php foreach (['0412','0414','0416','0422','0424','0426'] as $_p): ?>
+                                <?php foreach (['0412','0414','0416','0422','0424','0426','0255','0256'] as $_p): ?>
                                     <option value="<?= $_p ?>" <?= $telPref === $_p ? 'selected' : '' ?>><?= $_p ?></option>
                                 <?php endforeach; ?>
                             </select>

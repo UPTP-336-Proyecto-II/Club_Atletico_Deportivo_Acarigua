@@ -91,4 +91,33 @@ final class ReportesController extends Controller
         }
         return Response::html($reporte['content']);
     }
+
+    public function listaUsuarios(Request $request): Response
+    {
+        $reporte = (new ReporteService())->listaUsuarios();
+        
+        if (str_starts_with($reporte['mime'], 'application/pdf')) {
+            if ($request->query('action') === 'download') {
+                return Response::download($reporte['content'], $reporte['filename'], $reporte['mime']);
+            }
+            return Response::inline($reporte['content'], $reporte['filename'], $reporte['mime']);
+        }
+        return Response::html($reporte['content']);
+    }
+
+    public function fichaUsuario(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $reporte = (new ReporteService())->fichaUsuario($id);
+        if (!$reporte) {
+            return Response::html('<h1>Usuario no encontrado</h1>', 404);
+        }
+        if (str_starts_with($reporte['mime'], 'application/pdf')) {
+            if ($request->query('action') === 'download') {
+                return Response::download($reporte['content'], $reporte['filename'], $reporte['mime']);
+            }
+            return Response::inline($reporte['content'], $reporte['filename'], $reporte['mime']);
+        }
+        return Response::html($reporte['content']);
+    }
 }

@@ -52,13 +52,14 @@ final class Usuario extends Model
     public function findCompleto(int $id): ?array
     {
         $sql = "
-            SELECT u.*,
+            SELECT u.*, r.nombre_rol,
                    d.parroquias_id, d.localidad, d.tipo_vivienda, d.ubicacion_vivienda,
                    pa.parroquia AS parroquia_nombre,
                    m.municipio AS municipio_nombre,
                    e.estado AS estado_nombre,
                    pa.municipio_id, m.estado_id
             FROM usuarios u
+            LEFT JOIN roles_usuarios r ON r.rol_id = u.rol_id
             LEFT JOIN direcciones d ON d.direccion_id = u.direccion_id
             LEFT JOIN parroquias pa ON pa.parroquia_id = d.parroquias_id
             LEFT JOIN municipios m ON m.municipio_id = pa.municipio_id
