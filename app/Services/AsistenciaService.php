@@ -45,8 +45,8 @@ final class AsistenciaService
             SELECT a.actividad_id 
             FROM actividades a
             JOIN asistencias ast ON a.actividad_id = ast.actividad_id
-            JOIN atletas atl ON ast.atleta_id = atl.atleta_id
-            WHERE a.fecha = ? AND a.tipo_actividad = ? AND atl.categoria_id = ?
+            JOIN asig_categorias ac ON ast.atleta_id = ac.atleta_id
+            WHERE a.fecha = ? AND a.tipo_actividad = ? AND ac.categoria_id = ?
             LIMIT 1
         ");
         $stmt->execute([$fechaEvento, $tipoId, $categoriaId]);

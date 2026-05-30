@@ -97,8 +97,7 @@
             </div>
             <h2 style="margin:0 0 4px; font-family: var(--font-display);">
                 <?= e($atleta['nombre'] . ' ' . $atleta['apellido']) ?></h2>
-            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 16px;">C.I:
-                <?= !empty($atleta['cedula']) ? e($atleta['cedula']) : 'Sin Cédula' ?></div>
+            <div style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 16px;">C.I: <?= !empty($atleta['cedula_formateada']) ? e($atleta['cedula_formateada']) : 'Sin Cédula' ?></div>
 
             <?php
             $estatusVal = (int) ($atleta['estatus'] ?? 1);
@@ -129,23 +128,6 @@
                 <div>
                     <div
                         style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">
-                        Categoría</div>
-                    <div style="font-weight: 500; display:flex; align-items:center; gap:4px; margin-top:4px;">
-                        <i class="ph ph-shield-chevron text-muted"></i>
-                        <?= e($atleta['nombre_categoria'] ?? 'Sin asignar') ?>
-                    </div>
-                </div>
-                <div>
-                    <div
-                        style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">
-                        Posición</div>
-                    <div style="font-weight: 500; display:flex; align-items:center; gap:4px; margin-top:4px;">
-                        <i class="ph ph-t-shirt text-muted"></i> <?= e($atleta['nombre_posicion'] ?? 'No definida') ?>
-                    </div>
-                </div>
-                <div>
-                    <div
-                        style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">
                         Edad</div>
                     <div style="font-weight: 500; display:flex; align-items:center; gap:4px; margin-top:4px;">
                         <i class="ph ph-calendar-blank text-muted"></i>
@@ -165,25 +147,104 @@
                         <?= !empty($atleta['pierna_dominante']) ? e(ucfirst($atleta['pierna_dominante'])) : 'Sin definir' ?>
                     </div>
                 </div>
+                <div>
+                    <div
+                        style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">
+                        Género</div>
+                    <div style="font-weight: 500; display:flex; align-items:center; gap:4px; margin-top:4px;">
+                        <?php
+                        $sexoIcon = match($atleta['sexo'] ?? '') {
+                            'M' => 'ph-gender-male',
+                            'F' => 'ph-gender-female',
+                            default => 'ph-gender-neuter'
+                        };
+                        $sexoLabel = match($atleta['sexo'] ?? '') {
+                            'M' => 'Masculino',
+                            'F' => 'Femenino',
+                            default => 'Sin definir'
+                        };
+                        ?>
+                        <i class="ph <?= $sexoIcon ?> text-muted"></i>
+                        <?= $sexoLabel ?>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        style="font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; font-weight: 600;">
+                        Teléfono</div>
+                    <div style="font-weight: 500; display:flex; align-items:center; gap:4px; margin-top:4px;">
+                        <i class="ph ph-phone text-muted"></i>
+                        <?= !empty($atleta['telefono']) ? e($atleta['telefono']) : 'No registrado' ?>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="card">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; margin-bottom: 16px;">
-                <h3 style="margin:0; font-size: 16px;"><i class="ph ph-phone-call"></i> Contacto</h3>
+                <h3 style="margin:0; font-size: 16px;">Categor&iacute;as</h3>
+                <a href="<?= !empty($asignaciones) ? e(url('/admin/categorias/' . $asignaciones[0]['categoria_id'] . '/detalles')) : e(url('/admin/categorias')) ?>" style="color: var(--color-primary); font-weight: 700; text-decoration: none; font-size: 11px; display: inline-flex; align-items: center; gap: 2px; margin-left: 6px;" 
+                title="<?= !empty($asignaciones) ? 'Ver detalles de la categoría asignada' : 'Ver todas las categorías' ?>">Ver categoría <i class="ph ph-arrow-right" style="font-size: 10px;"></i>
+                </a>
             </div>
-            <div style="margin-top: 0;">
-                <div style="display:flex; align-items:center; gap: 12px; margin-bottom: 12px;">
-                    <div
-                        style="width:36px; height:36px; border-radius:8px; background:var(--color-bg-alt); display:flex; align-items:center; justify-content:center; color:var(--color-primary);">
-                        <i class="ph ph-whatsapp-logo" style="font-size:20px;"></i></div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--color-text-muted);">Teléfono Personal</div>
-                        <div style="font-weight: 500;">
-                            <?= !empty($atleta['telefono']) ? e($atleta['telefono']) : 'No registrado' ?></div>
+            <div style="margin-top: 0; display: flex; flex-direction: column; gap: 16px;">
+                <?php if (empty($asignaciones)): ?>
+                    <div style="text-align: center; padding: 12px 0; color: var(--color-text-muted); font-size: 13px;">
+                        Sin categor&iacute;as asignadas
                     </div>
-                </div>
+                <?php else: ?>
+                    <?php foreach ($asignaciones as $asig): ?>
+                        <div style="padding-bottom: 16px; border-bottom: 1px dashed var(--color-border); margin-bottom: 8px;">
+                            
+                            <!-- Fila Superior: Nombre de categoría y Estatus -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <div>
+                                    <span style="font-size: 11px; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 2px;">Categoría</span>
+                                    <div style="font-weight: 700; color: var(--color-primary); font-size: 16px; white-space: nowrap;">
+                                        <?= e($asig['nombre_categoria']) ?>
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="font-size: 11px; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 2px;">Estatus</span>
+                                    <?php if ((int)($asig['estatus'] ?? 1) === 1): ?>
+                                        <span class="badge badge-success" style="font-weight: 600; font-size: 10px; padding: 3px 8px; border-radius: 10px;">Vigente</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-danger" style="font-weight: 600; font-size: 10px; padding: 3px 8px; border-radius: 10px;">Vencido</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Fila Inferior: Posición Principal, Posición Secundaria y Dorsal en Paralelo -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: flex-start;">
+                                <!-- Posición Principal -->
+                                <div>
+                                    <div style="font-weight: 700; color: var(--color-primary); font-size: 13px; margin-bottom: 2px;">Posición Principal</div>
+                                    <div style="font-size: 12px; color: var(--color-text); font-weight: 500;">
+                                        <?= !empty($asig['posicion_principal']) ? e($asig['posicion_principal']) : 'Sin definir' ?>
+                                    </div>
+                                </div>
+
+                                <!-- Posición Secundaria -->
+                                <div>
+                                    <div style="font-weight: 700; color: var(--color-primary); font-size: 13px; margin-bottom: 2px;">Posición Secundaria</div>
+                                    <div style="font-size: 12px; color: var(--color-text); font-weight: 500;">
+                                        <?= !empty($asig['posicion_secundaria']) ? e($asig['posicion_secundaria']) : 'Ninguna' ?>
+                                    </div>
+                                </div>
+
+                                <!-- Dorsal Asignado -->
+                                <div style="text-align: center; display: flex; flex-direction: column; align-items: center; min-width: 80px;">
+                                    <span style="font-size: 9px; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 2px;">Dorsal asignado</span>
+                                    <span class="dorsal-circle">
+                                        <?= $asig['nun_dorsal'] !== null ? (int)$asig['nun_dorsal'] : 'S/D' ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>

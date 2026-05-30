@@ -19,7 +19,12 @@ final class FichaMedicaController extends Controller
         return $this->view('ficha_medica.show', [
             'title' => 'Ficha médica - ' . $atleta['nombre'],
             'active' => 'atletas',
-            'breadcrumb' => ['Inicio', 'Atletas', $atleta['nombre'], 'Ficha médica'],
+            'breadcrumb' => [
+                'Inicio',
+                ['label' => 'Atletas', 'url' => url('/admin/atletas')],
+                ['label' => $atleta['nombre'] . ' ' . $atleta['apellido'], 'url' => url("/admin/atletas/{$atleta['atleta_id']}")],
+                'Ficha médica'
+            ],
             'atleta' => $atleta,
         ], 'admin');
     }
@@ -27,8 +32,20 @@ final class FichaMedicaController extends Controller
     public function update(Request $request): Response
     {
         $id = (int) $request->param('id');
+        $atleta = (new Atleta())->findCompleto($id);
+        if (!$atleta) {
+            flash('error', 'No encontrado.');
+            return $this->redirect('/admin/atletas');
+        }
+
         $model = new FichaMedica();
         $existente = $model->byAtleta($id);
+
+        if (!$existente && in_array((int)$atleta['estatus'], [0, 3], true)) {
+            flash('error', 'No es posible registrar una ficha médica para atletas inactivos o suspendidos.');
+            return $this->redirect("/admin/atletas/$id?tab=tab-ficha");
+        }
+
         $payload = [
             'alergias'                 => trim((string) $request->input('alergias', '')),
             'grupo_sanguineo'          => trim((string) $request->input('grupo_sanguineo', '')),
@@ -49,6 +66,24 @@ final class FichaMedicaController extends Controller
     public function storeDiscapacidad(Request $request): Response
     {
         $atletaId = (int) $request->param('id');
+        $atleta = (new Atleta())->findCompleto($atletaId);
+        if (!$atleta) {
+            if ($request->header('Accept') === 'application/json') {
+                echo json_encode(['success' => false, 'message' => 'Atleta no encontrado.']);
+                exit;
+            }
+            flash('error', 'Atleta no encontrado.');
+            return $this->redirect('/admin/atletas');
+        }
+
+        if (in_array((int)$atleta['estatus'], [0, 3], true)) {
+            if ($request->header('Accept') === 'application/json') {
+                echo json_encode(['success' => false, 'message' => 'No es posible registrar discapacidades para atletas inactivos o suspendidos.']);
+                exit;
+            }
+            flash('error', 'No es posible registrar discapacidades para atletas inactivos o suspendidos.');
+            return $this->redirect("/admin/atletas/$atletaId?tab=tab-ficha");
+        }
         
         $payload = [
             'tipo_discapacidad_id'    => (int) $request->input('tipo_discapacidad_id'),

@@ -79,10 +79,11 @@ final class AuthController extends Controller
         Logger::audit('login.ok', ['email' => $email]);
 
         $cedula = (string) ($user['cedula'] ?? '');
-        $pwdNum = preg_replace('/[^0-9]/', '', $password);
-        $cedNum = preg_replace('/[^0-9]/', '', $cedula);
+        $pwdNum = preg_replace('/[^0-9A-Za-z]/', '', $password);
+        // Extraer número de documento después del prefijo
+        $cedNum = str_contains($cedula, '-') ? str_replace('.', '', explode('-', $cedula, 2)[1] ?? '') : preg_replace('/[^0-9]/', '', $cedula);
 
-        // Verificar si la contraseña es la cédula
+        // Verificar si la contraseña es la cédula/pasaporte
         $needsSetup = ($cedNum !== '' && $pwdNum === $cedNum);
 
         // Verificar si el usuario NO tiene preguntas de seguridad configuradas
@@ -278,12 +279,12 @@ final class AuthController extends Controller
             $errors[] = 'Las contraseñas no coinciden.';
         }
 
-        // No permitir que la contraseña sea la cédula
+        // No permitir que la contraseña sea la cédula/pasaporte
         $cedula = $_SESSION['recovery_cedula'] ?? '';
-        $pwdNum = preg_replace('/[^0-9]/', '', $password);
-        $cedNum = preg_replace('/[^0-9]/', '', $cedula);
-        if ($cedNum !== '' && $pwdNum === $cedNum) {
-            $errors[] = 'La contraseña no puede ser igual a tu número de cédula.';
+        $pwdClean = preg_replace('/[^0-9A-Za-z]/', '', $password);
+        $cedClean = str_contains($cedula, '-') ? str_replace('.', '', explode('-', $cedula, 2)[1] ?? '') : preg_replace('/[^0-9]/', '', $cedula);
+        if ($cedClean !== '' && $pwdClean === $cedClean) {
+            $errors[] = 'La contraseña no puede ser igual a tu número de documento.';
         }
 
         if (!empty($errors)) {

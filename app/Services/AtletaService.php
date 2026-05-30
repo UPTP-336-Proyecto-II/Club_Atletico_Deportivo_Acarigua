@@ -34,9 +34,7 @@ final class AtletaService
                 'sexo'              => $data['sexo'] ?? 'M', // Por default para evitar error
                 'cedula'            => $data['cedula'] ?: null,
                 'telefono'          => $data['telefono'] ?: null,
-                'posicion_juego_id' => !empty($data['posicion_de_juego']) ? $data['posicion_de_juego'] : null,
                 'pierna_dominante'  => !empty($data['pierna_dominante']) ? $data['pierna_dominante'] : null,
-                'categoria_id'      => !empty($data['categoria_id']) ? $data['categoria_id'] : null,
                 'representante_id'  => $representanteId,
                 'direccion_id'      => $direccionId,
                 'foto'              => $fotoPath,
@@ -86,9 +84,7 @@ final class AtletaService
                 'sexo'              => $data['sexo'] ?? $actual['sexo'],
                 'cedula'            => $data['cedula'] ?: null,
                 'telefono'          => $data['telefono'] ?: null,
-                'posicion_juego_id' => !empty($data['posicion_de_juego']) ? $data['posicion_de_juego'] : null,
                 'pierna_dominante'  => !empty($data['pierna_dominante']) ? $data['pierna_dominante'] : null,
-                'categoria_id'      => !empty($data['categoria_id']) ? $data['categoria_id'] : null,
                 'representante_id'  => $representanteId,
                 'direccion_id'      => $direccionId,
                 'estatus'           => $data['estatus'] ?? $actual['estatus'],
@@ -295,16 +291,23 @@ final class AtletaService
             }
 
             // Crear el recurso de imagen de origen según el tipo MIME
-            $srcImage = match ($mime) {
-                'image/jpeg' => @imagecreatefromjpeg($filePath),
-                'image/png'  => @imagecreatefrompng($filePath),
-                'image/webp' => @imagecreatefromwebp($filePath),
-                default      => null
-            };
+            $srcImage = null;
+            if (extension_loaded('gd')) {
+                $srcImage = match ($mime) {
+                    'image/jpeg' => function_exists('imagecreatefromjpeg') ? @imagecreatefromjpeg($filePath) : null,
+                    'image/png'  => function_exists('imagecreatefrompng') ? @imagecreatefrompng($filePath) : null,
+                    'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($filePath) : null,
+                    default      => null
+                };
+            }
 
             if (!$srcImage) return;
 
             // Crear el lienzo de destino
+            if (!function_exists('imagecreatetruecolor')) {
+                imagedestroy($srcImage);
+                return;
+            }
             $dstImage = imagecreatetruecolor($newWidth, $newHeight);
             if (!$dstImage) {
                 imagedestroy($srcImage);

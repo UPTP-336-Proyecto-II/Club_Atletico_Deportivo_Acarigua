@@ -1,5 +1,5 @@
 <?php
-/** @var array|null $atleta @var array $categorias @var array $posiciones @var array $paises @var string $action */
+/** @var array|null $atleta @var array $paises @var string $action */
 $a = $atleta ?? [];
 $isEdit = !empty($a['atleta_id']);
 

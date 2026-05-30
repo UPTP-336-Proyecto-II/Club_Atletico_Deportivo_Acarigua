@@ -22,6 +22,25 @@ final class ReporteService
         $atleta = (new Atleta())->findCompleto($atletaId);
         if (!$atleta) return null;
 
+        // Obtener asignaciones de categorías de forma dinámica a través de asig_categorias
+        $asigModel = new \App\Models\AsigCategoria();
+        $assignments = $asigModel->athleteAssignments($atletaId);
+        
+        $activeAsig = array_filter($assignments, function($asig) {
+            return (int)$asig['estatus'] === 1;
+        });
+
+        if (!empty($activeAsig)) {
+            $catNames = array_map(fn($asig) => $asig['nombre_categoria'], $activeAsig);
+            $posNames = array_map(fn($asig) => $asig['nombre_posicion'] ?: 'Sin definir', $activeAsig);
+            
+            $atleta['nombre_categoria'] = implode(', ', $catNames);
+            $atleta['nombre_posicion'] = implode(', ', array_unique($posNames));
+        } else {
+            $atleta['nombre_categoria'] = '—';
+            $atleta['nombre_posicion'] = 'Sin definir';
+        }
+
         $antropometria    = (new MedidaAntropometrica())->historial($atletaId);
         $pruebas          = (new ResultadoPrueba())->historial($atletaId);
         $asistencia       = (new Asistencia())->resumenAtleta($atletaId);
@@ -31,7 +50,7 @@ final class ReporteService
 
         $filename = 'ficha_' . preg_replace('/[^a-z0-9]+/i', '_', $atleta['nombre'] . '_' . $atleta['apellido']) . '_' . date('Ymd');
         
-        if (class_exists('App\Services\PdfGenerator')) {
+        if (class_exists('TCPDF')) {
             return (new PdfGenerator())->render(
                 'Ficha Técnica - ' . $atleta['nombre'] . ' ' . $atleta['apellido'],
                 $html,
@@ -54,9 +73,13 @@ final class ReporteService
         $db = Database::connection();
         $sql = "
             SELECT a.atleta_id, a.nombre, a.apellido, a.cedula, a.telefono, a.estatus,
-                   c.nombre_categoria
+                   (
+                       SELECT GROUP_CONCAT(c2.nombre_categoria SEPARATOR ', ')
+                       FROM asig_categorias ac2
+                       JOIN categorias c2 ON c2.categoria_id = ac2.categoria_id
+                       WHERE ac2.atleta_id = a.atleta_id
+                   ) AS nombre_categoria
             FROM atletas a
-            LEFT JOIN categorias c ON c.categoria_id = a.categoria_id
             ORDER BY a.apellido, a.nombre
         ";
         $atletas = $db->query($sql)->fetchAll();
@@ -65,7 +88,7 @@ final class ReporteService
 
         $filename = 'listado_atletas_' . date('Ymd');
         
-        if (class_exists('App\Services\PdfGenerator')) {
+        if (class_exists('TCPDF')) {
             return (new PdfGenerator())->render(
                 'Listado General de Atletas - CADA',
                 $html,
@@ -101,9 +124,10 @@ final class ReporteService
         $stmt = $db->prepare("
             SELECT a.atleta_id, a.nombre, a.apellido, a.cedula, a.telefono, a.estatus, a.fecha_nac,
                    r.telefono AS representante_telefono
-            FROM atletas a
+            FROM asig_categorias ac
+            JOIN atletas a ON a.atleta_id = ac.atleta_id
             LEFT JOIN representantes r ON r.representante_id = a.representante_id
-            WHERE a.categoria_id = :id AND a.estatus IN (1, 2)
+            WHERE ac.categoria_id = :id AND a.estatus IN (1, 2) AND ac.estatus = 1
             ORDER BY a.apellido, a.nombre
         ");
         $stmt->execute([':id' => $categoriaId]);
@@ -113,7 +137,7 @@ final class ReporteService
 
         $filename = 'reporte_categoria_' . preg_replace('/[^a-z0-9]+/i', '_', $categoria['nombre_categoria']) . '_' . date('Ymd');
         
-        if (class_exists('App\Services\PdfGenerator')) {
+        if (class_exists('TCPDF')) {
             return (new PdfGenerator())->render(
                 'Reporte Categoría: ' . $categoria['nombre_categoria'],
                 $html,
@@ -566,7 +590,15 @@ final class ReporteService
 
         $nombreCompleto = $esc($a['nombre'] . ' ' . $a['apellido']);
         $fechaNac = $a['fecha_nac'] ?? null;
+        $page = $fechaNac ? (new DateTime($fechaNac)) : null; // Temp fix to keep variables clear
         $edad = $fechaNac ? (new DateTime($fechaNac))->diff(new DateTime('today'))->y : null;
+
+        $sexoVal = strtoupper((string)($a['sexo'] ?? ''));
+        $generoTexto = match ($sexoVal) {
+            'M' => 'Masculino',
+            'F' => 'Femenino',
+            default => 'Sin definir'
+        };
 
         // Foto del atleta usando ruta absoluta resuelta con BASE_PATH
         $fotoHtml = '';
@@ -577,12 +609,14 @@ final class ReporteService
                 // y acelerar la generación del PDF (de 12s a ~2s).
                 $mime = mime_content_type($fotoPath) ?: 'image/jpeg';
                 $imgOriginal = null;
-                if (str_contains($mime, 'jpeg') || str_contains($mime, 'jpg')) {
-                    $imgOriginal = @imagecreatefromjpeg($fotoPath);
-                } elseif (str_contains($mime, 'png')) {
-                    $imgOriginal = @imagecreatefrompng($fotoPath);
-                } elseif (str_contains($mime, 'webp')) {
-                    $imgOriginal = @imagecreatefromwebp($fotoPath);
+                if (extension_loaded('gd')) {
+                    if ((str_contains($mime, 'jpeg') || str_contains($mime, 'jpg')) && function_exists('imagecreatefromjpeg')) {
+                        $imgOriginal = @imagecreatefromjpeg($fotoPath);
+                    } elseif (str_contains($mime, 'png') && function_exists('imagecreatefrompng')) {
+                        $imgOriginal = @imagecreatefrompng($fotoPath);
+                    } elseif (str_contains($mime, 'webp') && function_exists('imagecreatefromwebp')) {
+                        $imgOriginal = @imagecreatefromwebp($fotoPath);
+                    }
                 }
 
                 if ($imgOriginal) {
@@ -745,19 +779,24 @@ final class ReporteService
         // ============ PRUEBAS FÍSICAS ============
         $pruebasRows = '';
         foreach ($pruebas as $p) {
-            // Ya no mostramos "Registro Manual" ni el evento por defecto
+            $fuerzaStr = $p['test_de_fuerza_raw'] !== null ? $p['test_de_fuerza_raw'] . ' cm (' . $p['test_de_fuerza'] . '/100)' : '—';
+            $resistenciaStr = $p['test_resistencia_raw'] !== null ? $p['test_resistencia_raw'] . ' m (' . $p['test_resistencia'] . '/100)' : '—';
+            $velocidadStr = $p['test_velocidad_raw'] !== null ? $p['test_velocidad_raw'] . ' s (' . $p['test_velocidad'] . '/100)' : '—';
+            $coordinacionStr = $p['test_coordinacion_raw'] !== null ? $p['test_coordinacion_raw'] . ' s (' . $p['test_coordinacion'] . '/100)' : '—';
+            $reaccionStr = $p['test_de_reaccion_raw'] !== null ? $p['test_de_reaccion_raw'] . ' ms (' . $p['test_de_reaccion'] . '/100)' : '—';
+
             $pruebasRows .= sprintf(
-                '<tr><td>%s</td><td>%s/100</td><td>%s/100</td><td>%s/100</td><td>%s/100</td><td>%s/100</td></tr>',
+                '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>',
                 $esc(date('d/m/Y', strtotime($p['fecha_evento']))),
-                $esc($p['test_de_fuerza'] ?? 0),
-                $esc($p['test_resistencia'] ?? 0),
-                $esc($p['test_velocidad'] ?? 0),
-                $esc($p['test_coordinacion'] ?? 0),
-                $esc($p['test_de_reaccion'] ?? 0)
+                $esc($fuerzaStr),
+                $esc($resistenciaStr),
+                $esc($velocidadStr),
+                $esc($coordinacionStr),
+                $esc($reaccionStr)
             );
         }
         $pruebasTable = $pruebasRows ? 
-            "<table class=\"data-table\" cellpadding=\"4\"><thead><tr><th>Fecha Evaluación</th><th>Fuerza</th><th>Resistencia</th><th>Velocidad</th><th>Coordinación</th><th>Reacción</th></tr></thead><tbody>$pruebasRows</tbody></table>" : 
+            "<table class=\"data-table\" cellpadding=\"4\"><thead><tr><th>Fecha Evaluación</th><th>Fuerza (CMJ)</th><th>Resistencia (Yo-Yo)</th><th>Velocidad (30m)</th><th>Coordinación (Conos)</th><th>Reacción (Cognitiva)</th></tr></thead><tbody>$pruebasRows</tbody></table>" : 
             '<p style="font-size: 10px; color: #666; margin-top: 5px;">Sin pruebas físicas registradas.</p>';
 
         // SVG Radar
@@ -817,6 +856,7 @@ final class ReporteService
                 <table width="100%">
                     <tr><td class="info-label">Cédula:</td><td class="info-value">{$esc($a['cedula'])}</td></tr>
                     <tr><td class="info-label">Nacimiento:</td><td class="info-value">{$esc($fechaNac)} ({$esc($edad)} años)</td></tr>
+                    <tr><td class="info-label">Género:</td><td class="info-value">{$esc($generoTexto)}</td></tr>
                     <tr><td class="info-label">Teléfono:</td><td class="info-value">{$esc($a['telefono'])}</td></tr>
                     <tr><td class="info-label">Categoría:</td><td class="info-value">{$esc($a['nombre_categoria'])}</td></tr>
                     <tr><td class="info-label">Posición:</td><td class="info-value">{$esc($a['nombre_posicion'] ?? 'Sin definir')}</td></tr>

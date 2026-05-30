@@ -370,4 +370,13 @@ select.form-control {
     margin-top: 4px;
     font-weight: 500;
 }
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
 </style>

@@ -24,7 +24,7 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 16px;">
-                <label class="form-label" id="label-cedula"><span class="required">*</span> Cédula o Cód. de Partida</label>
+                <label class="form-label" id="label-cedula"><span class="required">*</span>Documento de Identidad</label>
                 <?php
                     $cedVal   = $atleta['cedula'];
                     $cedPref  = 'V';
@@ -34,7 +34,7 @@
                             [$cedPref, $cedNum] = explode('-', $cedVal, 2);
                         } else {
                             $firstChar = strtoupper($cedVal[0]);
-                            if (in_array($firstChar, ['V', 'E', 'P'])) {
+                            if (in_array($firstChar, ['V', 'E', 'P', 'N'])) {
                                 $cedPref = $firstChar;
                                 $cedNum = substr($cedVal, 1);
                             } else {
@@ -48,30 +48,29 @@
                         <option value="V" <?= $cedPref==='V'?'selected':'' ?>>V</option>
                         <option value="E" <?= $cedPref==='E'?'selected':'' ?>>E</option>
                         <option value="P" <?= $cedPref==='P'?'selected':'' ?>>P</option>
+                        <option value="N" <?= $cedPref==='N'?'selected':'' ?>>N</option>
                     </select>
                     <span class="phone-sep">-</span>
                     
-                    <!-- Input para Cédula -->
-                    <input type="text" class="phone-number" id="cedula_number" style="display: <?= $cedPref !== 'P' ? 'block' : 'none' ?>;" maxlength="10" placeholder="12.345.678" value="<?= $cedPref !== 'P' ? e($cedNum) : '' ?>">
+                    <!-- Input para Cédula o Pasaporte -->
+                    <input type="text" class="phone-number" id="cedula_number" style="display: <?= $cedPref !== 'N' ? 'block' : 'none' ?>;" maxlength="10" placeholder="12345678" value="<?= $cedPref !== 'N' ? e($cedNum) : '' ?>">
                     
                     <!-- Inputs para Partida -->
-                    <div id="folio_inputs" style="display: <?= $cedPref === 'P' ? 'flex' : 'none' ?>; flex: 1; align-items: center;">
+                    <div id="folio_inputs" style="display: <?= $cedPref === 'N' ? 'flex' : 'none' ?>; flex: 1; align-items: center;">
                         <?php
-                            $fYear = ''; $fActa = ''; $fFolio = '';
-                            if ($cedPref === 'P') {
+                            $fYear = ''; $fActa = '';
+                            if ($cedPref === 'N') {
                                 $fParts = explode('-', $cedNum);
-                                if (count($fParts) === 3) {
-                                    $fYear = $fParts[0]; $fActa = $fParts[1]; $fFolio = $fParts[2];
+                                if (count($fParts) >= 2) {
+                                    $fYear = $fParts[0]; $fActa = $fParts[1];
                                 } else {
-                                    $fFolio = $cedNum;
+                                    $fYear = $cedNum;
                                 }
                             }
                         ?>
                         <input type="text" id="folio_year" class="phone-number" style="flex: 1; min-width: 0; width: 0; text-align: center;" placeholder="Año" maxlength="4" value="<?= e($fYear) ?>">
                         <span class="phone-sep">-</span>
                         <input type="text" id="folio_acta" class="phone-number" style="flex: 1; min-width: 0; width: 0; text-align: center;" placeholder="Acta" maxlength="5" value="<?= e($fActa) ?>">
-                        <span class="phone-sep">-</span>
-                        <input type="text" id="folio_num" class="phone-number" style="flex: 1; min-width: 0; width: 0; text-align: center;" placeholder="Folio" maxlength="5" value="<?= e($fFolio) ?>">
                     </div>
                     
                     <input type="hidden" name="cedula" id="cedula" value="<?= e($cedVal) ?>" required>
@@ -85,7 +84,7 @@
                         $telVal   = $atleta['telefono'];
                         $telPref  = '';
                         $telNum   = '';
-                        foreach (['0412','0414','0416','0422','0424','0426'] as $_p) {
+                        foreach (['0412','0414','0416','0422','0424','0426','0255','0256'] as $_p) {
                             if (str_starts_with($telVal, $_p)) { $telPref = $_p; $telNum = substr($telVal, 4); break; }
                         }
                     ?>
@@ -97,6 +96,8 @@
                             <option value="0422" <?= $telPref==='0422'?'selected':'' ?>>0422</option>
                             <option value="0424" <?= $telPref==='0424'?'selected':'' ?>>0424</option>
                             <option value="0426" <?= $telPref==='0426'?'selected':'' ?>>0426</option>
+                            <option value="0255" <?= $telPref==='0255'?'selected':'' ?>>0255</option>
+                            <option value="0256" <?= $telPref==='0256'?'selected':'' ?>>0256</option>
                         </select>
                         <span class="phone-sep">-</span>
                         <input type="text" class="phone-number" id="telefono_number" maxlength="7" placeholder="1234567" value="<?= e($telNum) ?>">
@@ -114,29 +115,7 @@
                 </div>
             </div>
 
-            <div class="modal-grid-2">
-                <div class="form-group">
-                    <label class="form-label"><span class="required">*</span> Categoría</label>
-                    <select name="categoria_id" class="form-control" required>
-                        <option value="">— Seleccionar —</option>
-                        <?php foreach ($categorias as $cat): ?>
-                            <option value="<?= $cat['categoria_id'] ?>"
-                                <?= (int) $atleta['categoria_id'] === (int) $cat['categoria_id'] ? 'selected' : '' ?>>
-                                <?= e($cat['nombre_categoria']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Posición</label>
-                    <select name="posicion_de_juego" class="form-control">
-                        <option value="">— Seleccionar —</option>
-                        <?php foreach ($posiciones as $pos): ?>
-                            <option value="<?= $pos['posicion_id'] ?>"
-                                <?= (int) $atleta['posicion_juego_id'] === (int) $pos['posicion_id'] ? 'selected' : '' ?>><?= e($pos['nombre_posicion']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
+
 
             <div class="modal-grid-2">
                 <div class="form-group">
@@ -153,6 +132,16 @@
                             <option value="<?= $p ?>" <?= $atleta['pierna_dominante'] === $p ? 'selected' : '' ?>>
                                 <?= e(ucfirst($p)) ?></option>
                         <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-grid-2">
+                <div class="form-group">
+                    <label class="form-label"><span class="required">*</span> Género</label>
+                    <select name="sexo" class="form-control" required>
+                        <option value="M" <?= $atleta['sexo'] === 'M' ? 'selected' : '' ?>>Masculino</option>
+                        <option value="F" <?= $atleta['sexo'] === 'F' ? 'selected' : '' ?>>Femenino</option>
                     </select>
                 </div>
             </div>
@@ -269,7 +258,7 @@
                                 [$tcedPref, $tcedNum] = explode('-', $tcedVal, 2);
                             } else {
                                 $firstChar = strtoupper($tcedVal[0]);
-                                if (in_array($firstChar, ['V', 'E'])) {
+                                if (in_array($firstChar, ['V', 'E', 'P'])) {
                                     $tcedPref = $firstChar;
                                     $tcedNum = substr($tcedVal, 1);
                                 } else {
@@ -282,9 +271,10 @@
                         <select class="phone-prefix" id="tutor_cedula_prefix" aria-label="Prefijo">
                             <option value="V" <?= $tcedPref==='V'?'selected':'' ?>>V</option>
                             <option value="E" <?= $tcedPref==='E'?'selected':'' ?>>E</option>
+                            <option value="P" <?= $tcedPref==='P'?'selected':'' ?>>P</option>
                         </select>
                         <span class="phone-sep">-</span>
-                        <input type="text" class="phone-number" id="tutor_cedula_number" maxlength="10" placeholder="12.345.678" value="<?= e($tcedNum) ?>">
+                        <input type="text" class="phone-number" id="tutor_cedula_number" maxlength="10" placeholder="12345678" value="<?= e($tcedNum) ?>">
                         <input type="hidden" name="tutor_cedula" id="tutor_cedula" value="<?= e($tcedVal) ?>" required>
                     </div>
                 </div>
@@ -296,7 +286,7 @@
                     $ttelVal   = $atleta['tutor_telefono'];
                     $ttelPref  = '';
                     $ttelNum   = '';
-                    foreach (['0412','0414','0416','0422','0424','0426'] as $_p) {
+                    foreach (['0412','0414','0416','0422','0424','0426','0255','0256'] as $_p) {
                         if (str_starts_with($ttelVal, $_p)) { $ttelPref = $_p; $ttelNum = substr($ttelVal, 4); break; }
                     }
                 ?>
@@ -308,6 +298,8 @@
                         <option value="0422" <?= $ttelPref==='0422'?'selected':'' ?>>0422</option>
                         <option value="0424" <?= $ttelPref==='0424'?'selected':'' ?>>0424</option>
                         <option value="0426" <?= $ttelPref==='0426'?'selected':'' ?>>0426</option>
+                        <option value="0255" <?= $ttelPref==='0255'?'selected':'' ?>>0255</option>
+                        <option value="0256" <?= $ttelPref==='0256'?'selected':'' ?>>0256</option>
                     </select>
                     <span class="phone-sep">-</span>
                     <input type="text" class="phone-number" id="tutor_telefono_number" maxlength="7" placeholder="1234567" value="<?= e($ttelNum) ?>">

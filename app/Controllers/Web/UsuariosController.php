@@ -209,8 +209,13 @@ final class UsuariosController extends Controller
             $respModel = new \App\Models\RespuestaSeguridad();
             $respModel->deleteByUser($id);
 
-            // 2. Extraer dígitos de cédula para contraseña temporal
-            $cedulaDigits = preg_replace('/[^0-9]/', '', (string) $item['cedula']);
+            // 2. Extraer número de documento para contraseña temporal
+            $rawCedula = (string) $item['cedula'];
+            if (str_contains($rawCedula, '-')) {
+                $cedulaDigits = str_replace('.', '', explode('-', $rawCedula, 2)[1] ?? '');
+            } else {
+                $cedulaDigits = preg_replace('/[^0-9]/', '', $rawCedula);
+            }
             if (empty($cedulaDigits)) {
                 $cedulaDigits = '12345678';
             }
@@ -240,7 +245,7 @@ final class UsuariosController extends Controller
         return [
             'nombre'    => trim((string) $request->input('nombre')),
             'apellido'  => trim((string) $request->input('apellido')),
-            'cedula'    => preg_replace('/[^0-9]/', '', (string) $request->input('cedula')),
+            'cedula'    => trim((string) $request->input('cedula')),
             'telefono'  => trim((string) $request->input('telefono')),
             'fecha_nac' => trim((string) $request->input('fecha_nac')),
             'correo'    => trim((string) $request->input('correo')),
@@ -258,11 +263,13 @@ final class UsuariosController extends Controller
 
     private function validar(array $data, ?int $ignoreId = null): array
     {
-        $cedulaRule = 'required|min:7|max:12|regex:/^[0-9]+$/';
+        // Regex: V-/E- seguido de dígitos con puntos (7-10 dígitos) o P- seguido de alfanumérico (5-15 chars)
+        $cedulaRegex = '/^([VE]-\d{1,3}(\.\d{3})*|P-[A-Z0-9]{5,15})$/i';
+        $cedulaRules = ['required', "regex:$cedulaRegex"];
         if ($ignoreId) {
-            $cedulaRule .= "|unique:usuarios,cedula,usuario_id:$ignoreId";
+            $cedulaRules[] = "unique:usuarios,cedula,usuario_id:$ignoreId";
         } else {
-            $cedulaRule .= '|unique:usuarios,cedula';
+            $cedulaRules[] = 'unique:usuarios,cedula';
         }
 
         $correoRule = 'required|email|max:50';
@@ -275,7 +282,7 @@ final class UsuariosController extends Controller
         $v = Validator::make($data, [
             'nombre'    => 'required|min:3|max:30',
             'apellido'  => 'required|min:3|max:30',
-            'cedula'    => $cedulaRule,
+            'cedula'    => $cedulaRules,
             'telefono'  => 'required|min:7|max:15|regex:/^[0-9]+$/',
             'correo'    => $correoRule,
             'fecha_nac' => 'required|date',
@@ -285,6 +292,7 @@ final class UsuariosController extends Controller
             'tipo_vivienda' => 'required',
             'ubicacion_vivienda' => 'required|min:5|max:100',
         ], [
+            'cedula'       => 'La cédula o pasaporte debe ser válido (Ej: V-12.345.678, E-12.345.678 o P-Pasaporte) y ser único.',
             'parroquia_id' => 'El campo parroquia es obligatorio.',
             'rol_id'       => 'El campo rol / cargo es obligatorio.',
         ]);

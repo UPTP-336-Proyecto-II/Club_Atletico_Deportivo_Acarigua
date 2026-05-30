@@ -285,6 +285,28 @@ body.admin-body {
     font-size: 14px;
     color: #fff;
     opacity: 0.95;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.topbar__breadcrumb a.breadcrumb-item {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+.topbar__breadcrumb a.breadcrumb-item:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+.topbar__breadcrumb span.breadcrumb-item.active {
+    font-weight: 600;
+    opacity: 1;
+}
+.topbar__breadcrumb .breadcrumb-separator {
+    margin: 0 2px;
+    opacity: 0.5;
 }
 .topbar__right {
     display: flex;

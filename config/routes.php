@@ -61,6 +61,7 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/atletas', [AtletasController::class, 'index']);
     $r->get('/atletas/crear', [AtletasController::class, 'create'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/atletas', [AtletasController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/atletas/validar-paso', [AtletasController::class, 'validarPaso'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->get('/atletas/{id}', [AtletasController::class, 'show']);
     $r->get('/atletas/{id}/editar', [AtletasController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/atletas/{id}', [AtletasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
@@ -73,6 +74,14 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/categorias/{id}/editar', [CategoriasController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/categorias/{id}', [CategoriasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/categorias/{id}/eliminar', [CategoriasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+
+    // Asignaciones de Categorías
+    $r->get('/categorias/{id}/detalles', [\App\Controllers\Web\AsigCategoriasController::class, 'index']);
+    $r->get('/categorias/{id}/asignar', [\App\Controllers\Web\AsigCategoriasController::class, 'create'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/categorias/{id}/asignar', [\App\Controllers\Web\AsigCategoriasController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->get('/asig-categorias/{id}/editar', [\App\Controllers\Web\AsigCategoriasController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/asig-categorias/{id}/editar', [\App\Controllers\Web\AsigCategoriasController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/asig-categorias/{id}/eliminar', [\App\Controllers\Web\AsigCategoriasController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
     // Usuarios (sólo admin)
     $r->get('/usuarios', [UsuariosController::class, 'index'], [[RoleMiddleware::class, ['admin', 'super_user']]]);

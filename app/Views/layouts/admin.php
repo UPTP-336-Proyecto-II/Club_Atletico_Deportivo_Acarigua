@@ -44,7 +44,39 @@ $breadcrumb = $breadcrumb ?? [$title];
                 <div class="topbar__left">
                     <button type="button" class="topbar__toggle" id="sidebar-toggle" aria-label="Menu">☰</button>
                     <div class="topbar__breadcrumb">
-                        <?= e(implode(' / ', $breadcrumb)) ?>
+                        <?php 
+                        $breadcrumbHtml = [];
+                        $staticRoutes = [
+                            'Inicio' => url('/admin'),
+                            'Categorías' => url('/admin/categorias'),
+                            'Atletas' => url('/admin/atletas'),
+                            'Usuarios' => url('/admin/usuarios'),
+                            'Configuración' => url('/admin/configuracion'),
+                            'Reportes' => url('/admin/reportes'),
+                            'Asistencia' => url('/admin/asistencias'),
+                            'Antropometría' => url('/admin/medidas'),
+                            'Mi Perfil' => url('/admin/perfil'),
+                        ];
+
+                        foreach ($breadcrumb as $index => $item) {
+                            $isLast = ($index === count($breadcrumb) - 1);
+                            
+                            if (is_array($item)) {
+                                $label = $item['label'] ?? '';
+                                $url = $item['url'] ?? '';
+                            } else {
+                                $label = $item;
+                                $url = $staticRoutes[$label] ?? '';
+                            }
+
+                            if ($isLast || empty($url)) {
+                                $breadcrumbHtml[] = '<span class="breadcrumb-item active">' . e($label) . '</span>';
+                            } else {
+                                $breadcrumbHtml[] = '<a href="' . e($url) . '" class="breadcrumb-item">' . e($label) . '</a>';
+                            }
+                        }
+                        echo implode(' <span class="breadcrumb-separator">/</span> ', $breadcrumbHtml);
+                        ?>
                     </div>
                 </div>
                 <div class="topbar__right">

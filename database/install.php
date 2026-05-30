@@ -5,6 +5,7 @@
  * Uso:
  *   php database/install.php             (Crea DB + importa cada_db_clean.sql)
  *   php database/install.php --fresh     (Dropea DB antes de crearla)
+ *  php -S localhost:8000 -t public      (Levanta servidor PHP en localhost:8000)
  */
 declare(strict_types=1);
 

@@ -1,0 +1,153 @@
+========================================================================
+   GUÍA DE FUNCIONAMIENTO: MÓDULO DE PRUEBAS FÍSICAS - ARQUITECTURA MVC
+========================================================================
+
+Este documento explica de forma detallada, pero en un lenguaje sencillo y accesible, cómo funciona el módulo de Pruebas Físicas de nuestro sistema de gestión deportiva. Está diseñado especialmente para programadores semi-juniors que deseen comprender la estructura, el flujo de datos y las reglas del módulo.
+
+El módulo sigue el patrón clásico de diseño MVC (Modelo-Vista-Controlador):
+1. La Vista (HTML, CSS, JavaScript) interactúa con el usuario final.
+2. El Controlador (PHP) recibe los datos, los valida y decide qué hacer.
+3. El Modelo (PHP y base de datos) procesa la información y aplica fórmulas matemáticas.
+
+---
+
+1. LA VISTA (Frontend: Formularios, Tablas y Gráficos)
+========================================================================
+Ubicación de archivos clave:
+- app/Views/atletas/partials/perfil/_tab_pruebas.php (Tab de perfil del atleta)
+- app/Views/resultados_pruebas/atleta.php (Vista alternativa de registro de pruebas)
+- app/Views/atletas/index.php (Directorio principal de atletas, registro rápido)
+- app/Views/atletas/partials/perfil/_scripts.php (Lógica JavaScript para gráficos)
+
+¿Qué ve el usuario y cómo interactúa con él?
+
+A) Los Formularios (Registrar y Editar):
+   - El sistema cuenta con campos para 5 pruebas físicas:
+     1. Fuerza (cm) - Rango válido: 1 a 100 cm.
+     2. Resistencia (m) - Rango válido: 1 a 1000 metros.
+     3. Velocidad (s) - Rango válido: 1.00 a 10.00 segundos.
+     4. Coordinación (s) - Rango válido: 1 a 100 segundos.
+     5. Reacción (ms) - Rango válido: 100 a 1000 milisegundos (ms).
+   - Los campos tienen límites integrados directamente en el navegador (usando atributos como 'min', 'max' y 'step').
+   - IMPORTANTE (Opcionalidad): Ninguna de estas pruebas individuales es obligatoria. La base de datos y la lógica admiten valores vacíos (nulos). Un usuario puede decidir registrar únicamente la prueba de velocidad y dejar el resto vacías. El sistema guardará con éxito la velocidad y marcará el resto como no registradas ("—"). La única regla es que se debe ingresar por lo menos una de las cinco pruebas para poder enviar el formulario (esto se valida en JavaScript mediante la función 'validarPruebaCustom').
+
+B) La Tabla de Historial:
+   - Muestra todas las evaluaciones anteriores ordenadas por fecha de forma descendente (la más reciente primero).
+   - Para cada test registrado, muestra tanto el valor real físico ingresado por el entrenador como su puntuación relativa sobre 100 basada en su rendimiento biológico. Ejemplo visual: "35 cm (55.4/100)" o "280 ms (73.9/100)".
+   - Si no se registró un dato, muestra una raya ("—").
+
+C) La Gráfica de Radar (Visualización de Rendimiento):
+   - Se alimenta usando la librería ECharts (en el perfil) o Chart.js (en la vista alternativa).
+   - ¿Qué es la escala 0-100? Para que la gráfica de radar sea útil y fácil de interpretar, no podemos mezclar unidades diferentes (como comparar 1000 metros de resistencia con 4.5 segundos de velocidad directamente en el mismo gráfico). Por lo tanto, el sistema convierte cada valor físico crudo en una puntuación normalizada entre 0 y 100.
+   - La gráfica de radar está fija estrictamente entre 0 y 100. Muestra la última evaluación física en color rojo y, si existe una penúltima, la dibuja de fondo con una línea punteada verde. Esto permite ver el progreso físico del atleta de un vistazo.
+
+---
+
+2. EL CONTROLADOR (El intermediario: Recepción y Validación)
+========================================================================
+Ubicación de archivos clave:
+- app/Controllers/Web/ResultadosPruebasController.php (Manejador de rutas web)
+
+¿Qué hace el controlador y por qué lo hace?
+
+A) Recepción de Datos:
+   - Cuando el usuario hace clic en "Guardar", la petición llega a los métodos 'store()' (para nuevos registros) o 'update()' (para editar registros existentes).
+   - Extrae el ID del atleta, la fecha de evaluación y el ID del entrenador responsable.
+   - Determina o crea automáticamente una actividad física en esa fecha para vincular los resultados.
+
+B) Validación del Servidor:
+   - El controlador utiliza la clase 'Validator' del sistema para comprobar que los datos ingresados no tengan errores y evitar datos basura.
+   - Valida que la fecha de evaluación no sea una fecha en el futuro.
+   - Valida que no existan registros duplicados en la misma fecha para el mismo atleta.
+   - Valida los rangos físicos (mencionados en el punto 1.A) si el usuario decidió llenarlos.
+   - Si la validación falla, el controlador frena el proceso y devuelve un error al cliente (ya sea en formato JSON para peticiones AJAX o redirigiendo con un mensaje de alerta flash).
+   - Si todo es correcto, procesa los datos y llama al modelo para insertarlos o actualizarlos en la base de datos MySQL.
+
+---
+
+3. EL MODELO (Lógica de Negocio, BD y Fórmulas)
+========================================================================
+Ubicación de archivos clave:
+- app/Models/ResultadoPrueba.php (Lógica matemática y consultas a base de datos)
+
+¿Cómo procesa el modelo los datos y calcula las puntuaciones?
+
+A) Consulta al Historial:
+   - El método 'historial($atletaId)' consulta la tabla 'resultados_pruebas' y hace un JOIN con 'atletas' y 'actividades' para traer información complementaria como la fecha de nacimiento del atleta.
+   - Conserva los valores físicos crudos originales añadiendo la palabra '_raw' a la clave del array (ej. 'test_de_fuerza_raw' = 32.50) y calcula el puntaje sobre 100 para colocarlo en la clave estándar ('test_de_fuerza' = 50.0). Esto permite que las vistas y reportes PDF sigan funcionando sin modificar su estructura.
+
+B) Escala Exigencia y Adaptación por Edad Biológica:
+   - El sistema no exige lo mismo a un niño de 8 años que a un joven de 18 años. Por ello, el modelo cuenta con la función 'obtenerFactorExigencia($edad)', la cual evalúa la edad exacta del atleta y retorna un porcentaje de exigencia (factor multiplicador).
+   - A continuación, se enlistan todos los rangos de edad registrados en el sistema y el porcentaje de nivel de exigencia que se les aplica:
+     * Menor o igual a 6 años -----------------> Aplica el 40% (factor = 0.40)
+     * De 7 a 9 años -------------------------> Aplica el 55% (factor = 0.55)
+     * De 10 a 12 años -----------------------> Aplica el 70% (factor = 0.70)
+     * De 13 a 15 años -----------------------> Aplica el 85% (factor = 0.85)
+     * De 16 a 18 años -----------------------> Aplica el 95% (factor = 0.95)
+     * De 19 a 40 años (Nivel Élite/Adulto) --> Aplica el 100% (factor = 1.00)
+     * De 41 a 49 años (Máster A) ------------> Aplica el 85% (factor = 0.85)
+     * De 50 a 59 años (Máster B) ------------> Aplica el 70% (factor = 0.70)
+     * De 60 a 69 años (Máster C) ------------> Aplica el 55% (factor = 0.55)
+     * Mayor o igual a 70 años (Adulto Mayor) -> Aplica el 40% (factor = 0.40)
+
+C) El Origen de los Parámetros de Élite (Límites Base de 100%):
+   - Los parámetros límite mínimos y máximos configurados para el 100% de exigencia no son aleatorios. Están basados en datos deportivos reales y vigentes de futbolistas y atletas de élite en grandes clubes de fútbol de las ligas europeas.
+   - El valor MAX (100% del rendimiento) hace referencia al valor promedio registrado por estos atletas de alto rendimiento.
+   - El valor MIN (0% de rendimiento básico) hace referencia al umbral mínimo promedio aceptable registrado para profesionales en cada disciplina física.
+   
+   Aquí detallamos los límites a factor 1.00 (100% de exigencia):
+     * Fuerza (Salto de potencia CMJ):
+       - Min (0%): 20.0 cm. Es el umbral mínimo aceptable de despegue vertical para un atleta profesional.
+       - Max (100%): 45.0 cm. Representa la potencia promedio de salto vertical en futbolistas de élite europeos.
+     * Resistencia (Yo-Yo Test de recuperación):
+       - Min (0%): 600.0 m. Nivel básico inicial de resistencia aeróbica profesional.
+       - Max (100%): 2200.0 m. Distancia recorrida promedio por mediocampistas de élite europeos en pruebas intermitentes.
+     * Velocidad (Sprint 30 metros lisos):
+       - Min (0%): 5.20 s. Tiempo límite máximo aceptado para un sprint profesional. (Cálculo inverso: más tiempo es peor).
+       - Max (100%): 4.10 s. Tiempo promedio de carrera en 30m cronometrado en jugadores de élite europeos.
+     * Coordinación (Circuito Técnico con Conos):
+       - Min (0%): 22.50 s. Tiempo límite máximo para el recorrido técnico del circuito.
+       - Max (100%): 16.50 s. Tiempo promedio óptimo de atletas profesionales.
+     * Reacción (Test Cognitivo de Selección Visual):
+       - Min (0%): 450.0 ms. Tiempo máximo de retraso mental-motriz tolerado en reacción rápida a estímulos profesionales.
+       - Max (100%): 220.0 ms. Velocidad de procesamiento promedio del sistema nervioso en deportistas de élite europeos.
+
+D) Fórmulas de Normalización (Puntuación 0 a 100):
+   - El modelo define dos tipos de cálculos matemáticos para transformar el rendimiento crudo en una escala de 0 a 100 adaptada:
+   
+   1. Cálculo Directo ('calcularDirecta'): Se usa cuando un valor más alto es MEJOR (Fuerza y Resistencia).
+      - Fórmula: Puntuación = ((Resultado_Real - Min_Adaptado) / (Max_Adaptado - Min_Adaptado)) * 100
+      - 'Min_Adaptado' y 'Max_Adaptado' se obtienen multiplicando los límites base por el factor de exigencia del atleta (ej: un niño de 8 años tendrá un MaxAdaptado de 45.0 * 0.55 = 24.75 cm para obtener un 100/100).
+
+   2. Cálculo Inverso ('calcularInversa'): Se usa cuando un valor más bajo es MEJOR (Velocidad, Coordinación y Reacción) ya que representa menor tiempo empleado.
+      - Fórmula: Puntuación = ((Min_Adaptado - Resultado_Real) / (Min_Adaptado - Max_Adaptado)) * 100
+      - En el cálculo inverso, 'Min_Adaptado' y 'Max_Adaptado' se obtienen dividiendo el límite base entre el factor de exigencia (ej: para el niño de 8 años con factor 0.55, el MinAdaptado de velocidad pasa de 5.2s a 5.2 / 0.55 = 9.45s, dándole más margen de tiempo para alcanzar una puntuación positiva).
+
+   - El resultado de ambas funciones se limita (clamp) estrictamente para que no baje de 0.0 ni supere 100.0, y se redondea a un decimal para su óptima lectura.
+
+---
+
+FLUJO COMPLETO DE UN REGISTRO (Ejemplo Práctico)
+========================================================================
+1. El entrenador ingresa al perfil de un atleta de 20 años (factor = 1.00).
+2. Abre el formulario y escribe:
+   - Velocidad: 4.65 s.
+   - Reacción: 320 ms.
+   - Deja el resto de campos vacíos.
+3. El frontend valida en JS que al menos un campo esté lleno y envía la petición Fetch al controlador.
+4. El controlador recibe la petición en 'store()':
+   - Comprueba que la fecha sea válida.
+   - Valida que 4.65 esté entre 1.00 y 10.00 (Correcto).
+   - Valida que 320 esté entre 100 y 1000 (Correcto).
+   - Guarda los valores crudos en la base de datos: 'test_velocidad' = 4.65, 'test_de_reaccion' = 320.00 y los demás como 'NULL'.
+5. Cuando se carga la vista o se dibuja el gráfico de radar:
+   - El modelo consulta la base de datos y procesa el registro llamando a 'calcularPuntajes()'.
+   - Para Velocidad calcula: ((5.20 - 4.65) / (5.20 - 4.10)) * 100 = (0.55 / 1.10) * 100 = 50.0.
+   - Para Reacción calcula: ((450 - 320) / (450 - 220)) * 100 = (130 / 230) * 100 = 56.5.
+   - Las claves 'test_velocidad' y 'test_de_reaccion' quedan cargadas con 50.0 y 56.5 respectivamente.
+   - Las claves '_raw' se rellenan con 4.65 y 320.
+6. La vista dibuja un punto de 50.0 y otro de 56.5 en la gráfica de radar, y escribe en el historial:
+   - Velocidad: "4.65 s (50.0/100)"
+   - Reacción: "320 ms (56.5/100)"
+   - Los demás campos aparecen como "—".
+========================================================================

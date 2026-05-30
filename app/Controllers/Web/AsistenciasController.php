@@ -98,6 +98,12 @@ final class AsistenciasController extends Controller
             if (!$aid)
                 continue;
 
+            $atletaObj = (new Atleta())->findCompleto($aid);
+            if ($atletaObj && in_array((int)$atletaObj['estatus'], [0, 3], true)) {
+                flash('error', 'No es posible registrar asistencias para atletas inactivos o suspendidos.');
+                return $this->redirect('/admin/asistencias/crear');
+            }
+
             $est = $estatuses[$aid] ?? 'Ausente';
             $estatusVal = match ($est) {
                 'Presente', '1' => 1,

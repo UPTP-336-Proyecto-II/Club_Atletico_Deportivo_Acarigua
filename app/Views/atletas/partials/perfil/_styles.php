@@ -190,4 +190,22 @@
         align-items: center;
         color: var(--color-text-muted);
     }
+
+    /* Dorsal circular */
+    .dorsal-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #ef4444; /* Rojo */
+        font-size: 18px; /* Incrementado en 50% */
+        font-weight: 700;
+        color: #000000; /* Negro en modo claro */
+    }
+
+    html.dark .dorsal-circle {
+        color: #ffffff; /* Blanco en modo oscuro */
+    }
 </style>
