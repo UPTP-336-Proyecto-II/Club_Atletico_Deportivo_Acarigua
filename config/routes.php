@@ -123,7 +123,8 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/reportes/atleta/{id}', [ReportesController::class, 'fichaAtleta']);
     $r->get('/reportes/usuarios/listado', [ReportesController::class, 'listaUsuarios']);
     $r->get('/reportes/usuario/{id}', [ReportesController::class, 'fichaUsuario']);
-    $r->get('/reportes/asistencia', [ReportesController::class, 'asistencia']);
+    $r->get('/reportes/asistencia/atleta/{id}', [ReportesController::class, 'asistenciaAtleta']);
+    $r->get('/reportes/asistencia/categoria', [ReportesController::class, 'asistenciaCategoria']);
     $r->get('/reportes/categoria/{id}', [ReportesController::class, 'categoria']);
 
     // Mi Perfil (todos los usuarios autenticados)

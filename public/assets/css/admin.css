@@ -457,7 +457,7 @@ body.admin-body {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    overflow: hidden;
+    overflow-x: auto;
     box-shadow: var(--shadow-sm);
 }
 .data-table {
@@ -516,6 +516,7 @@ body.admin-body {
     border-radius: 50%;
     object-fit: cover;
     background: var(--color-surface-2);
+    flex-shrink: 0;
 }
 .avatar-placeholder {
     width: 36px; height: 36px;
@@ -527,6 +528,7 @@ body.admin-body {
     justify-content: center;
     font-weight: 700;
     font-size: 13px;
+    flex-shrink: 0;
 }
 
 /* Pestañas dentro de formularios */

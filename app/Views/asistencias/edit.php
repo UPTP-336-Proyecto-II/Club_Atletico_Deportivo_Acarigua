@@ -16,7 +16,7 @@
         <div class="af-grid af-grid--2">
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" max="<?= date('Y-m-d') ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" min="2019-01-01" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Tipo de Actividad</label>
@@ -169,7 +169,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.getElementById('form-edit-asistencia').addEventListener('submit', function() {
+    document.getElementById('form-edit-asistencia').addEventListener('submit', function(e) {
+        const hInicio = document.querySelector('[name="hora_inicio"]').value;
+        const hFin = document.querySelector('[name="hora_fin"]').value;
+        if (hInicio && hFin && hInicio >= hFin) {
+            e.preventDefault();
+            CadaModal.alert({ title: 'Error en Horario', text: 'La hora de inicio debe ser menor a la hora de fin.', type: 'danger' });
+            return;
+        }
+
         const btn = document.getElementById('btn-save');
         btn.disabled = true;
         btn.innerHTML = '<i class="ph ph-spinner-gap spinning"></i> Actualizando...';

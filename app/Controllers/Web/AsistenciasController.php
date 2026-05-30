@@ -23,10 +23,12 @@ final class AsistenciasController extends Controller
         $eventos = Database::connection()->query(
             "SELECT a.actividad_id AS evento_id, a.tipo_actividad AS tipo_evento, a.fecha AS fecha_evento,
                     CONCAT(u.nombre, ' ', u.apellido) AS entrenador,
+                    (SELECT c.nombre_categoria FROM asistencias ast2 JOIN atletas atl2 ON ast2.atleta_id = atl2.atleta_id JOIN categorias c ON atl2.categoria_id = c.categoria_id WHERE ast2.actividad_id = a.actividad_id LIMIT 1) AS nombre_categoria,
                     (SELECT COUNT(*) FROM asistencias ast WHERE ast.actividad_id = a.actividad_id) AS total,
                     (SELECT COUNT(*) FROM asistencias ast WHERE ast.actividad_id = a.actividad_id AND ast.estatus = 1) AS presentes
              FROM actividades a
              LEFT JOIN usuarios u ON a.usuario_id = u.usuario_id
+             WHERE a.tipo_actividad IN ('0', '1', 'Entrenamiento', 'Partido')
              ORDER BY a.fecha DESC, a.actividad_id DESC
              LIMIT 50"
         )->fetchAll();
@@ -74,18 +76,26 @@ final class AsistenciasController extends Controller
             'hora_fin' => 'required',
         ]);
         if (!$v->validate()) {
+            $this->withOld($request->body());
             $this->withErrors($v->errors());
             return $this->redirect('/admin/asistencias/crear');
         }
 
-        $minDate = strtotime(date('Y-m-d') . ' -1 day');
+        $minDate = strtotime('2019-01-01');
         $eventDate = strtotime($data['fecha_evento']);
         if ($eventDate > strtotime(date('Y-m-d'))) {
+            $this->withOld($request->body());
             flash('error', 'No se pueden registrar asistencias en fechas futuras.');
             return $this->redirect('/admin/asistencias/crear');
         }
         if ($eventDate < $minDate) {
-            flash('error', 'Solo se pueden registrar asistencias de hoy o del día anterior.');
+            $this->withOld($request->body());
+            flash('error', 'No se pueden registrar asistencias anteriores al año 2019.');
+            return $this->redirect('/admin/asistencias/crear');
+        }
+        if (!empty($data['hora_inicio']) && !empty($data['hora_fin']) && strtotime($data['hora_inicio']) >= strtotime($data['hora_fin'])) {
+            $this->withOld($request->body());
+            flash('error', 'La hora de inicio debe ser menor a la hora de fin.');
             return $this->redirect('/admin/asistencias/crear');
         }
 
@@ -128,6 +138,7 @@ final class AsistenciasController extends Controller
             return $this->redirect('/admin/asistencias');
         } catch (Throwable $e) {
             Logger::error($e);
+            $this->withOld($request->body());
             flash('error', 'Error al guardar: ' . $e->getMessage());
             return $this->redirect('/admin/asistencias/crear');
         }
@@ -139,7 +150,8 @@ final class AsistenciasController extends Controller
         $db = Database::connection();
 
         $actividad = $db->prepare(
-            "SELECT a.*, CONCAT(u.nombre, ' ', u.apellido) AS entrenador
+            "SELECT a.*, CONCAT(u.nombre, ' ', u.apellido) AS entrenador,
+             (SELECT c.nombre_categoria FROM asistencias ast2 JOIN atletas atl2 ON ast2.atleta_id = atl2.atleta_id JOIN categorias c ON atl2.categoria_id = c.categoria_id WHERE ast2.actividad_id = a.actividad_id LIMIT 1) AS nombre_categoria
              FROM actividades a
              LEFT JOIN usuarios u ON a.usuario_id = u.usuario_id
              WHERE a.actividad_id = ?"
@@ -184,12 +196,12 @@ final class AsistenciasController extends Controller
             return $this->redirect('/admin/asistencias');
         }
 
-        // Restricción de 48 horas para entrenadores
+        // Restricción de 30 días para entrenadores
         if (Auth::user()['rol_id'] == ROL_ENTRENADOR) {
             $fechaActividad = strtotime($actividad['fecha']);
-            $limite = strtotime('+48 hours', $fechaActividad);
+            $limite = strtotime('+30 days', $fechaActividad);
             if (time() > $limite) {
-                flash('error', 'El tiempo permitido para editar esta asistencia (48 horas) ha expirado.');
+                flash('error', 'El tiempo permitido para editar esta asistencia por un entrenador (30 días) ha expirado.');
                 return $this->redirect('/admin/asistencias');
             }
         }
@@ -242,6 +254,24 @@ final class AsistenciasController extends Controller
         if (strtotime($data['fecha_evento']) > strtotime(date('Y-m-d'))) {
             flash('error', 'No se pueden registrar asistencias en fechas futuras.');
             return $this->redirect("/admin/asistencias/{$id}/editar");
+        }
+        if (strtotime($data['fecha_evento']) < strtotime('2019-01-01')) {
+            flash('error', 'No se pueden registrar asistencias anteriores al año 2019.');
+            return $this->redirect("/admin/asistencias/{$id}/editar");
+        }
+        if (!empty($data['hora_inicio']) && !empty($data['hora_fin']) && strtotime($data['hora_inicio']) >= strtotime($data['hora_fin'])) {
+            flash('error', 'La hora de inicio debe ser menor a la hora de fin.');
+            return $this->redirect("/admin/asistencias/{$id}/editar");
+        }
+        
+        // Validar límite para entrenador también en el POST por seguridad
+        if (Auth::user()['rol_id'] == ROL_ENTRENADOR) {
+            $db = Database::connection();
+            $actOrig = $db->query("SELECT fecha FROM actividades WHERE actividad_id = $id")->fetch();
+            if ($actOrig && time() > strtotime('+30 days', strtotime($actOrig['fecha']))) {
+                flash('error', 'El tiempo permitido para editar esta asistencia por un entrenador (30 días) ha expirado.');
+                return $this->redirect('/admin/asistencias');
+            }
         }
 
         $atletaIds = (array) ($request->body('atletas') ?? []);

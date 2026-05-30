@@ -462,7 +462,7 @@
 }
 .phone-field .phone-prefix {
     border: none;
-    background: var(--color-bg-alt, #f8f9fa);
+    background: var(--color-surface-2);
     font-weight: 700;
     font-size: 13px;
     padding: 0 12px;
@@ -471,6 +471,10 @@
     color: var(--color-text);
     outline: none;
     height: 100%;
+}
+.phone-field .phone-prefix option {
+    background-color: var(--color-surface, #1e293b) !important;
+    color: var(--color-text, #f8fafc) !important;
 }
 .phone-field .phone-number {
     flex: 1;

@@ -116,30 +116,21 @@
         </li>
         */ ?>
 
-        <?php /*
-        ============================================================
-        MÓDULO DE REPORTES — OCULTO TEMPORALMENTE
-        Los reportes individuales se generan desde el perfil del atleta
-        y los de categoría desde la vista de categorías.
-        Descomentar este bloque si se requiere un centro de reportes
-        centralizado con reportes adicionales (asistencia, evolución, etc.)
-        ============================================================
         <!-- Reportes -->
         <li class="sidebar__has-sub <?= $active === 'reportes' ? 'is-open' : '' ?>">
             <a href="#">
                 <span class="icon"><i class="ph ph-printer"></i></span>
-                <span class="nav-text">Reportes</span>
+                <span class="nav-text">Centro de Reportes</span>
             </a>
             <ul class="sidebar__submenu <?= $active === 'reportes' ? 'is-open' : '' ?>">
                 <li>
                     <a href="<?= e(url('/admin/reportes')) ?>" class="<?= $active === 'reportes' ? 'active' : '' ?>">
                         <span class="icon"><i class="ph ph-file-text"></i></span>
-                        <span class="nav-text">Ficha Individual</span>
+                        <span class="nav-text">Generador PDF</span>
                     </a>
                 </li>
             </ul>
         </li>
-        */ ?>
 
         <?php if (\App\Core\Auth::isAdmin()): ?>
             <!-- Administración -->

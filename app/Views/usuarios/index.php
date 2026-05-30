@@ -1,4 +1,22 @@
-<?php /** @var array $items */ ?>
+<?php /** @var array $items */ 
+if (!function_exists('formatDocumento')) {
+    function formatDocumento($cedula) {
+        if (empty($cedula)) {
+            return '—';
+        }
+        $cedula = trim($cedula);
+        if (preg_match('/^[VEPvep]-?\d+/', $cedula)) {
+            $prefix = strtoupper($cedula[0]);
+            $number = ltrim(substr($cedula, 1), '-');
+            return $prefix . '-' . $number;
+        }
+        if (ctype_digit($cedula)) {
+            return 'V-' . $cedula;
+        }
+        return $cedula;
+    }
+}
+?>
 <div class="page-header">
     <div>
         <h1>Gestión de Usuarios</h1>
@@ -14,7 +32,7 @@
     </div>
 </div>
 
-<div class="data-table-wrap card" style="padding: 0; overflow: hidden;">
+<div class="data-table-wrap card" style="padding: 0; overflow-x: auto;">
     <table class="data-table" style="margin: 0; border: none;">
         <thead style="background: var(--color-bg-alt);">
             <tr>
@@ -39,7 +57,7 @@
                 </td>
                 <td>
                     <div style="font-weight: 600; font-size: 15px; color: var(--color-text);"><?= e($p['nombre'] . ' ' . $p['apellido']) ?></div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= e($p['cedula'] ?? '—') ?></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;"><?= e(formatDocumento($p['cedula'] ?? '')) ?></div>
                 </td>
                 <td>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
