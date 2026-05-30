@@ -40,9 +40,12 @@ final class Usuario extends Model
     {
         return $this->query(
             'SELECT usuario_id, nombre, apellido FROM usuarios
-             WHERE rol_id = :r AND estatus = "Activo"
+             WHERE rol_id IN (:r_entrenador, :r_admin) AND estatus = "Activo"
              ORDER BY apellido, nombre',
-            [':r' => ROL_ENTRENADOR]
+            [
+                ':r_entrenador' => ROL_ENTRENADOR,
+                ':r_admin' => ROL_ADMIN
+            ]
         );
     }
 

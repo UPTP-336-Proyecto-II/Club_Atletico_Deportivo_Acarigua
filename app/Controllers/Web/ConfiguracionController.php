@@ -65,7 +65,7 @@ final class ConfiguracionController extends Controller
         }
 
         if (Configuracion::updateMany($dataToUpdate)) {
-            flash('success', 'Configuración actualizada exitosamente.');
+            flash('success', 'Configuración actualizada exitosamente. El cambio en el tiempo de expiración se aplicará a partir del próximo inicio de sesión.');
         } else {
             flash('error', 'Ocurrió un error al guardar la configuración.');
         }

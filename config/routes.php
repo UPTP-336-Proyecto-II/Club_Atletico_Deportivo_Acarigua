@@ -162,4 +162,7 @@ $router->group('/api', [AuthMiddleware::class], function ($r) {
 
     // Reportes (endpoints de datos agregados)
     $r->get('/reportes/resumen', [ReportesApiController::class, 'resumen']);
+
+    // Keep-alive de sesión
+    $r->post('/keep-alive', [AuthController::class, 'keepAlive']);
 });

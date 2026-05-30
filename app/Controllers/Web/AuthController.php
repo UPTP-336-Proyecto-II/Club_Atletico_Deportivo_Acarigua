@@ -311,4 +311,15 @@ final class AuthController extends Controller
         flash('success', '¡Contraseña actualizada correctamente! Ya puedes iniciar sesión.');
         return $this->redirect('/login');
     }
+
+    public function keepAlive(Request $request): Response
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return $this->json(['success' => false, 'message' => 'Sesión expirada.'], 401);
+        }
+        Auth::setCookie($user);
+        $_SESSION['_last_activity'] = time();
+        return $this->json(['success' => true, 'message' => 'Sesión extendida.']);
+    }
 }
