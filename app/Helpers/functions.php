@@ -179,3 +179,24 @@ if (!function_exists('config_db')) {
         return \App\Models\Configuracion::get($key, $default);
     }
 }
+
+if (!function_exists('has_errors')) {
+    /**
+     * Determina si existen errores de validación en la sesión.
+     */
+    function has_errors(): bool
+    {
+        return !empty($_SESSION['_errors']);
+    }
+}
+
+if (!function_exists('errors')) {
+    /**
+     * Obtiene los errores de validación de la sesión.
+     */
+    function errors(): array
+    {
+        return $_SESSION['_errors'] ?? [];
+    }
+}
+

@@ -13,7 +13,6 @@ final class AtletasApiController extends Controller
     public function index(Request $request): Response
     {
         $filters = array_filter([
-            'categoria_id' => $request->query('categoria_id'),
             'estatus'      => $request->query('estatus'),
             'q'            => $request->query('q'),
         ], fn($v) => $v !== null && $v !== '');

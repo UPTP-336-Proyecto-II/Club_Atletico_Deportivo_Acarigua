@@ -14,11 +14,19 @@ final class CategoriasController extends Controller
 {
     public function index(Request $request): Response
     {
+        $filters = [
+            'q' => trim((string) $request->input('q', '')),
+            'sexo' => trim((string) $request->input('sexo', '')),
+            'entrenador_id' => trim((string) $request->input('entrenador_id', '')),
+        ];
+
         return $this->view('categorias.index', [
             'title' => 'Categorías',
             'active' => 'categorias',
             'breadcrumb' => ['Inicio', 'Categorías'],
-            'items' => (new Categoria())->allWithEntrenador(),
+            'items' => (new Categoria())->allWithEntrenador($filters),
+            'filters' => $filters,
+            'entrenadores' => (new Usuario())->entrenadores(),
         ], 'admin');
     }
 
@@ -37,13 +45,24 @@ final class CategoriasController extends Controller
     public function store(Request $request): Response
     {
         $data = $this->input($request);
+
+        // Auto-generación del nombre de la categoría
+        $sexo = $data['sexo_categoria'];
+        $sexSuffix = match ($sexo) {
+            'M' => '(m)',
+            'F' => '(f)',
+            'X' => '(mix)',
+            default => ''
+        };
+        $data['nombre_categoria'] = 'sub-' . $data['edad_max'] . $sexSuffix;
+
         $v = Validator::make($data, [
             'nombre_categoria' => 'required|min:2|max:50',
             'edad_min'         => 'required|integer|min:6|max:100',
             'edad_max'         => 'required|integer|min:6|max:100',
             'sexo_categoria'   => 'required|in:M,F,X',
             'usuario_id'       => 'required|integer',
-            'estatus'          => 'required|in:activa,inactiva',
+            'estatus'          => 'required|in:1,2',
         ], [
             'nombre_categoria' => 'El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.',
             'edad_min'         => 'La edad mínima es obligatoria y debe ser de al menos 6 años.',
@@ -56,10 +75,17 @@ final class CategoriasController extends Controller
             $this->withOld($data)->withErrors($v->errors());
             return $this->redirect('/admin/categorias/crear');
         }
-        if ($data['edad_min'] > $data['edad_max']) {
-            $this->withOld($data)->withErrors(['edad_min' => 'La edad mínima no puede ser mayor a la máxima.']);
+        if ($data['edad_min'] >= $data['edad_max']) {
+            $this->withOld($data)->withErrors(['edad_min' => 'La edad mínima debe ser estrictamente menor que la edad máxima.']);
             return $this->redirect('/admin/categorias/crear');
         }
+
+        $entrenador = (new Usuario())->find((int) $data['usuario_id']);
+        if (!$entrenador || (int) $entrenador['rol_id'] !== 3) {
+            $this->withOld($data)->withErrors(['usuario_id' => 'El entrenador responsable seleccionado no es válido o no posee el rol de entrenador.']);
+            return $this->redirect('/admin/categorias/crear');
+        }
+
         try {
             (new Categoria())->insert($data);
             flash('success', 'Categoría creada.');
@@ -80,6 +106,12 @@ final class CategoriasController extends Controller
         $id = (int) $request->param('id');
         $item = (new Categoria())->find($id);
         if (!$item) { flash('error', 'No encontrada.'); return $this->redirect('/admin/categorias'); }
+
+        $db = \App\Core\Database::connection();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM asig_categorias WHERE categoria_id = ?");
+        $stmt->execute([$id]);
+        $item['total_atletas'] = (int) $stmt->fetchColumn();
+
         return $this->view('categorias.form', [
             'title' => 'Editar categoría',
             'active' => 'categorias',
@@ -93,14 +125,57 @@ final class CategoriasController extends Controller
     public function update(Request $request): Response
     {
         $id = (int) $request->param('id');
+        $categoriaModel = new Categoria();
+        $original = $categoriaModel->find($id);
+
+        if (!$original) {
+            flash('error', 'Categoría no encontrada.');
+            return $this->redirect('/admin/categorias');
+        }
+
         $data = $this->input($request);
+
+        // Validar si tiene atletas asignados
+        $db = \App\Core\Database::connection();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM asig_categorias WHERE categoria_id = ?");
+        $stmt->execute([$id]);
+        $totalAtletas = (int) $stmt->fetchColumn();
+
+        if ($totalAtletas > 0) {
+            $errors = [];
+            if ($original['sexo_categoria'] !== $data['sexo_categoria']) {
+                $errors['sexo_categoria'] = 'No se puede modificar el género de una categoría con atletas asignados.';
+            }
+            if ((int) $original['edad_min'] !== $data['edad_min']) {
+                $errors['edad_min'] = 'No se puede modificar la edad mínima de una categoría con atletas asignados.';
+            }
+            if ((int) $original['edad_max'] !== $data['edad_max']) {
+                $errors['edad_max'] = 'No se puede modificar la edad máxima de una categoría con atletas asignados.';
+            }
+
+            if (!empty($errors)) {
+                $this->withOld($data)->withErrors($errors);
+                return $this->redirect("/admin/categorias/$id/editar");
+            }
+        }
+
+        // Auto-generación del nombre de la categoría
+        $sexo = $data['sexo_categoria'];
+        $sexSuffix = match ($sexo) {
+            'M' => '(m)',
+            'F' => '(f)',
+            'X' => '(mix)',
+            default => ''
+        };
+        $data['nombre_categoria'] = 'sub-' . $data['edad_max'] . $sexSuffix;
+
         $v = Validator::make($data, [
             'nombre_categoria' => 'required|min:2|max:50',
             'edad_min'         => 'required|integer|min:6|max:100',
             'edad_max'         => 'required|integer|min:6|max:100',
             'sexo_categoria'   => 'required|in:M,F,X',
             'usuario_id'       => 'required|integer',
-            'estatus'          => 'required|in:activa,inactiva',
+            'estatus'          => 'required|in:1,2',
         ], [
             'nombre_categoria' => 'El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.',
             'edad_min'         => 'La edad mínima es obligatoria y debe ser de al menos 6 años.',
@@ -113,10 +188,25 @@ final class CategoriasController extends Controller
             $this->withOld($data)->withErrors($v->errors());
             return $this->redirect("/admin/categorias/$id/editar");
         }
-        if ($data['edad_min'] > $data['edad_max']) {
-            $this->withOld($data)->withErrors(['edad_min' => 'La edad mínima no puede ser mayor a la máxima.']);
+        if ($data['edad_min'] >= $data['edad_max']) {
+            $this->withOld($data)->withErrors(['edad_min' => 'La edad mínima debe ser estrictamente menor que la edad máxima.']);
             return $this->redirect("/admin/categorias/$id/editar");
         }
+
+        $entrenador = (new Usuario())->find((int) $data['usuario_id']);
+        if (!$entrenador || (int) $entrenador['rol_id'] !== 3) {
+            $this->withOld($data)->withErrors(['usuario_id' => 'El entrenador responsable seleccionado no es válido o no posee el rol de entrenador.']);
+            return $this->redirect("/admin/categorias/$id/editar");
+        }
+
+        // Si intenta inactivar (estatus 2), verificar si tiene atletas
+        if ($data['estatus'] === 2) {
+            if ($totalAtletas > 0) {
+                $this->withOld($data)->withErrors(['estatus' => 'No se puede inactivar una categoría que tiene atletas asignados.']);
+                return $this->redirect("/admin/categorias/$id/editar");
+            }
+        }
+
         try {
             (new Categoria())->update($id, $data);
             flash('success', 'Categoría actualizada.');
@@ -149,9 +239,9 @@ final class CategoriasController extends Controller
             'nombre_categoria' => trim((string) $request->input('nombre_categoria')),
             'edad_min'         => (int) $request->input('edad_min', 0),
             'edad_max'         => (int) $request->input('edad_max', 0),
-            'usuario_id'    => $request->input('usuario_id') ?: null,
+            'usuario_id'       => $request->input('usuario_id') ? (int) $request->input('usuario_id') : null,
             'sexo_categoria'   => strtoupper((string) $request->input('sexo_categoria', 'M')),
-            'estatus'          => strtolower((string)$request->input('estatus', 'activa')),
+            'estatus'          => (int) $request->input('estatus', 1),
         ];
     }
 }

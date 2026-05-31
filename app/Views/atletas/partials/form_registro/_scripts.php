@@ -8,6 +8,7 @@ const btnSubmit = document.getElementById('btn-submit');
 const stepNumEl = document.getElementById('current-step-num');
 
 let currentIdx = 0;
+const ATLETA_ID = <?= json_encode($a['atleta_id'] ?? null) ?>;
 
 function updateUI() {
     const isLast = currentIdx === tabs.length - 1;
@@ -68,23 +69,35 @@ function validateStep(idx) {
             const cedPref = document.getElementById('cedula_prefix');
             const cedInput = document.getElementById('cedula_number');
             
-            if (cedPref && cedPref.value === 'P') {
+            if (cedPref && cedPref.value === 'N') {
                 const y = document.getElementById('folio_year').value;
                 const a = document.getElementById('folio_acta').value;
-                const n = document.getElementById('folio_num').value;
-                if (!y || !a || !n) {
-                    showError('cedula', 'Completa el Código de Partida');
-                    missingFields.push('Código de Partida');
+                if (!y || !a) {
+                    showError('cedula', 'Completa el Código de Acta de Nacimiento (Año y Acta)');
+                    missingFields.push('Código de Acta de Nacimiento');
                     isValid = false;
-                } else if (ced && ced.value && !validarCedula(ced.value)) {
-                    showError('cedula', 'Formato de Código de Partida inválido (Año-Acta-Folio)');
-                    missingFields.push('Código de Partida (Formato)');
-                    isValid = false;
+                } else {
+                    if (ced && ced.value && !validarCedula(ced.value)) {
+                        showError('cedula', 'Formato de Código de Acta de Nacimiento inválido (Año-Acta)');
+                        missingFields.push('Código de Acta de Nacimiento (Formato)');
+                        isValid = false;
+                    }
+                    const birthVal = panel.querySelector('[name="fecha_nacimiento"]').value;
+                    if (birthVal) {
+                        const birthYear = new Date(birthVal).getFullYear();
+                        const certYear = parseInt(y, 10);
+                        if (certYear < birthYear) {
+                            showError('cedula', 'El año del acta de nacimiento no puede ser menor al año de nacimiento.');
+                            missingFields.push('Año del acta de nacimiento menor al año de nacimiento');
+                            isValid = false;
+                        }
+                    }
                 }
             } else {
                 if (ced && ced.value && !validarCedula(ced.value)) {
-                    showError('cedula', 'Formato de cédula inválido');
-                    missingFields.push('Cédula (Formato)');
+                    const docName = (cedPref && cedPref.value === 'P') ? 'Pasaporte' : 'Cédula';
+                    showError('cedula', 'Formato de ' + docName.toLowerCase() + ' inválido');
+                    missingFields.push(docName + ' (Formato)');
                     isValid = false;
                 }
             }
@@ -101,7 +114,7 @@ function validateStep(idx) {
             const tced = document.getElementById('tutor_cedula');
             if (tced && tced.value && !validarCedula(tced.value)) {
                 showError('tutor_cedula', 'Formato inválido');
-                missingFields.push('Cédula del Representante (Formato)');
+                missingFields.push('Cédula o Pasaporte del Representante (Formato)');
                 isValid = false;
             }
             
@@ -131,12 +144,91 @@ function validateStep(idx) {
     }
 }
 
-// Click en botones
-btnNext.addEventListener('click', () => {
-    if (validateStep(currentIdx)) {
+// —— Validación Asíncrona (Fetch API) ————————————————————————————————————————
+async function validateStepAsync(idx) {
+    // 1. Validar localmente primero
+    if (!validateStep(idx)) {
+        return false;
+    }
+
+    // 2. Preparar FormData para Fetch
+    const formData = new FormData(mainForm);
+    formData.append('step', idx);
+    formData.append('atleta_id', ATLETA_ID || '');
+
+    // 3. Determinar qué botón deshabilitar y mostrar spinner
+    const isLast = idx === tabs.length - 1;
+    const btnToDisable = isLast ? btnSubmit : btnNext;
+    const originalText = btnToDisable.innerHTML;
+
+    btnToDisable.disabled = true;
+    btnToDisable.innerHTML = '<i class="ph ph-spinner spinner"></i> Validando...';
+
+    try {
+        const response = await fetch('<?= e(url('/admin/atletas/validar-paso')) ?>', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const result = await response.json();
+        btnToDisable.disabled = false;
+        btnToDisable.innerHTML = originalText;
+
+        if (!response.ok || !result.success) {
+            const errors = result.errors || {};
+            const errorMsgs = [];
+            for (const key in errors) {
+                errorMsgs.push(errors[key]);
+                // Mostrar error visualmente
+                showError(key, errors[key]);
+                
+                // Pintar borde rojo
+                const input = document.getElementsByName(key)[0] || document.getElementById(key);
+                if (input) {
+                    const wrap = input.closest('.phone-field');
+                    if (wrap) wrap.style.borderColor = 'var(--color-danger)';
+                    else input.style.borderColor = 'var(--color-danger)';
+                }
+            }
+
+            if (typeof CadaModal !== 'undefined' && CadaModal.alert) {
+                CadaModal.alert({
+                    title: 'Alerta de Validación',
+                    text: errorMsgs.join('<br>'),
+                    type: 'error'
+                });
+            } else {
+                alert(errorMsgs.join('\n'));
+            }
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        console.error(err);
+        btnToDisable.disabled = false;
+        btnToDisable.innerHTML = originalText;
+        if (typeof CadaModal !== 'undefined' && CadaModal.alert) {
+            CadaModal.alert({
+                title: 'Error de Conexión',
+                text: 'Ocurrió un error al conectarse con el servidor para validar los datos.',
+                type: 'danger'
+            });
+        }
+        return false;
+    }
+}
+
+// Click en botones con soporte asíncrono
+btnNext.addEventListener('click', async () => {
+    if (await validateStepAsync(currentIdx)) {
         if (currentIdx < tabs.length - 1) {
             currentIdx++;
             updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 });
@@ -148,12 +240,17 @@ btnPrev.addEventListener('click', () => {
     }
 });
 
-// Evitar envío del formulario si el paso actual (ej. paso 3) no es válido
+// Manejador del submit con validación asíncrona del último paso
 const mainForm = document.querySelector('.af-card');
 if (mainForm) {
-    mainForm.addEventListener('submit', (e) => {
-        if (!validateStep(currentIdx)) {
-            e.preventDefault();
+    mainForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validar el paso actual asíncronamente
+        const isValid = await validateStepAsync(currentIdx);
+        if (isValid) {
+            // Si es válido, enviamos el formulario programáticamente
+            this.submit();
         }
     });
 }
@@ -306,25 +403,34 @@ if (btnReset) {
 // Inicializar
 updateUI();
 
-// —— Cédula y Partida de Nacimiento ——————————————————————————————————————————————
-const CEDULA_REGEX = /^[VE]-\d{1,3}(\.\d{3})+$/;
-const PARTIDA_REGEX = /^P-\d{4}-[A-Z0-9]{1,5}-[A-Z0-9]{1,5}$/;
+// —— Cédula, Pasaporte y Acta de Nacimiento ——————————————————————————————————————————————
+const CEDULA_REGEX = /^[VE]-\d{6,10}$/i;
+const PASAPORTE_REGEX = /^P-[A-Z0-9]{5,15}$/i;
+const PARTIDA_REGEX = /^N-\d{4}-[A-Z0-9]{1,5}$/i;
 
-function formatCedulaNumber(val) {
-    let digits = val.replace(/\D/g, '').substring(0, 8);
+function formatCedulaNumber(digits) {
     return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 function validarCedula(val) {
     if (!val) return true;
-    if (val.startsWith('P-')) {
+    if (val.startsWith('N-') || val.startsWith('n-')) {
         return PARTIDA_REGEX.test(val);
     }
-    const digitsOnly = val.replace(/\D/g, '');
-    if (digitsOnly.length < 7 || digitsOnly.length > 9) {
+    if (val.startsWith('P-') || val.startsWith('p-')) {
+        // Si el pasaporte es puramente numérico, validar longitud
+        const digitsOnly = val.substring(2).replace(/\./g, '');
+        if (/^\d+$/.test(digitsOnly)) {
+            return digitsOnly.length >= 6 && digitsOnly.length <= 10;
+        }
+        return PASAPORTE_REGEX.test(val);
+    }
+    const cleanVal = val.replace(/\./g, '');
+    const digitsOnly = cleanVal.replace(/\D/g, '');
+    if (digitsOnly.length < 6 || digitsOnly.length > 10) {
         return false;
     }
-    return CEDULA_REGEX.test(val);
+    return CEDULA_REGEX.test(cleanVal);
 }
 
 function showError(id, msg) {
@@ -342,51 +448,65 @@ function setupCedulaWidget(prefixId, numberId, hiddenId, errorKey) {
     if (!prefixEl || !numberEl || !hiddenEl) return;
 
     // Folio elements (solo para el widget del atleta, si existen)
-    const folioInputs = document.getElementById('folio_inputs');
-    const fYear = document.getElementById('folio_year');
-    const fActa = document.getElementById('folio_acta');
-    const fNum = document.getElementById('folio_num');
+    const isAthlete = (prefixId === 'cedula_prefix');
+    const folioInputs = isAthlete ? document.getElementById('folio_inputs') : null;
+    const fYear = isAthlete ? document.getElementById('folio_year') : null;
+    const fActa = isAthlete ? document.getElementById('folio_acta') : null;
 
     function sync() {
         let val = '';
-        if (prefixEl.value === 'P' && folioInputs) {
+        if (prefixEl.value === 'N' && folioInputs) {
             let y = fYear.value.replace(/\D/g, '').substring(0, 4);
             let a = fActa.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
-            let n = fNum.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
-            fYear.value = y; fActa.value = a; fNum.value = n;
-            val = (y||a||n) ? `${y}-${a}-${n}` : '';
-        } else {
-            val = numberEl.value.trim().toUpperCase();
-            if (prefixEl.value === 'V' || prefixEl.value === 'E') {
-                val = formatCedulaNumber(val);
+            fYear.value = y; fActa.value = a;
+            val = (y||a) ? `${y}-${a}` : '';
+        } else if (prefixEl.value === 'P') {
+            let raw = numberEl.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            let digitsOnly = raw.replace(/\./g, '');
+            if (/^\d+$/.test(digitsOnly)) {
+                numberEl.value = formatCedulaNumber(digitsOnly);
+                val = digitsOnly;
+            } else {
+                numberEl.value = raw;
+                val = raw;
             }
-            numberEl.value = val;
+        } else {
+            let digits = numberEl.value.replace(/\D/g, '');
+            numberEl.value = formatCedulaNumber(digits);
+            val = digits;
         }
         hiddenEl.value = val.length ? prefixEl.value + '-' + val : '';
     }
     
-    // Si ya viene un valor cargado (no Folio, ya que PHP lo maneja en los inputs de Folio)
+    // Si ya viene un valor cargado
     if (hiddenEl.value) {
         let raw = hiddenEl.value;
         let prefix = 'V', num = raw;
         if (raw.includes('-')) {
             let parts = raw.split('-');
-            prefix = parts[0];
-            if (prefix === 'P' && parts.length > 2) {
-                num = parts.slice(1).join('-');
-            } else {
-                num = parts[1] || '';
-            }
+            prefix = parts[0].toUpperCase();
+            num = parts.slice(1).join('-') || '';
         } else {
             let firstChar = raw.charAt(0).toUpperCase();
-            if (['V', 'E', 'P'].includes(firstChar)) {
+            if (['V', 'E', 'P', 'N'].includes(firstChar)) {
                 prefix = firstChar;
                 num = raw.substring(1);
             }
         }
         prefixEl.value = prefix;
-        if (prefix !== 'P') {
-            numberEl.value = prefix === 'V' || prefix === 'E' ? formatCedulaNumber(num) : num;
+        if (prefix === 'N') {
+            if (folioInputs) {
+                let parts = num.split('-');
+                if (fYear) fYear.value = parts[0] || '';
+                if (fActa) fActa.value = parts[1] || '';
+            }
+        } else {
+            let cleanNum = num.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+            if (prefix === 'V' || prefix === 'E' || (prefix === 'P' && /^\d+$/.test(cleanNum.replace(/\./g, '')))) {
+                numberEl.value = formatCedulaNumber(cleanNum.replace(/\D/g, ''));
+            } else {
+                numberEl.value = cleanNum;
+            }
         }
     }
     sync();
@@ -395,14 +515,16 @@ function setupCedulaWidget(prefixId, numberId, hiddenId, errorKey) {
     if (folioInputs) {
         fYear.addEventListener('input', () => { sync(); clearError(errorKey); });
         fActa.addEventListener('input', () => { sync(); clearError(errorKey); });
-        fNum.addEventListener('input', () => { sync(); clearError(errorKey); });
     }
 
     prefixEl.addEventListener('change', () => {
-        if (prefixEl.value === 'P') {
+        numberEl.value = '';
+        hiddenEl.value = '';
+        if (prefixEl.value === 'N') {
             numberEl.style.display = 'none';
             if (folioInputs) {
                 folioInputs.style.display = 'flex';
+                fYear.value = ''; fActa.value = '';
                 fYear.focus();
             } else {
                 numberEl.style.display = 'block';
@@ -413,8 +535,13 @@ function setupCedulaWidget(prefixId, numberId, hiddenId, errorKey) {
         } else {
             if (folioInputs) folioInputs.style.display = 'none';
             numberEl.style.display = 'block';
-            numberEl.placeholder = "12.345.678";
-            numberEl.maxLength = 10;
+            if (prefixEl.value === 'P') {
+                numberEl.placeholder = "ABC123456";
+                numberEl.maxLength = 15;
+            } else {
+                numberEl.placeholder = "12.345.678";
+                numberEl.maxLength = 12; // Acomodar puntos ej: 12.345.678 (10 chars)
+            }
             numberEl.focus();
         }
         sync();
@@ -424,7 +551,13 @@ function setupCedulaWidget(prefixId, numberId, hiddenId, errorKey) {
     const blurHandler = () => {
         const val = hiddenEl.value;
         if (val && !validarCedula(val)) {
-            showError(errorKey, prefixEl.value === 'P' ? 'Completa Año, Acta y Cód. Partida' : 'Formato inválido. Ej: ' + prefixEl.value + '-12.345.678');
+            if (prefixEl.value === 'N') {
+                showError(errorKey, 'Completa Año y Acta (Formato Año-Acta)');
+            } else if (prefixEl.value === 'P') {
+                showError(errorKey, 'Formato de Pasaporte inválido.');
+            } else {
+                showError(errorKey, 'Formato inválido. Ej: ' + prefixEl.value + '-12.345.678');
+            }
         } else {
             clearError(errorKey);
         }
@@ -434,14 +567,12 @@ function setupCedulaWidget(prefixId, numberId, hiddenId, errorKey) {
     if (folioInputs) {
         fYear.addEventListener('blur', blurHandler);
         fActa.addEventListener('blur', blurHandler);
-        fNum.addEventListener('blur', blurHandler);
     }
     
     numberEl.addEventListener('focus', () => clearError(errorKey));
     if (folioInputs) {
         fYear.addEventListener('focus', () => clearError(errorKey));
         fActa.addEventListener('focus', () => clearError(errorKey));
-        fNum.addEventListener('focus', () => clearError(errorKey));
     }
 }
 
@@ -604,15 +735,6 @@ if (dobEl) {
     // Ejecutar al cargar para atletas existentes o reediciones
     updateDynamicRequirements();
 }
-
-// —— Validación Final ———————————————————————————————————————————————————————
-document.querySelector('form').addEventListener('submit', function(e) {
-    if (!validateStep(currentIdx)) {
-        e.preventDefault();
-        return;
-    }
-    // Si validateStep pasa, el formulario se envía.
-});
 
 // —— Botón de Ayuda [?] ——————————————————————————————————————————————————————
 document.getElementById('btn-help-atleta')?.addEventListener('click', () => {

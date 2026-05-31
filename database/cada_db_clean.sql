@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-05-2026 a las 06:16:03
+-- Tiempo de generación: 30-05-2026 a las 23:17:53
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -44,6 +44,24 @@ CREATE TABLE `actividades` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `asig_categorias`
+--
+
+CREATE TABLE `asig_categorias` (
+  `asignacion_id` int(10) UNSIGNED NOT NULL,
+  `categoria_id` smallint(6) NOT NULL,
+  `atleta_id` int(10) UNSIGNED NOT NULL,
+  `nun_dorsal` smallint(5) UNSIGNED DEFAULT NULL,
+  `posicion_principal_id` tinyint(4) DEFAULT NULL,
+  `posicion_secundaria_id` tinyint(4) DEFAULT NULL,
+  `estatus` tinyint(4) DEFAULT 1,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
+  `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `asistencias`
 --
 
@@ -69,10 +87,8 @@ CREATE TABLE `atletas` (
   `sexo` char(1) NOT NULL,
   `cedula` varchar(12) DEFAULT NULL,
   `telefono` varchar(15) DEFAULT NULL,
-  `posicion_juego_id` tinyint(4) DEFAULT NULL,
   `pierna_dominante` enum('derecha','izquierda','ambidiestro','') DEFAULT NULL,
   `direccion_id` bigint(20) UNSIGNED NOT NULL,
-  `categoria_id` smallint(6) DEFAULT NULL,
   `representante_id` int(11) UNSIGNED NOT NULL,
   `foto` varchar(255) DEFAULT NULL,
   `estatus` tinyint(4) NOT NULL,
@@ -93,7 +109,7 @@ CREATE TABLE `categorias` (
   `edad_min` tinyint(4) NOT NULL,
   `edad_max` tinyint(4) NOT NULL,
   `usuario_id` int(11) UNSIGNED NOT NULL,
-  `estatus` enum('activa','inactiva','','') NOT NULL,
+  `estatus` tinyint(4) NOT NULL DEFAULT 1,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
   `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -117,9 +133,9 @@ CREATE TABLE `configuraciones` (
 --
 
 INSERT INTO `configuraciones` (`configuracion_id`, `clave`, `valor`, `descripcion`, `actualizado_en`) VALUES
-(1, 'tiempo_sesion', '120', 'Tiempo de expiración de sesión en minutos', '2026-05-09 03:51:59'),
-(2, 'mision', 'El Club Atlético Deportivo Acarigua, pretende la formación de atletas profesionales, altamente capacitados; física, motriz y cognitivamente en el balón pies, proactivos y capaces de aportar valores agregados a través de los Principios Cristianos que gerencien su desarrollo humanístico para la excelencia de su carrera futbolística.', 'Misión de la comunidad/club', '2026-05-09 03:51:59'),
-(3, 'vision', 'Ser una institución competitiva con fundamentos cristianos, profesionalmente capacitada para ejercer una academia modelo de impacto para la sociedad venezolana, inspirando a los atletas en su desarrollo integral, en el ámbito deportivo y recreativo, validando su potencial e identidad para proporcionarles un nivel de seguridad a cada uno de ellos.', 'Visión de la comunidad/club', '2026-05-09 03:51:59'),
+(1, 'tiempo_sesion', '120', 'Tiempo de expiración de sesión en minutos', '2026-05-30 19:32:48'),
+(2, 'mision', 'El Club Atlético Deportivo Acarigua, pretende la formación de atletas profesionales, altamente capacitados; física, motriz y cognitivamente en el balón pies, proactivos y capaces de aportar valores agregados a través de los Principios Cristianos que gerencien su desarrollo humanístico para la excelencia de su carrera futbolística.', 'Misión de la comunidad/club', '2026-05-28 07:56:15'),
+(3, 'vision', 'Ser una institución competitiva con fundamentos cristianos, profesionalmente capacitada para ejercer una academia modelo de impacto para la sociedad venezolana, inspirando a los atletas en su desarrollo integral, en el ámbito deportivo y recreativo, validando su potencial e identidad para proporcionarles un nivel de seguridad a cada uno de ellos.', 'Visión de la comunidad/club', '2026-05-28 07:56:15'),
 (4, 'correo_contacto', 'clubatleticodeportivoacarigua@gmail.com', 'Correo electrónico oficial del club', '2026-05-09 03:51:59'),
 (5, 'google_maps_url', 'https://www.google.com/maps/place/Estadio+de+F%C3%BAtbol+%22Tecnol%C3%B3gico%22/@9.5461005,-69.1884635,692m/data=!3m2!1e3!4b1!4m6!3m5!1s0x8e7dc3d930fe4093:0xb91420c522a2bf52!8m2!3d9.5461005!4d-69.1884635!16s%2Fg%2F11clvlb06l?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D', 'URL de ubicación en Google Maps', '2026-05-24 04:04:05'),
 (6, 'facebook_url', 'https://www.facebook.com/p/CLUB-atl%C3%A9tico-Deportivo-acarigua-100086449924024/', 'Enlace al perfil de Facebook', '2026-05-24 04:05:37'),
@@ -223,27 +239,6 @@ CREATE TABLE `fichas_medicas` (
   `medicacion_actual` varchar(100) DEFAULT NULL,
   `creado_en` timestamp NOT NULL DEFAULT current_timestamp(),
   `actualizado_en` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `historial_partidos`
---
-
-CREATE TABLE `historial_partidos` (
-  `partido_id` int(11) UNSIGNED NOT NULL,
-  `categoria_id` smallint(6) NOT NULL,
-  `nombre_rival` varchar(100) NOT NULL,
-  `tipo_partido` enum('liga','clasificatorio','amistoso','torneo','benefico') DEFAULT NULL,
-  `fecha_partido` date NOT NULL,
-  `terreno` tinyint(4) DEFAULT NULL COMMENT 'ej:cesped natural, artificial, tierra, altitud',
-  `clima` tinyint(4) DEFAULT NULL COMMENT 'ej:lluvia,niebla, viento, calor',
-  `goles_recibidos` tinyint(4) NOT NULL,
-  `goles_anotados` tinyint(4) NOT NULL,
-  `resultado` tinyint(4) NOT NULL COMMENT 'Codificación: 2=Victoria, 1=Empate, 0=Derrota',
-  `observaciones` varchar(200) DEFAULT NULL,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1966,9 +1961,9 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`usuario_id`, `correo`, `contrasena`, `token`, `rol_id`, `estatus`, `nombre`, `apellido`, `cedula`, `telefono`, `fecha_nac`, `direccion_id`, `foto`, `ultimo_acceso`, `creado_en`, `actualizado_en`) VALUES
-(1, 'superusuario@gmail.com', '$2y$12$wMBzc.XRrx1xM7WN/FegZecwqkX3SkJmLhoizVlh80683QZVMrSbm', NULL, 1, 'Activo', 'Super', 'Usuario', '11111111', '', '0000-00-00', 1, NULL, NULL, '2026-05-09 03:17:04', '2026-05-09 03:17:04'),
-(2, 'administrador@gmail.com', '$2y$12$v7QAqGZo03q4/lfL6LrO9u1NsNFItWBUANyAa4gpZ81UQzVdyjeii', NULL, 2, 'Activo', 'Administrador', 'Prueba', '22222222', '', '0000-00-00', 1, NULL, NULL, '2026-05-09 03:17:04', '2026-05-09 03:17:04'),
-(3, 'entrenador@gmail.com', '$2y$12$VTjod2tBSgA42iWu6iXI.OhkpST/kRllpR1Y8ASg4iPWgCYoE3Dci', NULL, 3, 'Activo', 'Entrenador', 'Prueba', '33333333', '', '0000-00-00', 1, NULL, NULL, '2026-05-09 03:17:04', '2026-05-09 03:17:04');
+(1, 'superusuario@gmail.com', '$2y$12$HSO6Xx7/owcUhJiU3zYowu.hCNtSx8uID04P/2zYk76LopnYPV2Fe', NULL, 1, 'Activo', 'Super', 'Usuario', 'V-11.111.111', '', '0000-00-00', 1, NULL, '2026-05-30 21:16:56', '2026-05-09 03:17:04', '2026-05-30 21:16:56'),
+(2, 'administrador@gmail.com', '$2y$12$UoiVrtehmwgJBXkfwmKLTeECwsQkURRiYBJhjai2MR/hRJ2VFOWKu', NULL, 2, 'Activo', 'Administrador', 'Prueba', 'V-22.222.222', '', '0000-00-00', 1, NULL, '2026-05-28 13:11:13', '2026-05-09 03:17:04', '2026-05-30 21:16:29'),
+(3, 'entrenador@gmail.com', '$2y$12$60fSrhIfsWx0p2kzrWHzBuAqoD/CmHep0yEsYIjoFLEvU.J34alt6', NULL, 3, 'Activo', 'Entrenador', 'Prueba', 'V-33.333.333', '', '0000-00-00', 1, NULL, '2026-05-26 19:01:01', '2026-05-09 03:17:04', '2026-05-30 21:16:47');
 
 --
 -- Índices para tablas volcadas
@@ -1980,6 +1975,17 @@ INSERT INTO `usuarios` (`usuario_id`, `correo`, `contrasena`, `token`, `rol_id`,
 ALTER TABLE `actividades`
   ADD PRIMARY KEY (`actividad_id`),
   ADD KEY `usuario_id` (`usuario_id`);
+
+--
+-- Indices de la tabla `asig_categorias`
+--
+ALTER TABLE `asig_categorias`
+  ADD PRIMARY KEY (`asignacion_id`),
+  ADD UNIQUE KEY `categoria_id_2` (`categoria_id`,`nun_dorsal`),
+  ADD KEY `categoria_id` (`categoria_id`),
+  ADD KEY `atleta_id` (`atleta_id`),
+  ADD KEY `posicion_id` (`posicion_principal_id`),
+  ADD KEY `posicion_id2` (`posicion_secundaria_id`);
 
 --
 -- Indices de la tabla `asistencias`
@@ -1995,9 +2001,7 @@ ALTER TABLE `asistencias`
 ALTER TABLE `atletas`
   ADD PRIMARY KEY (`atleta_id`),
   ADD KEY `direccion_id` (`direccion_id`),
-  ADD KEY `categoria_id` (`categoria_id`),
-  ADD KEY `representante_id` (`representante_id`),
-  ADD KEY `posicion_juego_id` (`posicion_juego_id`);
+  ADD KEY `representante_id` (`representante_id`);
 
 --
 -- Indices de la tabla `categorias`
@@ -2042,13 +2046,6 @@ ALTER TABLE `estados`
 ALTER TABLE `fichas_medicas`
   ADD PRIMARY KEY (`ficha_id`),
   ADD UNIQUE KEY `atleta_id` (`atleta_id`) USING BTREE;
-
---
--- Indices de la tabla `historial_partidos`
---
-ALTER TABLE `historial_partidos`
-  ADD PRIMARY KEY (`partido_id`),
-  ADD KEY `categoria_id` (`categoria_id`);
 
 --
 -- Indices de la tabla `medidas_antropometricas`
@@ -2140,6 +2137,12 @@ ALTER TABLE `actividades`
   MODIFY `actividad_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `asig_categorias`
+--
+ALTER TABLE `asig_categorias`
+  MODIFY `asignacion_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `asistencias`
 --
 ALTER TABLE `asistencias`
@@ -2186,12 +2189,6 @@ ALTER TABLE `estados`
 --
 ALTER TABLE `fichas_medicas`
   MODIFY `ficha_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `historial_partidos`
---
-ALTER TABLE `historial_partidos`
-  MODIFY `partido_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `medidas_antropometricas`
@@ -2270,6 +2267,15 @@ ALTER TABLE `actividades`
   ADD CONSTRAINT `actividades_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`usuario_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
+-- Filtros para la tabla `asig_categorias`
+--
+ALTER TABLE `asig_categorias`
+  ADD CONSTRAINT `asig_categorias_ibfk_1` FOREIGN KEY (`posicion_principal_id`) REFERENCES `posiciones_juegos` (`posicion_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `asig_categorias_ibfk_2` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`categoria_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `asig_categorias_ibfk_3` FOREIGN KEY (`atleta_id`) REFERENCES `atletas` (`atleta_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  ADD CONSTRAINT `asig_categorias_ibfk_4` FOREIGN KEY (`posicion_secundaria_id`) REFERENCES `posiciones_juegos` (`posicion_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+
+--
 -- Filtros para la tabla `asistencias`
 --
 ALTER TABLE `asistencias`
@@ -2280,10 +2286,8 @@ ALTER TABLE `asistencias`
 -- Filtros para la tabla `atletas`
 --
 ALTER TABLE `atletas`
-  ADD CONSTRAINT `atletas_ibfk_10` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`categoria_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   ADD CONSTRAINT `atletas_ibfk_11` FOREIGN KEY (`representante_id`) REFERENCES `representantes` (`representante_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-  ADD CONSTRAINT `atletas_ibfk_8` FOREIGN KEY (`direccion_id`) REFERENCES `direcciones` (`direccion_id`) ON DELETE NO ACTION ON UPDATE CASCADE,
-  ADD CONSTRAINT `atletas_ibfk_9` FOREIGN KEY (`posicion_juego_id`) REFERENCES `posiciones_juegos` (`posicion_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
+  ADD CONSTRAINT `atletas_ibfk_8` FOREIGN KEY (`direccion_id`) REFERENCES `direcciones` (`direccion_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `categorias`
@@ -2309,12 +2313,6 @@ ALTER TABLE `discapacidades`
 --
 ALTER TABLE `fichas_medicas`
   ADD CONSTRAINT `fichas_medicas_ibfk_1` FOREIGN KEY (`atleta_id`) REFERENCES `atletas` (`atleta_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `historial_partidos`
---
-ALTER TABLE `historial_partidos`
-  ADD CONSTRAINT `historial_partidos_ibfk_1` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`categoria_id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `medidas_antropometricas`

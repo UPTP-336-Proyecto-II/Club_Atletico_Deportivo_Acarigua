@@ -16,15 +16,15 @@ final class ReportesApiController extends Controller
         return $this->json([
             'atletas'         => (int) $db->query('SELECT COUNT(*) FROM atletas')->fetchColumn(),
             'activos'         => (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus='1'")->fetchColumn(),
-            'categorias'      => (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus='activa'")->fetchColumn(),
+            'categorias'      => (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus=1")->fetchColumn(),
             'usuarios'        => (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn(),
             'eventos_30dias'  => (int) $db->query("SELECT COUNT(*) FROM actividades WHERE fecha >= (CURDATE() - INTERVAL 30 DAY)")->fetchColumn(),
             'por_estatus'     => $db->query("SELECT estatus, COUNT(*) AS total FROM atletas GROUP BY estatus")->fetchAll(),
-            'por_categoria'   => $db->query("SELECT c.nombre_categoria, COUNT(a.atleta_id) AS total
+            'por_categoria'   => $db->query("SELECT c.nombre_categoria, COUNT(ac.atleta_id) AS total
                                              FROM categorias c
-                                             LEFT JOIN atletas a ON a.categoria_id = c.categoria_id
-                                             WHERE c.estatus='activa'
-                                             GROUP BY c.categoria_id ORDER BY c.edad_min")->fetchAll(),
+                                             LEFT JOIN asig_categorias ac ON ac.categoria_id = c.categoria_id
+                                             WHERE c.estatus=1
+                                             GROUP BY c.categoria_id, c.nombre_categoria, c.edad_min ORDER BY c.edad_min")->fetchAll(),
         ]);
     }
 }

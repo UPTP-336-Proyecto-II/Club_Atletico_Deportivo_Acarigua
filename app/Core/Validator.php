@@ -56,7 +56,7 @@ final class Validator
         return $this->errors;
     }
 
-    private function addError(string $field, string $defaultMessage): void
+    public function addError(string $field, string $defaultMessage): void
     {
         $this->errors[$field] = $this->messages[$field] ?? $defaultMessage;
     }

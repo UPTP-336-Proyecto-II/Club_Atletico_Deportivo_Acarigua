@@ -40,27 +40,29 @@
         <label class="form-label" for="q"><i class="ph ph-magnifying-glass"></i> Buscar Atleta</label>
         <input type="search" id="q" name="q" class="form-control" placeholder="Nombre, apellido o cédula..." value="<?= e($filters['q'] ?? '') ?>">
     </div>
+
     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
-        <label class="form-label" for="categoria_id"><i class="ph ph-users-three"></i> Categoría</label>
+        <label class="form-label" for="categoria_id"><i class="ph ph-tag"></i> Categoría</label>
         <select id="categoria_id" name="categoria_id" class="form-control">
             <option value="">Todas las categorías</option>
-            <?php foreach ($categorias as $c): ?>
-                <option value="<?= (int) $c['categoria_id'] ?>" <?= ((int) ($filters['categoria_id'] ?? 0) === (int) $c['categoria_id']) ? 'selected' : '' ?>>
-                    <?= e($c['nombre_categoria']) ?>
-                </option>
+            <option value="sin_asignacion" <?= ($filters['categoria_id'] ?? '') === 'sin_asignacion' ? 'selected' : '' ?>>Sin asignación</option>
+            <?php foreach ($categorias as $cat): ?>
+                <option value="<?= (int) $cat['categoria_id'] ?>" <?= ($filters['categoria_id'] ?? '') == $cat['categoria_id'] ? 'selected' : '' ?>><?= e($cat['nombre_categoria']) ?></option>
             <?php endforeach; ?>
         </select>
     </div>
+
     <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
         <label class="form-label" for="estatus"><i class="ph ph-activity"></i> Estatus</label>
         <select id="estatus" name="estatus" class="form-control">
             <option value="">Todos los estatus</option>
             <option value="1" <?= ($filters['estatus'] ?? '') == '1' ? 'selected' : '' ?>>Activo</option>
-            <option value="0" <?= ($filters['estatus'] ?? '') == '0' ? 'selected' : '' ?>>Inactivo</option>
+            <option value="3" <?= ($filters['estatus'] ?? '') == '3' ? 'selected' : '' ?>>Inactivo</option>
             <option value="2" <?= ($filters['estatus'] ?? '') == '2' ? 'selected' : '' ?>>Lesionado</option>
-            <option value="3" <?= ($filters['estatus'] ?? '') == '3' ? 'selected' : '' ?>>Suspendido</option>
+            <option value="0" <?= ($filters['estatus'] ?? '') == '0' ? 'selected' : '' ?>>Suspendido</option>
         </select>
     </div>
+
     <div style="display: flex; gap: 8px;">
         <button type="submit" class="btn btn-outline"><i class="ph ph-funnel"></i> Filtrar</button>
         <a href="<?= e(url('/admin/atletas')) ?>" class="btn btn-ghost" title="Limpiar filtros"><i class="ph ph-x"></i></a>
@@ -74,7 +76,7 @@
                 <th style="width:52px; padding-left: 24px;"></th>
                 <th>Atleta</th>
                 <th>Categoría</th>
-                <th>Posición</th>
+                <th>Edad</th>
                 <th>Estatus</th>
                 <th style="width:160px; text-align: right; padding-right: 24px;">Acciones</th>
             </tr>
@@ -103,18 +105,33 @@
                 </td>
                 <td>
                     <div style="font-weight: 600; color: var(--color-text);"><?= e($a['nombre'] . ' ' . $a['apellido']) ?></div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= !empty($a['cedula']) ? e($a['cedula']) : 'Sin Cédula' ?></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;"><?= !empty($a['cedula_formateada']) ? e($a['cedula_formateada']) : 'Sin Documento' ?></div>
                 </td>
                 <td>
-                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--color-bg-alt); border-radius: 12px; font-size: 13px; font-weight: 500;">
-                        <i class="ph ph-shield-chevron text-muted"></i> <?= e($a['nombre_categoria'] ?? 'Sin Categoría') ?>
-                    </span>
+                    <?php if (!empty($a['nombre_categoria'])): ?>
+                        <div style="font-weight: 600; color: var(--color-text);"><?= e($a['nombre_categoria']) ?></div>
+                        <div style="margin-top: 4px;">
+                            <?php if ((int)$a['asig_estatus'] === 1): ?>
+                                <span class="badge badge-success" style="font-size: 11px; padding: 2px 8px; border-radius: 12px;">Vigente</span>
+                            <?php else: ?>
+                                <span class="badge badge-danger" style="font-size: 11px; padding: 2px 8px; border-radius: 12px;">Vencido</span>
+                            <?php endif; ?>
+                        </div>
+                    <?php else: ?>
+                        <span class="text-muted" style="font-size: 13px; font-style: italic;">Sin Asignación</span>
+                    <?php endif; ?>
                 </td>
+
                 <td>
-                    <span style="font-size: 14px; color: var(--color-text-muted);">
-                        <?= e($a['nombre_posicion'] ?? 'No definida') ?>
-                    </span>
+                    <?php 
+                        $edad = 0;
+                        if (!empty($a['fecha_nac'])) {
+                            $edad = (new \App\Models\ResultadoPrueba())->calcularEdad((string)$a['fecha_nac']);
+                        }
+                    ?>
+                    <span style="font-weight: 600; color: var(--color-text);"><?= $edad ?> años</span>
                 </td>
+
                 <td>
                     <?php 
                         $val = (int) $a['estatus'];
@@ -318,34 +335,34 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="modal-body">
             <div id="prueba-fisica-error" style="display:none; background:rgba(239, 68, 68, 0.1); color:var(--color-danger); padding:12px; border-radius:8px; margin-bottom:16px; font-size:14px;"></div>
             
-            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">Ingrese los resultados de las pruebas (escala 1-100). Se generará un evento automático para hoy.</p>
+            <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 20px;">Ingrese los valores físicos reales de rendimiento de las pruebas. Se generará un evento automático para hoy.</p>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                 <div class="form-group">
-                    <label class="form-label">Test de Fuerza</label>
-                    <input type="number" name="test_de_fuerza" class="form-control" min="0" max="100" placeholder="0-100">
+                    <label class="form-label">Test de Fuerza (cm)</label>
+                    <input type="number" step="0.01" name="test_de_fuerza" class="form-control" min="1" max="100" placeholder="Rango Élite (100%): 20 - 45 cm">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Test de Resistencia</label>
-                    <input type="number" name="test_resistencia" class="form-control" min="0" max="100" placeholder="0-100">
+                    <label class="form-label">Test de Resistencia (m)</label>
+                    <input type="number" step="1" name="test_resistencia" class="form-control" min="1" max="1000" placeholder="Rango Élite (100%): 600 - 2200 m">
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                 <div class="form-group">
-                    <label class="form-label">Test de Velocidad</label>
-                    <input type="number" name="test_velocidad" class="form-control" min="0" max="100" placeholder="0-100">
+                    <label class="form-label">Test de Velocidad (s)</label>
+                    <input type="number" step="0.01" name="test_velocidad" class="form-control" min="1" max="10" placeholder="Rango Élite (100%): 5.20 - 4.10 s">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Test de Coordinación</label>
-                    <input type="number" name="test_coordinacion" class="form-control" min="0" max="100" placeholder="0-100">
+                    <label class="form-label">Test de Coordinación (s)</label>
+                    <input type="number" step="0.01" name="test_coordinacion" class="form-control" min="1" max="100" placeholder="Rango Élite (100%): 22.50 - 16.50 s">
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                 <div class="form-group">
-                    <label class="form-label">Test de Reacción</label>
-                    <input type="number" name="test_de_reaccion" class="form-control" min="0" max="100" placeholder="0-100">
+                    <label class="form-label">Test de Reacción (ms)</label>
+                    <input type="number" step="1" name="test_de_reaccion" class="form-control" min="100" max="1000" placeholder="Rango Élite (100%): 450 - 220 ms">
                 </div>
             </div>
         </div>
