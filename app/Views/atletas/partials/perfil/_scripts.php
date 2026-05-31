@@ -1228,15 +1228,11 @@
             let countPresente = 0;
             let countAusente = 0;
             let countJustificado = 0;
-            let countPartido = 0;
             
             historialAsistenciasData.forEach(a => {
-                const tipo = parseInt(a.tipo_actividad);
                 const estatus = parseInt(a.estatus);
                 
-                if (tipo === 0 && estatus === 1) { // Partido y presente
-                    countPartido++;
-                } else if (estatus === 1) {
+                if (estatus === 1) {
                     countPresente++;
                 } else if (estatus === 2) {
                     countJustificado++;
@@ -1268,7 +1264,6 @@
                         labelLine: { show: false },
                         data: total === 0 ? [{ value: 1, name: 'Sin registros', itemStyle: { color: chartBorderColor }, label: { show: true, position: 'center', fontSize: 14, color: chartTextMuted, fontWeight: 'bold' }, emphasis: { label: { color: chartTextMuted } } }] : [
                             { value: countPresente, name: 'Presente', itemStyle: { color: '#10B981' } },
-                            { value: countPartido, name: 'Partido', itemStyle: { color: '#2563EB' } },
                             { value: countJustificado, name: 'Justificado', itemStyle: { color: '#F59E0B' } },
                             { value: countAusente, name: 'Ausente', itemStyle: { color: '#EF4444' } }
                         ].filter(d => d.value > 0)
@@ -1344,8 +1339,7 @@
                         const estatus = parseInt(r.estatus);
                         const tipo = parseInt(r.tipo_actividad);
                         
-                        if (tipo === 0 && estatus === 1) dot.classList.add('partido');
-                        else if (estatus === 1) dot.classList.add('presente');
+                        if (estatus === 1) dot.classList.add('presente');
                         else if (estatus === 2) dot.classList.add('justificado');
                         else if (estatus === 0) dot.classList.add('ausente');
                         

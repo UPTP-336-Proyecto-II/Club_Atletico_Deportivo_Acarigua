@@ -81,7 +81,7 @@ final class ResultadosPruebasController extends Controller
         $db = Database::connection();
         $entrenadorId = (int) $request->input('entrenador_id');
         if (!$entrenadorId) {
-            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id IN (" . ROL_ADMIN . ", " . ROL_ENTRENADOR . ") LIMIT 1")->fetchColumn();
         }
 
         $eventoId = 0;
@@ -208,7 +208,7 @@ final class ResultadosPruebasController extends Controller
             $entrenadorId = (int) $db->query("SELECT a.usuario_id FROM resultados_pruebas rp INNER JOIN actividades a ON rp.actividad_id = a.actividad_id WHERE rp.test_id = $id")->fetchColumn();
         }
         if (!$entrenadorId) {
-            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id IN (" . ROL_ADMIN . ", " . ROL_ENTRENADOR . ") LIMIT 1")->fetchColumn();
         }
 
         $eventoId = 0;

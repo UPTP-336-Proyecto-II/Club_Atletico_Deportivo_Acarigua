@@ -105,7 +105,7 @@
                 </td>
                 <td>
                     <div style="font-weight: 600; color: var(--color-text);"><?= e($a['nombre'] . ' ' . $a['apellido']) ?></div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= !empty($a['cedula_formateada']) ? e($a['cedula_formateada']) : 'Sin Cédula' ?></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;"><?= !empty($a['cedula_formateada']) ? e($a['cedula_formateada']) : 'Sin Documento' ?></div>
                 </td>
                 <td>
                     <?php if (!empty($a['nombre_categoria'])): ?>

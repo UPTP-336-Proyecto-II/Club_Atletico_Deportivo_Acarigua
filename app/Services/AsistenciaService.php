@@ -41,17 +41,36 @@ final class AsistenciaService
 
         // Validar duplicado para la misma categoría, fecha y tipo
         $db = Database::connection();
-        $stmt = $db->prepare("
-            SELECT a.actividad_id 
-            FROM actividades a
-            JOIN asistencias ast ON a.actividad_id = ast.actividad_id
-            JOIN asig_categorias ac ON ast.atleta_id = ac.atleta_id
-            WHERE a.fecha = ? AND a.tipo_actividad = ? AND ac.categoria_id = ?
-            LIMIT 1
-        ");
-        $stmt->execute([$fechaEvento, $tipoId, $categoriaId]);
-        if ($stmt->fetch()) {
-            throw new \RuntimeException("Ya existe un registro de $tipoEvento para esta categoría en la fecha seleccionada.");
+        // Si el tipo es Partido (0) o Entrenamiento (1), no permitir que exista ninguno de los dos en esa fecha
+        if ($tipoId === 0 || $tipoId === 1) {
+            $stmt = $db->prepare("
+                SELECT a.actividad_id, a.tipo_actividad
+                FROM actividades a
+                JOIN asistencias ast ON a.actividad_id = ast.actividad_id
+                JOIN asig_categorias ac ON ast.atleta_id = ac.atleta_id
+                WHERE a.fecha = ? AND a.tipo_actividad IN (0, 1) AND ac.categoria_id = ?
+                LIMIT 1
+            ");
+            $stmt->execute([$fechaEvento, $categoriaId]);
+            $existing = $stmt->fetch();
+            if ($existing) {
+                $existenteTipo = (int)$existing['tipo_actividad'] === 0 ? 'Partido' : 'Entrenamiento';
+                throw new \RuntimeException("No se puede registrar un $tipoEvento porque ya existe un $existenteTipo registrado para esta categoría en la misma fecha.");
+            }
+        } else {
+            // Para otros tipos de eventos, se valida duplicado exacto del mismo tipo
+            $stmt = $db->prepare("
+                SELECT a.actividad_id 
+                FROM actividades a
+                JOIN asistencias ast ON a.actividad_id = ast.actividad_id
+                JOIN asig_categorias ac ON ast.atleta_id = ac.atleta_id
+                WHERE a.fecha = ? AND a.tipo_actividad = ? AND ac.categoria_id = ?
+                LIMIT 1
+            ");
+            $stmt->execute([$fechaEvento, $tipoId, $categoriaId]);
+            if ($stmt->fetch()) {
+                throw new \RuntimeException("Ya existe un registro de $tipoEvento para esta categoría en la fecha seleccionada.");
+            }
         }
 
         Database::beginTransaction();

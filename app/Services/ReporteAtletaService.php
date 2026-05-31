@@ -10,7 +10,7 @@ use App\Models\Asistencia;
 use App\Core\Database;
 use DateTime;
 
-final class ReporteService
+final class ReporteAtletaService
 {
     /**
      * Arma la ficha técnica individual de un atleta y la entrega como PDF/HTML.
@@ -32,13 +32,38 @@ final class ReporteService
 
         if (!empty($activeAsig)) {
             $catNames = array_map(fn($asig) => $asig['nombre_categoria'], $activeAsig);
-            $posNames = array_map(fn($asig) => $asig['nombre_posicion'] ?: 'Sin definir', $activeAsig);
+            
+            $posNames = [];
+            $posPrincipalNames = [];
+            $posSecundariaNames = [];
+            $dorsales = [];
+            foreach ($activeAsig as $asig) {
+                $p1 = $asig['posicion_principal'] ?: 'Sin definir';
+                $p2 = $asig['posicion_secundaria'] ?: 'Ninguna';
+                $posPrincipalNames[] = $p1;
+                $posSecundariaNames[] = $p2;
+                if (!empty($asig['nun_dorsal'])) {
+                    $dorsales[] = $asig['nun_dorsal'];
+                }
+                
+                $pString = $p1;
+                if (!empty($asig['posicion_secundaria'])) {
+                    $pString .= ' / ' . $asig['posicion_secundaria'];
+                }
+                $posNames[] = $pString;
+            }
             
             $atleta['nombre_categoria'] = implode(', ', $catNames);
             $atleta['nombre_posicion'] = implode(', ', array_unique($posNames));
+            $atleta['posicion_principal'] = implode(', ', array_unique($posPrincipalNames));
+            $atleta['posicion_secundaria'] = implode(', ', array_unique($posSecundariaNames));
+            $atleta['nun_dorsal'] = !empty($dorsales) ? implode(', ', array_unique($dorsales)) : '—';
         } else {
             $atleta['nombre_categoria'] = '—';
             $atleta['nombre_posicion'] = 'Sin definir';
+            $atleta['posicion_principal'] = 'Sin definir';
+            $atleta['posicion_secundaria'] = 'Ninguna';
+            $atleta['nun_dorsal'] = '—';
         }
 
         $antropometria    = (new MedidaAntropometrica())->historial($atletaId);
@@ -90,7 +115,7 @@ final class ReporteService
         
         if (class_exists('TCPDF')) {
             return (new PdfGenerator())->render(
-                'Listado General de Atletas - CADA',
+                'Listado General de Atletas',
                 $html,
                 strtolower($filename)
             );
@@ -289,15 +314,10 @@ final class ReporteService
         
         // Legend
         $ly = $h - 10;
-        $svg .= '<rect x="' . ($w/2 - 160) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#2ea44f" rx="2" ry="2" /><text x="' . ($w/2 - 145) . '" y="' . $ly . '" font-size="8" fill="#555">Presente</text>';
+        $svg .= '<rect x="' . ($w/2 - 170) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#2ea44f" rx="2" ry="2" /><text x="' . ($w/2 - 155) . '" y="' . $ly . '" font-size="8" fill="#555">Presente</text>';
         $svg .= '<rect x="' . ($w/2 - 85) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#cf222e" rx="2" ry="2" /><text x="' . ($w/2 - 70) . '" y="' . $ly . '" font-size="8" fill="#555">Ausente</text>';
-        $svg .= '<rect x="' . ($w/2 - 15) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#dbab09" rx="2" ry="2" /><text x="' . ($w/2) . '" y="' . $ly . '" font-size="8" fill="#555">Justificado</text>';
-        $svg .= '<rect x="' . ($w/2 + 60) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#f1f3f5" stroke="#ccc" stroke-width="0.5" rx="2" ry="2" /><text x="' . ($w/2 + 75) . '" y="' . $ly . '" font-size="8" fill="#555">Sin sesión</text>';
-        // Leyenda de día mixto
-        $mx = $w/2 + 130;
-        $svg .= '<polygon points="' . $mx . ',' . ($ly-8) . ' ' . ($mx+10) . ',' . ($ly-8) . ' ' . $mx . ',' . ($ly+2) . '" fill="#2ea44f" />';
-        $svg .= '<polygon points="' . ($mx+10) . ',' . ($ly-8) . ' ' . ($mx+10) . ',' . ($ly+2) . ' ' . $mx . ',' . ($ly+2) . '" fill="#cf222e" />';
-        $svg .= '<text x="' . ($mx + 15) . '" y="' . $ly . '" font-size="8" fill="#555">Mixto</text>';
+        $svg .= '<rect x="' . ($w/2) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#dbab09" rx="2" ry="2" /><text x="' . ($w/2 + 15) . '" y="' . $ly . '" font-size="8" fill="#555">Justificado</text>';
+        $svg .= '<rect x="' . ($w/2 + 95) . '" y="' . ($ly-8) . '" width="10" height="10" fill="#f1f3f5" stroke="#ccc" stroke-width="0.5" rx="2" ry="2" /><text x="' . ($w/2 + 110) . '" y="' . $ly . '" font-size="8" fill="#555">Sin sesión</text>';
         
         $svg .= '</svg>';
         
@@ -854,23 +874,42 @@ final class ReporteService
         <tr>
             <td width="48%">
                 <table width="100%">
-                    <tr><td class="info-label">Cédula:</td><td class="info-value">{$esc($a['cedula'])}</td></tr>
+                    <tr><td class="info-label">Documento:</td><td class="info-value">{$esc($a['cedula'])}</td></tr>
                     <tr><td class="info-label">Nacimiento:</td><td class="info-value">{$esc($fechaNac)} ({$esc($edad)} años)</td></tr>
                     <tr><td class="info-label">Género:</td><td class="info-value">{$esc($generoTexto)}</td></tr>
                     <tr><td class="info-label">Teléfono:</td><td class="info-value">{$esc($a['telefono'])}</td></tr>
-                    <tr><td class="info-label">Categoría:</td><td class="info-value">{$esc($a['nombre_categoria'])}</td></tr>
-                    <tr><td class="info-label">Posición:</td><td class="info-value">{$esc($a['nombre_posicion'] ?? 'Sin definir')}</td></tr>
-                    <tr><td class="info-label">Pierna Dom.:</td><td class="info-value">{$esc(ucfirst($a['pierna_dominante'] ?? 'Sin definir'))}</td></tr>
                 </table>
             </td>
             <td width="4%"></td>
             <td width="48%">
                 <table width="100%">
                     <tr><td class="info-label">Representante:</td><td class="info-value">{$esc(($a['tutor_nombres'] ?? '') . ' ' . ($a['tutor_apellidos'] ?? ''))}</td></tr>
-                    <tr><td class="info-label">C.I. Rep:</td><td class="info-value">{$esc($a['tutor_cedula'])}</td></tr>
+                    <tr><td class="info-label">Documento Rep:</td><td class="info-value">{$esc($a['tutor_cedula'])}</td></tr>
                     <tr><td class="info-label">Tlf. Rep:</td><td class="info-value">{$esc($a['tutor_telefono'])}</td></tr>
                     <tr><td class="info-label">Relación:</td><td class="info-value">{$esc(ucfirst($a['tutor_relacion'] ?? '—'))}</td></tr>
                     <tr><td class="info-label">Dirección:</td><td class="info-value">{$direccion}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+    <div class="section-header">Ficha Deportiva</div>
+    <table class="info-grid">
+        <tr>
+            <td width="48%">
+                <table width="100%">
+                    <tr><td class="info-label">Categoría:</td><td class="info-value">{$esc($a['nombre_categoria'])}</td></tr>
+                    <tr><td class="info-label">Dorsal:</td><td class="info-value">{$esc($a['nun_dorsal'])}</td></tr>
+                    <tr><td class="info-label">Pierna Dom.:</td><td class="info-value">{$esc(ucfirst($a['pierna_dominante'] ?? 'Sin definir'))}</td></tr>
+                </table>
+            </td>
+            <td width="4%"></td>
+            <td width="48%">
+                <table width="100%">
+                    <tr><td class="info-label">Posición Principal:</td><td class="info-value">{$esc($a['posicion_principal'])}</td></tr>
+                    <tr><td class="info-label">Posición Secundaria:</td><td class="info-value">{$esc($a['posicion_secundaria'])}</td></tr>
                 </table>
             </td>
         </tr>
@@ -1045,7 +1084,7 @@ HTML;
         <tr>
             <th width="5%">#</th>
             <th width="30%" style="text-align:left;">Atleta (Nombres, Apellidos)</th>
-            <th width="15%">Cédula</th>
+            <th width="15%">Documento</th>
             <th width="10%">Edad</th>
             <th width="20%">Teléfono Atleta</th>
             <th width="20%">Tlf. Representante</th>
@@ -1066,8 +1105,20 @@ HTML;
         foreach ($atletas as $index => $a) {
             $estatusTexto = ((int)$a['estatus'] === 1) ? 'Activo' : (((int)$a['estatus'] === 2) ? 'Lesionado' : 'Suspendido');
             $rows .= sprintf(
-                '<tr><td style="width:25px;color:#999;">%d</td><td style="text-align:left;font-weight:bold;color:#1a1a1a;">%s</td><td>%s</td><td>%s</td><td>%s</td><td><span style="font-weight:bold;color:#800020;">%s</span></td></tr>',
-                $index + 1, $esc($a['apellido'] . ', ' . $a['nombre']), $esc($a['cedula']), $esc($a['nombre_categoria']), $esc($a['telefono']), $esc($estatusTexto)
+                '<tr>' .
+                '<td width="5%%" style="color:#999;text-align:center;">%d</td>' .
+                '<td width="30%%" style="text-align:left;font-weight:bold;color:#1a1a1a;">%s</td>' .
+                '<td width="15%%" style="text-align:center;">%s</td>' .
+                '<td width="20%%" style="text-align:center;">%s</td>' .
+                '<td width="15%%" style="text-align:center;">%s</td>' .
+                '<td width="15%%" style="text-align:center;"><span style="font-weight:bold;color:#800020;">%s</span></td>' .
+                '</tr>',
+                $index + 1,
+                $esc($a['apellido'] . ', ' . $a['nombre']),
+                $esc($a['cedula']),
+                $esc($a['nombre_categoria']),
+                $esc(!empty($a['telefono']) ? $a['telefono'] : '—'),
+                $esc($estatusTexto)
             );
         }
 
@@ -1077,9 +1128,10 @@ HTML;
     .document-header { text-align: center; padding-bottom: 15px; margin-bottom: 25px; border-bottom: 2px solid #800020; }
     .club-brand { font-size: 28px; font-weight: bold; color: #800020; letter-spacing: 3px; }
     .report-title { background-color: #800020; color: #ffffff; padding: 6px 20px; font-size: 14px; display: inline-block; font-weight: bold; text-transform: uppercase; }
+    .report-meta { font-size: 10px; color: #777; margin-top: 10px; }
     table.main-list { width: 100%; border-collapse: collapse; margin-top: 20px; }
     table.main-list th { background-color: #f8f9fa; color: #800020; font-size: 9px; font-weight: bold; padding: 10px 5px; text-align: center; border: 1px solid #dee2e6; text-transform: uppercase; }
-    table.main-list td { font-size: 9px; padding: 8px 5px; text-align: center; border: 1px solid #f1f1f1; }
+    table.main-list td { font-size: 9px; padding: 8px 5px; vertical-align: middle; border: 1px solid #dee2e6; }
     table.main-list tr:nth-child(even) { background-color: #fafafa; }
 </style>
 <div class="document-header">
@@ -1088,7 +1140,16 @@ HTML;
     <div class="report-meta">Generado el {$fechaGeneracion} · Total: {$esc(count($atletas))}</div>
 </div>
 <table class="main-list">
-    <thead><tr><th>#</th><th style="text-align:left;">Atleta</th><th>Cédula</th><th>Categoría</th><th>Teléfono</th><th>Estatus</th></tr></thead>
+    <thead>
+        <tr>
+            <th width="5%">#</th>
+            <th width="30%" style="text-align:left;">Atleta</th>
+            <th width="15%">Documento</th>
+            <th width="20%">Categoría</th>
+            <th width="15%">Teléfono</th>
+            <th width="15%">Estatus</th>
+        </tr>
+    </thead>
     <tbody>{$rows}</tbody>
 </table>
 HTML;

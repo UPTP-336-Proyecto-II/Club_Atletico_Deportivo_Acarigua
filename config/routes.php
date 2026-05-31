@@ -87,8 +87,12 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/usuarios', [UsuariosController::class, 'index'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->get('/usuarios/crear', [UsuariosController::class, 'create'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/usuarios', [UsuariosController::class, 'store'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->get('/usuarios/{id}/perfil', [UsuariosController::class, 'show'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->get('/usuarios/{id}/editar', [UsuariosController::class, 'edit'], [[RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/usuarios/{id}', [UsuariosController::class, 'update'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios/{id}/update-basico', [UsuariosController::class, 'updateBasico'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios/{id}/foto', [UsuariosController::class, 'updateFoto'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
+    $r->post('/usuarios/{id}/direccion', [UsuariosController::class, 'updateDireccion'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/usuarios/{id}/eliminar', [UsuariosController::class, 'destroy'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
     $r->post('/usuarios/{id}/restablecer', [UsuariosController::class, 'restablecer'], [CsrfMiddleware::class, [RoleMiddleware::class, ['admin', 'super_user']]]);
 
@@ -126,7 +130,10 @@ $router->group('/admin', [AuthMiddleware::class], function ($r) {
     $r->get('/reportes', [ReportesController::class, 'index']);
     $r->get('/reportes/atletas/listado', [ReportesController::class, 'listaAtletas']);
     $r->get('/reportes/atleta/{id}', [ReportesController::class, 'fichaAtleta']);
-    $r->get('/reportes/asistencia', [ReportesController::class, 'asistencia']);
+    $r->get('/reportes/usuarios/listado', [ReportesController::class, 'listaUsuarios']);
+    $r->get('/reportes/usuario/{id}', [ReportesController::class, 'fichaUsuario']);
+    $r->get('/reportes/asistencia/atleta/{id}', [ReportesController::class, 'asistenciaAtleta']);
+    $r->get('/reportes/asistencia/categoria', [ReportesController::class, 'asistenciaCategoria']);
     $r->get('/reportes/categoria/{id}', [ReportesController::class, 'categoria']);
 
     // Mi Perfil (todos los usuarios autenticados)
@@ -164,4 +171,7 @@ $router->group('/api', [AuthMiddleware::class], function ($r) {
 
     // Reportes (endpoints de datos agregados)
     $r->get('/reportes/resumen', [ReportesApiController::class, 'resumen']);
+
+    // Keep-alive de sesión
+    $r->post('/keep-alive', [AuthController::class, 'keepAlive']);
 });

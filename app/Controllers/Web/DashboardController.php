@@ -37,7 +37,7 @@ final class DashboardController extends Controller
 
         $atletas   = (int) $db->query('SELECT COUNT(*) FROM atletas')->fetchColumn();
         $activos   = (int) $db->query("SELECT COUNT(*) FROM atletas WHERE estatus = 1")->fetchColumn();
-        $categorias = (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus = 'activa'")->fetchColumn();
+        $categorias = (int) $db->query("SELECT COUNT(*) FROM categorias WHERE estatus = 1")->fetchColumn();
         $usuarios  = (int) $db->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
 
         $dataCategorias = $db->query("

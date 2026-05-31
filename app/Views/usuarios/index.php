@@ -1,15 +1,38 @@
-<?php /** @var array $items */ ?>
+<?php /** @var array $items */ 
+if (!function_exists('formatDocumento')) {
+    function formatDocumento($cedula) {
+        if (empty($cedula)) {
+            return '—';
+        }
+        $cedula = trim($cedula);
+        if (preg_match('/^[VEPvep]-?\d+/', $cedula)) {
+            $prefix = strtoupper($cedula[0]);
+            $number = ltrim(substr($cedula, 1), '-');
+            return $prefix . '-' . $number;
+        }
+        if (ctype_digit($cedula)) {
+            return 'V-' . $cedula;
+        }
+        return $cedula;
+    }
+}
+?>
 <div class="page-header">
     <div>
         <h1>Gestión de Usuarios</h1>
         <div class="subtitle">Entrenadores y personal administrativo del club</div>
     </div>
-    <a href="<?= e(url('/admin/usuarios/crear')) ?>" class="btn btn-primary">
-        <i class="ph ph-plus"></i> Nuevo Usuario
-    </a>
+    <div class="flex gap">
+        <a href="<?= e(url('/admin/reportes/usuarios/listado')) ?>" class="btn btn-outline" target="_blank" title="Generar Listado de Usuarios PDF">
+            <i class="ph ph-file-pdf"></i> Reporte
+        </a>
+        <a href="<?= e(url('/admin/usuarios/crear')) ?>" class="btn btn-primary">
+            <i class="ph ph-plus"></i> Nuevo Usuario
+        </a>
+    </div>
 </div>
 
-<div class="data-table-wrap card" style="padding: 0; overflow: hidden;">
+<div class="data-table-wrap card" style="padding: 0; overflow-x: auto;">
     <table class="data-table" style="margin: 0; border: none;">
         <thead style="background: var(--color-bg-alt);">
             <tr>
@@ -34,7 +57,7 @@
                 </td>
                 <td>
                     <div style="font-weight: 600; font-size: 15px; color: var(--color-text);"><?= e($p['nombre'] . ' ' . $p['apellido']) ?></div>
-                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">C.I: <?= e($p['cedula'] ?? '—') ?></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;"><?= e(formatDocumento($p['cedula'] ?? '')) ?></div>
                 </td>
                 <td>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -58,8 +81,8 @@
                 </td>
                 <td style="text-align: right; padding-right: 24px;">
                     <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                        <a href="<?= e(url("/admin/usuarios/{$p['usuario_id']}/editar")) ?>" class="btn btn-sm btn-outline" title="Editar">
-                            <i class="ph ph-pencil-simple"></i>
+                        <a href="<?= e(url("/admin/usuarios/{$p['usuario_id']}/perfil")) ?>" class="btn btn-sm btn-outline" title="Ver Perfil">
+                            <i class="ph ph-eye"></i>
                         </a>
                         <form method="POST" action="<?= e(url("/admin/usuarios/{$p['usuario_id']}/restablecer")) ?>" style="display:inline;" class="form-restablecer-usuario">
                             <?= csrf_field() ?>
@@ -123,5 +146,66 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+
+    // --- Paginación ---
+    const rowsPerPage = 10;
+    const dataTableWrap = document.querySelector('.data-table-wrap');
+    const tableBody = document.querySelector('.data-table tbody');
+    
+    if (tableBody && dataTableWrap) {
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
+        
+        // Solo paginar si hay más de 10 usuarios y no es la fila de "sin registros"
+        if (rows.length > rowsPerPage && !rows[0].querySelector('td[colspan]')) {
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+            let currentPage = 1;
+
+            const paginationWrap = document.createElement('div');
+            paginationWrap.style.display = 'flex';
+            paginationWrap.style.justifyContent = 'center';
+            paginationWrap.style.marginTop = '24px';
+            
+            const ul = document.createElement('ul');
+            ul.className = 'pagination';
+            paginationWrap.appendChild(ul);
+            
+            dataTableWrap.parentNode.insertBefore(paginationWrap, dataTableWrap.nextSibling);
+
+            function showPage(page) {
+                currentPage = page;
+                
+                rows.forEach(r => r.style.display = 'none');
+                
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                rows.slice(start, end).forEach(r => r.style.display = '');
+
+                ul.innerHTML = '';
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    if (i === page) li.className = 'active';
+                    
+                    if (i === page) {
+                        const span = document.createElement('span');
+                        span.textContent = i;
+                        li.appendChild(span);
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = '#';
+                        a.textContent = i;
+                        a.onclick = (e) => {
+                            e.preventDefault();
+                            showPage(i);
+                        };
+                        li.appendChild(a);
+                    }
+                    ul.appendChild(li);
+                }
+            }
+
+            showPage(1);
+        }
+    }
 });
 </script>
