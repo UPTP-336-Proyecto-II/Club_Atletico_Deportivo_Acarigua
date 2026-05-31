@@ -14,6 +14,7 @@
         <thead>
             <tr>
                 <th style="padding-left: 24px;">Fecha</th>
+                <th>Categoría</th>
                 <th>Tipo de Evento</th>
                 <th>Entrenador Responsable</th>
                 <th>Asistencia</th>
@@ -22,9 +23,12 @@
         </thead>
         <tbody>
             <?php foreach ($eventos as $ev): ?>
-                <tr>
+                <tr class="asistencia-row">
                     <td style="padding-left: 24px;">
                         <div style="font-weight: 600;"><?= e(date('d/m/Y', strtotime($ev['fecha_evento']))) ?></div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: var(--color-text);"><i class="ph ph-users-three text-muted"></i> <?= e($ev['nombre_categoria'] ?? 'Sin Categoría') ?></span>
                     </td>
                     <td>
                         <?php
@@ -87,6 +91,7 @@
         </tbody>
     </table>
 </div>
+<div id="asistencias-pagination" style="display: flex; justify-content: center; margin-top: 24px;"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -108,5 +113,51 @@
                 });
             });
         });
+
+        // --- Paginación Client-Side ---
+        const rowsPerPage = 15;
+        const rows = Array.from(document.querySelectorAll('.asistencia-row'));
+        const totalCount = rows.length;
+
+        if (totalCount > rowsPerPage) {
+            const totalPages = Math.ceil(totalCount / rowsPerPage);
+            const container = document.getElementById('asistencias-pagination');
+
+            function showPage(page) {
+                rows.forEach(r => r.style.display = 'none');
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                rows.slice(start, end).forEach(r => r.style.display = '');
+
+                if (container) {
+                    container.innerHTML = '';
+                    const ul = document.createElement('ul');
+                    ul.className = 'pagination';
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        const li = document.createElement('li');
+                        if (i === page) {
+                            li.className = 'active';
+                            const span = document.createElement('span');
+                            span.textContent = i;
+                            li.appendChild(span);
+                        } else {
+                            const a = document.createElement('a');
+                            a.href = '#';
+                            a.textContent = i;
+                            a.onclick = (e) => {
+                                e.preventDefault();
+                                showPage(i);
+                            };
+                            li.appendChild(a);
+                        }
+                        ul.appendChild(li);
+                    }
+                    container.appendChild(ul);
+                }
+            }
+
+            showPage(1);
+        }
     });
 </script>

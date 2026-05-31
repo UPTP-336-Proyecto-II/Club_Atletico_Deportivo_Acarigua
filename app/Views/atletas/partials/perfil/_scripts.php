@@ -1228,15 +1228,11 @@
             let countPresente = 0;
             let countAusente = 0;
             let countJustificado = 0;
-            let countPartido = 0;
             
             historialAsistenciasData.forEach(a => {
-                const tipo = parseInt(a.tipo_actividad);
                 const estatus = parseInt(a.estatus);
                 
-                if (tipo === 0 && estatus === 1) { // Partido y presente
-                    countPartido++;
-                } else if (estatus === 1) {
+                if (estatus === 1) {
                     countPresente++;
                 } else if (estatus === 2) {
                     countJustificado++;
@@ -1268,7 +1264,6 @@
                         labelLine: { show: false },
                         data: total === 0 ? [{ value: 1, name: 'Sin registros', itemStyle: { color: chartBorderColor }, label: { show: true, position: 'center', fontSize: 14, color: chartTextMuted, fontWeight: 'bold' }, emphasis: { label: { color: chartTextMuted } } }] : [
                             { value: countPresente, name: 'Presente', itemStyle: { color: '#10B981' } },
-                            { value: countPartido, name: 'Partido', itemStyle: { color: '#2563EB' } },
                             { value: countJustificado, name: 'Justificado', itemStyle: { color: '#F59E0B' } },
                             { value: countAusente, name: 'Ausente', itemStyle: { color: '#EF4444' } }
                         ].filter(d => d.value > 0)
@@ -1344,8 +1339,7 @@
                         const estatus = parseInt(r.estatus);
                         const tipo = parseInt(r.tipo_actividad);
                         
-                        if (tipo === 0 && estatus === 1) dot.classList.add('partido');
-                        else if (estatus === 1) dot.classList.add('presente');
+                        if (estatus === 1) dot.classList.add('presente');
                         else if (estatus === 2) dot.classList.add('justificado');
                         else if (estatus === 0) dot.classList.add('ausente');
                         
@@ -1450,24 +1444,32 @@
         }
 
         // —— Validaciones de Cédula y Widgets ———————————————————————————————————————————
-        const CEDULA_REGEX = /^[VE]-\d{1,3}(\.\d{3})+$/;
-        const PARTIDA_REGEX = /^P-\d{4}-[A-Z0-9]{1,5}-[A-Z0-9]{1,5}$/;
+        const CEDULA_REGEX = /^[VE]-\d{6,10}$/i;
+        const PASAPORTE_REGEX = /^P-[A-Z0-9]{5,15}$/i;
+        const PARTIDA_REGEX = /^N-\d{4}-[A-Z0-9]{1,5}$/i;
 
-        function formatCedulaNumber(val) {
-            let digits = val.replace(/\D/g, '').substring(0, 8);
+        function formatCedulaNumber(digits) {
             return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
         function validarCedula(val) {
             if (!val) return true;
-            if (val.startsWith('P-')) {
+            if (val.startsWith('N-') || val.startsWith('n-')) {
                 return PARTIDA_REGEX.test(val);
             }
-            const digitsOnly = val.replace(/\D/g, '');
-            if (digitsOnly.length < 7 || digitsOnly.length > 9) {
+            if (val.startsWith('P-') || val.startsWith('p-')) {
+                const digitsOnly = val.substring(2).replace(/\./g, '');
+                if (/^\d+$/.test(digitsOnly)) {
+                    return digitsOnly.length >= 6 && digitsOnly.length <= 10;
+                }
+                return PASAPORTE_REGEX.test(val);
+            }
+            const cleanVal = val.replace(/\./g, '');
+            const digitsOnly = cleanVal.replace(/\D/g, '');
+            if (digitsOnly.length < 6 || digitsOnly.length > 10) {
                 return false;
             }
-            return CEDULA_REGEX.test(val);
+            return CEDULA_REGEX.test(cleanVal);
         }
 
         function setupCedulaWidget(prefixId, numberId, hiddenId) {
@@ -1476,28 +1478,69 @@
             const hiddenEl = document.getElementById(hiddenId);
             if (!prefixEl || !numberEl || !hiddenEl) return;
 
-            // Elementos de Folio (si existen)
-            const folioInputs = document.getElementById('folio_inputs');
-            const fYear = document.getElementById('folio_year');
-            const fActa = document.getElementById('folio_acta');
-            const fNum = document.getElementById('folio_num');
+            // Elementos de Folio (si existen, solo para el widget del atleta)
+            const isAthlete = (prefixId === 'cedula_prefix');
+            const folioInputs = isAthlete ? document.getElementById('folio_inputs') : null;
+            const fYear = isAthlete ? document.getElementById('folio_year') : null;
+            const fActa = isAthlete ? document.getElementById('folio_acta') : null;
 
             function sync() {
                 let val = '';
-                if (prefixEl.value === 'P' && folioInputs) {
+                if (prefixEl.value === 'N' && folioInputs) {
                     let y = fYear.value.replace(/\D/g, '').substring(0, 4);
                     let a = fActa.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
-                    let n = fNum.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
-                    fYear.value = y; fActa.value = a; fNum.value = n;
-                    val = (y || a || n) ? `${y}-${a}-${n}` : '';
-                } else {
-                    val = numberEl.value.trim().toUpperCase();
-                    if (prefixEl.value === 'V' || prefixEl.value === 'E') {
-                        val = formatCedulaNumber(val);
+                    fYear.value = y; fActa.value = a;
+                    val = (y || a) ? `${y}-${a}` : '';
+                } else if (prefixEl.value === 'P') {
+                    let raw = numberEl.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                    let digitsOnly = raw.replace(/\./g, '');
+                    if (/^\d+$/.test(digitsOnly)) {
+                        numberEl.value = formatCedulaNumber(digitsOnly);
+                        val = digitsOnly;
+                    } else {
+                        numberEl.value = raw;
+                        val = raw;
                     }
-                    numberEl.value = val;
+                } else {
+                    let digits = numberEl.value.replace(/\D/g, '');
+                    numberEl.value = formatCedulaNumber(digits);
+                    val = digits;
                 }
                 hiddenEl.value = val.length ? prefixEl.value + '-' + val : '';
+            }
+
+            function updateUI(isInit = false) {
+                if (!isInit) {
+                    numberEl.value = '';
+                    hiddenEl.value = '';
+                }
+                if (prefixEl.value === 'N') {
+                    numberEl.style.display = 'none';
+                    if (folioInputs) {
+                        folioInputs.style.display = 'flex';
+                        if (!isInit) {
+                            fYear.value = ''; fActa.value = '';
+                            fYear.focus();
+                        }
+                    } else {
+                        numberEl.style.display = 'block';
+                        numberEl.placeholder = "Cód. Partida";
+                        numberEl.maxLength = 15;
+                        if (!isInit) numberEl.focus();
+                    }
+                } else {
+                    if (folioInputs) folioInputs.style.display = 'none';
+                    numberEl.style.display = 'block';
+                    if (prefixEl.value === 'P') {
+                        numberEl.placeholder = "ABC123456";
+                        numberEl.maxLength = 15;
+                    } else {
+                        numberEl.placeholder = "12.345.678";
+                        numberEl.maxLength = 12;
+                    }
+                    if (!isInit) numberEl.focus();
+                }
+                sync();
             }
 
             if (hiddenEl.value) {
@@ -1505,53 +1548,41 @@
                 let prefix = 'V', num = raw;
                 if (raw.includes('-')) {
                     let parts = raw.split('-');
-                    prefix = parts[0];
-                    if (prefix === 'P' && parts.length > 2) {
-                        num = parts.slice(1).join('-');
-                    } else {
-                        num = parts[1] || '';
-                    }
+                    prefix = parts[0].toUpperCase();
+                    num = parts.slice(1).join('-') || '';
                 } else {
                     let firstChar = raw.charAt(0).toUpperCase();
-                    if (['V', 'E', 'P'].includes(firstChar)) {
+                    if (['V', 'E', 'P', 'N'].includes(firstChar)) {
                         prefix = firstChar;
                         num = raw.substring(1);
                     }
                 }
                 prefixEl.value = prefix;
-                if (prefix !== 'P') {
-                    numberEl.value = prefix === 'V' || prefix === 'E' ? formatCedulaNumber(num) : num;
+                if (prefix === 'N') {
+                    if (folioInputs) {
+                        let parts = num.split('-');
+                        if (fYear) fYear.value = parts[0] || '';
+                        if (fActa) fActa.value = parts[1] || '';
+                    }
+                } else {
+                    let cleanNum = num.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                    if (prefix === 'V' || prefix === 'E' || (prefix === 'P' && /^\d+$/.test(cleanNum.replace(/\./g, '')))) {
+                        numberEl.value = formatCedulaNumber(cleanNum.replace(/\D/g, ''));
+                    } else {
+                        numberEl.value = cleanNum;
+                    }
                 }
             }
-            sync();
+            updateUI(true);
 
             numberEl.addEventListener('input', sync);
             if (folioInputs) {
                 fYear.addEventListener('input', sync);
                 fActa.addEventListener('input', sync);
-                fNum.addEventListener('input', sync);
             }
 
             prefixEl.addEventListener('change', () => {
-                if (prefixEl.value === 'P') {
-                    numberEl.style.display = 'none';
-                    if (folioInputs) {
-                        folioInputs.style.display = 'flex';
-                        fYear.focus();
-                    } else {
-                        numberEl.style.display = 'block';
-                        numberEl.placeholder = "Cód. Partida";
-                        numberEl.maxLength = 15;
-                        numberEl.focus();
-                    }
-                } else {
-                    if (folioInputs) folioInputs.style.display = 'none';
-                    numberEl.style.display = 'block';
-                    numberEl.placeholder = "12.345.678";
-                    numberEl.maxLength = 10;
-                    numberEl.focus();
-                }
-                sync();
+                updateUI(false);
             });
         }
 
@@ -1596,40 +1627,50 @@
             const cedulaVal = document.getElementById('cedula').value;
             const prefixVal = document.getElementById('cedula_prefix').value;
             
-            if (age > 9) {
-                if (prefixVal === 'P') {
-                    const y = document.getElementById('folio_year').value;
-                    const a = document.getElementById('folio_acta').value;
-                    const n = document.getElementById('folio_num').value;
-                    if (!y || !a || !n) {
+            if (prefixVal === 'N') {
+                const y = document.getElementById('folio_year').value;
+                const a = document.getElementById('folio_acta').value;
+                if (age > 9 && (!y || !a)) {
+                    errors.push({
+                        element: document.getElementById('phone-wrap-cedula'),
+                        message: 'El Código de Acta de Nacimiento (Año y Acta) es obligatorio para mayores de 9 años'
+                    });
+                } else if (y || a) {
+                    if (!validarCedula(cedulaVal)) {
                         errors.push({
                             element: document.getElementById('phone-wrap-cedula'),
-                            message: 'El Código de Partida es obligatorio para mayores de 9 años'
-                        });
-                    } else if (!validarCedula(cedulaVal)) {
-                        errors.push({
-                            element: document.getElementById('phone-wrap-cedula'),
-                            message: 'Formato de Código de Partida inválido (Año-Acta-Folio)'
+                            message: 'Formato de Código de Acta de Nacimiento inválido (Año-Acta)'
                         });
                     }
-                } else {
+                    if (birthVal) {
+                        const birthYear = new Date(birthVal).getFullYear();
+                        const certYear = parseInt(y, 10);
+                        if (certYear < birthYear) {
+                            errors.push({
+                                element: document.getElementById('phone-wrap-cedula'),
+                                message: 'El año del acta de nacimiento no puede ser menor al año de nacimiento del atleta.'
+                            });
+                        }
+                    }
+                }
+            } else if (age > 9) {
+                    const docName = (prefixVal === 'P') ? 'Pasaporte' : 'Cédula';
                     if (!cedulaVal) {
                         errors.push({
                             element: document.getElementById('phone-wrap-cedula'),
-                            message: 'La Cédula es obligatoria para mayores de 9 años'
+                            message: 'El ' + docName + ' es obligatorio para mayores de 9 años'
                         });
                     } else if (!validarCedula(cedulaVal)) {
                         errors.push({
                             element: document.getElementById('phone-wrap-cedula'),
-                            message: 'Formato de Cédula inválido (ej: V-12.345.678)'
+                            message: 'Formato de ' + docName + ' inválido'
                         });
                     }
-                }
             } else if (cedulaVal) {
                 if (!validarCedula(cedulaVal)) {
                     errors.push({
                         element: document.getElementById('phone-wrap-cedula'),
-                        message: 'Formato de Cédula o Partida de Nacimiento inválido'
+                        message: 'Formato de documento inválido'
                     });
                 }
             }
@@ -1667,9 +1708,9 @@
             const tutorTelefonoNum = document.getElementById('tutor_telefono_number').value;
 
             if (!tutorCedulaVal) {
-                errors.push({ element: document.getElementById('phone-wrap-tutor_cedula'), message: 'La Cédula del Representante es obligatoria' });
+                errors.push({ element: document.getElementById('phone-wrap-tutor_cedula'), message: 'La Cédula o Pasaporte del Representante es obligatoria' });
             } else if (!validarCedula(tutorCedulaVal)) {
-                errors.push({ element: document.getElementById('phone-wrap-tutor_cedula'), message: 'Formato de Cédula del Representante inválido' });
+                errors.push({ element: document.getElementById('phone-wrap-tutor_cedula'), message: 'Formato de Cédula o Pasaporte del Representante inválido' });
             }
             if (!tutorTelefonoVal) {
                 errors.push({ element: document.getElementById('phone-wrap-tutor_telefono'), message: 'El Teléfono del Representante es obligatorio' });

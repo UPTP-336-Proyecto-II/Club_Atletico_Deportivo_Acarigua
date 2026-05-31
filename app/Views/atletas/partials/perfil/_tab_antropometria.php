@@ -2,7 +2,9 @@
             <div id="tab-antropometria" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h3 style="margin: 0;"><i class="ph ph-ruler"></i> Evolución Física</h3>
-                    <button type="button" class="btn btn-primary btn-sm" id="btn-nueva-medicion"><i
+                    <?php $isDis = in_array((int)($atleta['estatus'] ?? 1), [0, 3], true); ?>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-nueva-medicion"
+                        <?= $isDis ? 'disabled style="cursor: not-allowed; opacity: 0.6;" title="No disponible para atletas inactivos o suspendidos"' : '' ?>><i
                             class="ph ph-plus"></i> Nueva Medición</button>
                 </div>
 

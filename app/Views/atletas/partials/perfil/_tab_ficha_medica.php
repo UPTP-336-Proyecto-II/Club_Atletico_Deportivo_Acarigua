@@ -79,7 +79,9 @@
                         <p style="color: var(--color-text-muted); margin-top: 12px; margin-bottom: 16px;">No se ha
                             registrado ficha médica para este atleta.</p>
                         <?php if (can('admin')): ?>
-                            <button type="button" class="btn btn-primary btn-sm" id="btn-crear-ficha">
+                            <?php $isDis = in_array((int)($atleta['estatus'] ?? 1), [0, 3], true); ?>
+                            <button type="button" class="btn btn-primary btn-sm" id="btn-crear-ficha"
+                                <?= $isDis ? 'disabled style="cursor: not-allowed; opacity: 0.6;" title="No disponible para atletas inactivos o suspendidos"' : '' ?>>
                                 <i class="ph ph-plus"></i> Registrar Ficha Médica
                             </button>
                         <?php endif; ?>
@@ -92,7 +94,9 @@
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h4 style="margin: 0;"><i class="ph ph-wheelchair"></i> Discapacidades</h4>
                         <?php if (can('admin')): ?>
-                            <button type="button" class="btn btn-outline btn-sm" id="btn-agregar-discapacidad">
+                            <?php $isDis = in_array((int)($atleta['estatus'] ?? 1), [0, 3], true); ?>
+                            <button type="button" class="btn btn-outline btn-sm" id="btn-agregar-discapacidad"
+                                <?= $isDis ? 'disabled style="cursor: not-allowed; opacity: 0.6;" title="No disponible para atletas inactivos o suspendidos"' : '' ?>>
                                 <i class="ph ph-plus"></i> Agregar
                             </button>
                         <?php endif; ?>

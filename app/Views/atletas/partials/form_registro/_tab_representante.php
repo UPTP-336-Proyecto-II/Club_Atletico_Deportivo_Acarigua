@@ -30,7 +30,7 @@
                                     [$tcedPref, $tcedNum] = explode('-', $tcedVal, 2);
                                 } else {
                                     $firstChar = strtoupper($tcedVal[0]);
-                                    if (in_array($firstChar, ['V', 'E'])) {
+                                    if (in_array($firstChar, ['V', 'E', 'P'])) {
                                         $tcedPref = $firstChar;
                                         $tcedNum = substr($tcedVal, 1);
                                     } else {
@@ -43,10 +43,11 @@
                             <select class="phone-prefix" id="tutor_cedula_prefix" aria-label="Prefijo">
                                 <option value="V" <?= $tcedPref==='V'?'selected':'' ?>>V</option>
                                 <option value="E" <?= $tcedPref==='E'?'selected':'' ?>>E</option>
+                                <option value="P" <?= $tcedPref==='P'?'selected':'' ?>>P</option>
                             </select>
                             <span class="phone-sep">-</span>
                             <input type="text" class="phone-number" id="tutor_cedula_number"
-                                   maxlength="10" placeholder="12.345.678"
+                                   maxlength="10" placeholder="12345678"
                                    autocomplete="off"
                                    value="<?= e($tcedNum) ?>">
                             <input type="hidden" name="tutor_cedula" id="tutor_cedula" value="<?= e($tcedVal) ?>">
@@ -59,7 +60,7 @@
                             $repTelVal  = $get('tutor_telefono', $a['tutor_telefono'] ?? '');
                             $repTelPref = '';
                             $repTelNum  = '';
-                            foreach (['0412','0414','0416','0422','0424','0426'] as $_p) {
+                            foreach (['0412','0414','0416','0422','0424','0426','0255','0256'] as $_p) {
                                 if (str_starts_with($repTelVal, $_p)) { $repTelPref = $_p; $repTelNum = substr($repTelVal, 4); break; }
                             }
                         ?>
@@ -71,6 +72,8 @@
                                 <option value="0422" <?= $repTelPref==='0422'?'selected':'' ?>>0422</option>
                                 <option value="0424" <?= $repTelPref==='0424'?'selected':'' ?>>0424</option>
                                 <option value="0426" <?= $repTelPref==='0426'?'selected':'' ?>>0426</option>
+                                <option value="0255" <?= $repTelPref==='0255'?'selected':'' ?>>0255</option>
+                                <option value="0256" <?= $repTelPref==='0256'?'selected':'' ?>>0256</option>
                             </select>
                             <span class="phone-sep">-</span>
                             <input type="text" class="phone-number" id="tutor_telefono_number"

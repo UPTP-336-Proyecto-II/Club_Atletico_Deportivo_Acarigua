@@ -16,7 +16,7 @@
         <div class="af-grid af-grid--2">
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" max="<?= date('Y-m-d') ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" min="2019-01-01" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Tipo de Actividad</label>
@@ -51,12 +51,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Hora Inicio</label>
-                <input type="time" name="hora_inicio" class="form-control" value="<?= e($actividad['hora_inicio'] ?? '') ?>">
+                <label class="form-label"><span class="required">*</span> Hora Inicio</label>
+                <input type="time" name="hora_inicio" class="form-control" required value="<?= e($actividad['hora_inicio'] ?? '') ?>">
             </div>
             <div class="form-group">
-                <label class="form-label">Hora Fin</label>
-                <input type="time" name="hora_fin" class="form-control" value="<?= e($actividad['hora_fin'] ?? '') ?>">
+                <label class="form-label"><span class="required">*</span> Hora Fin</label>
+                <input type="time" name="hora_fin" class="form-control" required value="<?= e($actividad['hora_fin'] ?? '') ?>">
             </div>
         </div>
 
@@ -72,12 +72,12 @@
         </div>
     </div>
 
-    <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="card" style="padding: 0; overflow: hidden; max-width: 100%;">
         <div style="padding: 20px 24px; border-bottom: 1px solid var(--color-border); background: var(--color-surface-2);">
             <h3 style="margin:0; font-size: 16px;"><i class="ph ph-users-three"></i> Lista de Atletas</h3>
         </div>
         
-        <div id="atletas-list-wrap">
+        <div id="atletas-list-wrap" style="overflow: hidden;">
             <?php foreach ($detalles as $d): ?>
                 <div class="asistencia-row">
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -86,7 +86,6 @@
                         </div>
                         <div>
                             <div style="font-weight: 600; color: var(--color-text);"><?= e($d['nombre'] . ' ' . $d['apellido']) ?></div>
-                            <div style="font-size: 12px; color: var(--color-text-muted);">C.I: <?= e($d['cedula'] ?? '—') ?></div>
                         </div>
                     </div>
                     
@@ -119,12 +118,14 @@
 <style>
 .asistencia-row {
     display: grid;
-    grid-template-columns: 1fr auto auto;
-    gap: 24px;
-    padding: 16px 24px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 16px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--color-border);
     align-items: center;
     transition: background 0.2s;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .asistencia-row:hover { background: var(--color-bg-alt); }
 .asistencia-row:last-child { border-bottom: 0; }
@@ -152,9 +153,12 @@
 .status-btn.active[data-val="Justificado"] { background: var(--color-warning); color: #fff; }
 
 .obs-input {
-    width: 250px;
+    width: 180px;
+    min-width: 120px;
+    max-width: 250px;
     border-radius: 8px;
     font-size: 13px;
+    box-sizing: border-box;
 }
 </style>
 
@@ -169,7 +173,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.getElementById('form-edit-asistencia').addEventListener('submit', function() {
+    document.getElementById('form-edit-asistencia').addEventListener('submit', function(e) {
+        const hInicio = document.querySelector('[name="hora_inicio"]').value;
+        const hFin = document.querySelector('[name="hora_fin"]').value;
+        if (hInicio && hFin && hInicio >= hFin) {
+            e.preventDefault();
+            CadaModal.alert({ title: 'Error en Horario', text: 'La hora de inicio debe ser menor a la hora de fin.', type: 'danger' });
+            return;
+        }
+
         const btn = document.getElementById('btn-save');
         btn.disabled = true;
         btn.innerHTML = '<i class="ph ph-spinner-gap spinning"></i> Actualizando...';

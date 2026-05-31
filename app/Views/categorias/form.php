@@ -3,6 +3,7 @@
 $c = $item ?? [];
 $get = fn(string $k, $d = '') => old($k, $c[$k] ?? $d);
 $isEdit = !empty($c['categoria_id']);
+$hasAthletes = $isEdit && !empty($c['total_atletas']) && (int)$c['total_atletas'] > 0;
 ?>
 
 <div class="page-header">
@@ -28,47 +29,53 @@ $isEdit = !empty($c['categoria_id']);
     <form id="form-categoria" method="POST" action="<?= e($action) ?>" style="padding: 32px;" novalidate>
         <?= csrf_field() ?>
         
-        <div class="form-group">
-            <label class="form-label"><span class="required">*</span> Nombre de la Categoría</label>
-            <div style="position: relative;">
-                <i class="ph ph-tag" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
-                <input type="text" name="nombre_categoria" class="form-control" style="padding-left: 40px;" 
-                       placeholder="Ej: Sub-12, Semillitas..." required maxlength="50" 
-                       value="<?= e($get('nombre_categoria', '')) ?>">
-            </div>
-
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+        <!-- Fila 1: Sexo, Edad Mínima, Edad Máxima -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px;">
             <div class="form-group" style="margin: 0;">
-                <label class="form-label"><span class="required">*</span> Edad Mínima</label>
-                <div style="position: relative;">
-                    <i class="ph ph-user-circle" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
-                    <input type="number" name="edad_min" min="6" max="100" class="form-control" style="padding-left: 40px;" 
-                           required value="<?= e($get('edad_min', 6)) ?>">
-                </div>
-            </div>
-            <div class="form-group" style="margin: 0;">
-                <label class="form-label"><span class="required">*</span> Edad Máxima</label>
-                <div style="position: relative;">
-                    <i class="ph ph-user-circle-plus" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
-                    <input type="number" name="edad_max" min="6" max="100" class="form-control" style="padding-left: 40px;" 
-                           required value="<?= e($get('edad_max', 18)) ?>">
-                </div>
-            </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: <?= $isEdit ? '1fr 1fr 1fr' : '1fr 1fr' ?>; gap: 24px; margin-bottom: 24px;">
-            <div class="form-group" style="margin: 0;">
-                <label class="form-label"><span class="required">*</span> Género</label>
+                <label class="form-label"><span class="required">*</span> Género <?= $hasAthletes ? ' <span class="text-muted" style="font-size:11px; font-weight:normal;">(Bloqueado)</span>' : '' ?></label>
                 <div style="position: relative;">
                     <i class="ph ph-gender-intersex" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); z-index: 10;"></i>
-                    <select name="sexo_categoria" class="form-control" style="padding-left: 40px;" required>
+                    <select name="sexo_categoria" class="form-control" style="padding-left: 40px;" required <?= $hasAthletes ? 'disabled' : '' ?>>
                         <option value="">— Seleccione —</option>
                         <option value="M" <?= $get('sexo_categoria', '') === 'M' ? 'selected' : '' ?>>Masculino</option>
                         <option value="F" <?= $get('sexo_categoria', '') === 'F' ? 'selected' : '' ?>>Femenino</option>
                         <option value="X" <?= $get('sexo_categoria', '') === 'X' ? 'selected' : '' ?>>Mixto</option>
                     </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label"><span class="required">*</span> Edad Mínima <?= $hasAthletes ? ' <span class="text-muted" style="font-size:11px; font-weight:normal;">(Bloqueado)</span>' : '' ?></label>
+                <div style="position: relative;">
+                    <i class="ph ph-user-circle" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
+                    <input type="number" name="edad_min" min="6" max="100" class="form-control" style="padding-left: 40px;" 
+                           required value="<?= e($get('edad_min', 6)) ?>" <?= $hasAthletes ? 'disabled' : '' ?>>
+                </div>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label"><span class="required">*</span> Edad Máxima <?= $hasAthletes ? ' <span class="text-muted" style="font-size:11px; font-weight:normal;">(Bloqueado)</span>' : '' ?></label>
+                <div style="position: relative;">
+                    <i class="ph ph-user-circle-plus" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
+                    <input type="number" name="edad_max" min="6" max="100" class="form-control" style="padding-left: 40px;" 
+                           required value="<?= e($get('edad_max', 18)) ?>" <?= $hasAthletes ? 'disabled' : '' ?>>
+                </div>
+            </div>
+        </div>
+
+        <?php if ($hasAthletes): ?>
+            <input type="hidden" name="sexo_categoria" value="<?= e($get('sexo_categoria')) ?>">
+            <input type="hidden" name="edad_min" value="<?= e($get('edad_min')) ?>">
+            <input type="hidden" name="edad_max" value="<?= e($get('edad_max')) ?>">
+        <?php endif; ?>
+
+        <!-- Fila 2: Nombre de Categoría (Readonly), Entrenador Responsable, Estatus (si es Edición) -->
+        <div style="display: grid; grid-template-columns: <?= $isEdit ? '1fr 1fr 1fr' : '1fr 1fr' ?>; gap: 24px; margin-bottom: 24px;">
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label">Nombre de la Categoría</label>
+                <div style="position: relative;">
+                    <i class="ph ph-tag" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
+                    <input type="text" name="nombre_categoria" id="nombre_categoria" class="form-control" style="padding-left: 40px; background-color: var(--color-bg-alt);" 
+                           placeholder="Se generará automáticamente..." required readonly 
+                           value="<?= e($get('nombre_categoria', '')) ?>">
                 </div>
             </div>
             <div class="form-group" style="margin: 0;">
@@ -91,16 +98,15 @@ $isEdit = !empty($c['categoria_id']);
                 <div style="position: relative;">
                     <i class="ph ph-toggle-left" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); z-index: 10;"></i>
                     <select name="estatus" class="form-control" style="padding-left: 40px;">
-                        <?php foreach (['activa','inactiva'] as $op): ?>
-                            <option value="<?= e($op) ?>" <?= strtolower($get('estatus', 'activa')) === $op ? 'selected' : '' ?>>
-                                <?= e(ucfirst($op)) ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <option value="1" <?= (int) $get('estatus', 1) === 1 ? 'selected' : '' ?>>Activa</option>
+                        <option value="2" <?= (int) $get('estatus', 1) === 2 ? 'selected' : '' ?> <?= $hasAthletes ? 'disabled' : '' ?>>
+                            Inactiva <?= $hasAthletes ? ' (Bloqueado: tiene atletas)' : '' ?>
+                        </option>
                     </select>
                 </div>
             </div>
             <?php else: ?>
-                <input type="hidden" name="estatus" value="activa">
+                <input type="hidden" name="estatus" value="1">
             <?php endif; ?>
         </div>
 
@@ -157,14 +163,47 @@ document.addEventListener('DOMContentLoaded', function() {
         );
     });
 
+    const inputNombre = document.getElementById('nombre_categoria');
+    const inputEdadMax = document.querySelector('input[name="edad_max"]');
+    const selectSexo = document.querySelector('select[name="sexo_categoria"]');
+
+    function actualizarNombre() {
+        const edadMaxVal = inputEdadMax.value.trim();
+        const sexoVal = selectSexo.value;
+
+        if (!edadMaxVal || !sexoVal) {
+            inputNombre.value = '';
+            return;
+        }
+
+        let sexoLetra = '';
+        if (sexoVal === 'M') {
+            sexoLetra = '(m)';
+        } else if (sexoVal === 'F') {
+            sexoLetra = '(f)';
+        } else if (sexoVal === 'X') {
+            sexoLetra = '(mix)';
+        }
+
+        inputNombre.value = 'sub-' + edadMaxVal + sexoLetra;
+    }
+
+    inputEdadMax.addEventListener('input', actualizarNombre);
+    selectSexo.addEventListener('change', actualizarNombre);
+
+    // Si no tiene valor (creación), inicializar
+    if (!inputNombre.value) {
+        actualizarNombre();
+    }
+
     // Validación estándar al submit
     FormValidator.init('#form-categoria', {
         custom: (form) => {
             const errors = [];
             const min = parseInt(form.querySelector('input[name="edad_min"]')?.value);
             const max = parseInt(form.querySelector('input[name="edad_max"]')?.value);
-            if (!isNaN(min) && !isNaN(max) && min > max) {
-                errors.push({ label: 'La edad mínima no puede ser mayor a la máxima', element: form.querySelector('input[name="edad_min"]') });
+            if (!isNaN(min) && !isNaN(max) && min >= max) {
+                errors.push({ label: 'La edad mínima debe ser estrictamente menor que la edad máxima', element: form.querySelector('input[name="edad_min"]') });
             }
             return errors;
         }

@@ -81,6 +81,29 @@ final class UsuariosController extends Controller
         }
     }
 
+    public function show(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $item = (new Usuario())->findCompleto($id);
+        if (!$item) {
+            flash('error', 'Usuario no encontrado.');
+            return $this->redirect('/admin/usuarios');
+        }
+
+        $loggedUser = Auth::user();
+
+        // Evitar que un administrador vea perfil de superusuario si hay restricciones (opcional)
+        // O simplemente permitimos que lo vea pero no lo edite
+        
+        return $this->view('usuarios.perfil', [
+            'title' => 'Perfil de Usuario',
+            'active' => 'usuarios',
+            'breadcrumb' => ['Inicio', 'Usuarios', 'Perfil'],
+            'item' => $item,
+            'roles' => (new Rol())->allowedRolesFor((int) $loggedUser['rol_id']),
+        ], 'admin');
+    }
+
     public function edit(Request $request): Response
     {
         $id = (int) $request->param('id');
@@ -151,6 +174,141 @@ final class UsuariosController extends Controller
         }
     }
 
+    public function updateBasico(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $item = (new Usuario())->findCompleto($id);
+        
+        if (!$item) {
+            return $this->json(['success' => false, 'message' => 'Usuario no encontrado.']);
+        }
+
+        $loggedUser = Auth::user();
+        if ($loggedUser['rol_id'] == ROL_ADMIN && $item['rol_id'] == ROL_SUPERUSER) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para modificar este usuario.']);
+        }
+
+        // Leer datos básicos (del modal)
+        $data = [
+            'nombre'   => trim((string) $request->input('nombre')),
+            'apellido' => trim((string) $request->input('apellido')),
+            'telefono' => trim((string) $request->input('telefono')),
+            'correo'   => trim((string) $request->input('correo')),
+            'rol_id'   => (int) $request->input('rol_id'),
+            'estatus'  => $request->input('estatus'),
+        ];
+
+        if ($loggedUser['rol_id'] == ROL_ADMIN && $data['rol_id'] == ROL_SUPERUSER) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para asignar ese rol.']);
+        }
+
+        // Validar manualmente (solo estos campos)
+        $correoRule = 'required|email|max:50|unique:usuarios,correo,usuario_id:' . $id;
+        $v = Validator::make($data, [
+            'nombre'   => 'required|min:3|max:30',
+            'apellido' => 'required|min:3|max:30',
+            'telefono' => 'required|min:7|max:15|regex:/^[0-9]+$/',
+            'correo'   => $correoRule,
+            'rol_id'   => 'required|integer',
+        ], [
+            'rol_id' => 'El campo rol es obligatorio.'
+        ]);
+
+        $v->validate();
+        if ($v->errors()) {
+            return $this->json(['success' => false, 'errors' => $v->errors()]);
+        }
+
+        try {
+            // Actualizamos en bd. Preservamos lo demas.
+            (new Usuario())->update($id, [
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'telefono' => $data['telefono'],
+                'correo' => $data['correo'],
+                'rol_id' => $data['rol_id'],
+                'estatus' => $data['estatus'],
+            ]);
+            
+            return $this->json(['success' => true, 'message' => 'Datos actualizados correctamente.']);
+        } catch (Throwable $e) {
+            Logger::error($e);
+            return $this->json(['success' => false, 'message' => 'Error al guardar en BD: ' . $e->getMessage()]);
+        }
+    }
+
+    public function updateFoto(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $item = (new Usuario())->findCompleto($id);
+        
+        if (!$item) {
+            return $this->json(['success' => false, 'message' => 'Usuario no encontrado.']);
+        }
+
+        $loggedUser = Auth::user();
+        if ($loggedUser['rol_id'] == ROL_ADMIN && $item['rol_id'] == ROL_SUPERUSER) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para modificar este usuario.']);
+        }
+
+        try {
+            $data = [];
+            if ($request->input('eliminar_foto') == '1') {
+                $data['eliminar_foto'] = '1';
+            }
+            (new UsuarioService())->actualizar($id, $data, $_FILES['foto'] ?? []);
+            return $this->json(['success' => true, 'message' => 'Foto actualizada correctamente.']);
+        } catch (Throwable $e) {
+            Logger::error($e);
+            return $this->json(['success' => false, 'message' => 'Error al guardar foto: ' . $e->getMessage()]);
+        }
+    }
+
+    public function updateDireccion(Request $request): Response
+    {
+        $id = (int) $request->param('id');
+        $item = (new Usuario())->findCompleto($id);
+        
+        if (!$item) {
+            return $this->json(['success' => false, 'message' => 'Usuario no encontrado.']);
+        }
+
+        $loggedUser = Auth::user();
+        if ($loggedUser['rol_id'] == ROL_ADMIN && $item['rol_id'] == ROL_SUPERUSER) {
+            return $this->json(['success' => false, 'message' => 'No tienes permisos para modificar este usuario.']);
+        }
+
+        $data = [
+            'parroquia_id'       => $request->input('parroquia_id') ? (int) $request->input('parroquia_id') : null,
+            'localidad'          => trim((string) $request->input('localidad', '')),
+            'tipo_vivienda'      => trim((string) $request->input('tipo_vivienda', '')),
+            'ubicacion_vivienda' => trim((string) $request->input('ubicacion_vivienda', '')),
+        ];
+
+        // Validar
+        $v = Validator::make($data, [
+            'parroquia_id'       => 'required|integer',
+            'localidad'          => 'required|min:2|max:100',
+            'tipo_vivienda'      => 'required',
+            'ubicacion_vivienda' => 'required|min:5|max:100',
+        ], [
+            'parroquia_id' => 'El campo parroquia es obligatorio.'
+        ]);
+
+        $v->validate();
+        if ($v->errors()) {
+            return $this->json(['success' => false, 'errors' => $v->errors()]);
+        }
+
+        try {
+            (new UsuarioService())->actualizar($id, $data);
+            return $this->json(['success' => true, 'message' => 'Dirección actualizada correctamente.']);
+        } catch (Throwable $e) {
+            Logger::error($e);
+            return $this->json(['success' => false, 'message' => 'Error al guardar la dirección: ' . $e->getMessage()]);
+        }
+    }
+
     public function destroy(Request $request): Response
     {
         $id = (int) $request->param('id');
@@ -209,8 +367,13 @@ final class UsuariosController extends Controller
             $respModel = new \App\Models\RespuestaSeguridad();
             $respModel->deleteByUser($id);
 
-            // 2. Extraer dígitos de cédula para contraseña temporal
-            $cedulaDigits = preg_replace('/[^0-9]/', '', (string) $item['cedula']);
+            // 2. Extraer número de documento para contraseña temporal
+            $rawCedula = (string) $item['cedula'];
+            if (str_contains($rawCedula, '-')) {
+                $cedulaDigits = str_replace('.', '', explode('-', $rawCedula, 2)[1] ?? '');
+            } else {
+                $cedulaDigits = preg_replace('/[^0-9]/', '', $rawCedula);
+            }
             if (empty($cedulaDigits)) {
                 $cedulaDigits = '12345678';
             }
@@ -240,7 +403,7 @@ final class UsuariosController extends Controller
         return [
             'nombre'    => trim((string) $request->input('nombre')),
             'apellido'  => trim((string) $request->input('apellido')),
-            'cedula'    => preg_replace('/[^0-9]/', '', (string) $request->input('cedula')),
+            'cedula'    => trim((string) $request->input('cedula')),
             'telefono'  => trim((string) $request->input('telefono')),
             'fecha_nac' => trim((string) $request->input('fecha_nac')),
             'correo'    => trim((string) $request->input('correo')),
@@ -258,11 +421,13 @@ final class UsuariosController extends Controller
 
     private function validar(array $data, ?int $ignoreId = null): array
     {
-        $cedulaRule = 'required|min:7|max:12|regex:/^[0-9]+$/';
+        // Regex: V-/E- seguido de dígitos con puntos (7-10 dígitos) o P- seguido de alfanumérico (5-15 chars)
+        $cedulaRegex = '/^([VE]-\d{1,3}(\.\d{3})*|P-[A-Z0-9]{5,15})$/i';
+        $cedulaRules = ['required', "regex:$cedulaRegex"];
         if ($ignoreId) {
-            $cedulaRule .= "|unique:usuarios,cedula,usuario_id:$ignoreId";
+            $cedulaRules[] = "unique:usuarios,cedula,usuario_id:$ignoreId";
         } else {
-            $cedulaRule .= '|unique:usuarios,cedula';
+            $cedulaRules[] = 'unique:usuarios,cedula';
         }
 
         $correoRule = 'required|email|max:50';
@@ -275,7 +440,7 @@ final class UsuariosController extends Controller
         $v = Validator::make($data, [
             'nombre'    => 'required|min:3|max:30',
             'apellido'  => 'required|min:3|max:30',
-            'cedula'    => $cedulaRule,
+            'cedula'    => $cedulaRules,
             'telefono'  => 'required|min:7|max:15|regex:/^[0-9]+$/',
             'correo'    => $correoRule,
             'fecha_nac' => 'required|date',
@@ -285,6 +450,7 @@ final class UsuariosController extends Controller
             'tipo_vivienda' => 'required',
             'ubicacion_vivienda' => 'required|min:5|max:100',
         ], [
+            'cedula'       => 'La cédula o pasaporte debe ser válido (Ej: V-12.345.678, E-12.345.678 o P-Pasaporte) y ser único.',
             'parroquia_id' => 'El campo parroquia es obligatorio.',
             'rol_id'       => 'El campo rol / cargo es obligatorio.',
         ]);

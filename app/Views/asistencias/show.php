@@ -33,7 +33,7 @@
             </thead>
             <tbody>
                 <?php foreach ($detalles as $d): ?>
-                <tr>
+                <tr class="detalle-row">
                     <td style="padding-left: 24px;">
                         <div style="font-weight: 600;"><?= e($d['nombre'] . ' ' . $d['apellido']) ?></div>
                     </td>
@@ -57,6 +57,7 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <div id="detalles-pagination" style="display: flex; justify-content: center; margin-top: 24px; margin-bottom: 24px;"></div>
     </div>
 
     <!-- Resumen de la Sesión -->
@@ -64,6 +65,10 @@
         <div class="card">
             <h3 style="margin-top: 0; font-size: 15px;"><i class="ph ph-info"></i> Información General</h3>
             <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 20px;">
+                <div>
+                    <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Categoría</label>
+                    <div style="font-weight: 600; color: var(--color-text);"><?= e($actividad['nombre_categoria'] ?? 'General') ?></div>
+                </div>
                 <div>
                     <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Tipo de Actividad</label>
                     <?php 
@@ -119,3 +124,52 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const rowsPerPage = 15;
+    const rows = Array.from(document.querySelectorAll('.detalle-row'));
+    const totalCount = rows.length;
+
+    if (totalCount > rowsPerPage) {
+        const totalPages = Math.ceil(totalCount / rowsPerPage);
+        const container = document.getElementById('detalles-pagination');
+
+        function showPage(page) {
+            rows.forEach(r => r.style.display = 'none');
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            rows.slice(start, end).forEach(r => r.style.display = '');
+
+            if (container) {
+                container.innerHTML = '';
+                const ul = document.createElement('ul');
+                ul.className = 'pagination';
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    if (i === page) {
+                        li.className = 'active';
+                        const span = document.createElement('span');
+                        span.textContent = i;
+                        li.appendChild(span);
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = '#';
+                        a.textContent = i;
+                        a.onclick = (e) => {
+                            e.preventDefault();
+                            showPage(i);
+                        };
+                        li.appendChild(a);
+                    }
+                    ul.appendChild(li);
+                }
+                container.appendChild(ul);
+            }
+        }
+
+        showPage(1);
+    }
+});
+</script>

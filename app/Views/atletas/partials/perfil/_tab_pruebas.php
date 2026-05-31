@@ -2,7 +2,9 @@
             <div id="tab-pruebas" class="tab-content" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h3 style="margin: 0;"><i class="ph ph-chart-line-up"></i> Rendimiento Físico</h3>
-                    <button type="button" class="btn btn-primary btn-sm" id="btn-nueva-prueba"><i
+                    <?php $isDis = in_array((int)($atleta['estatus'] ?? 1), [0, 3], true); ?>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-nueva-prueba"
+                        <?= $isDis ? 'disabled style="cursor: not-allowed; opacity: 0.6;" title="No disponible para atletas inactivos o suspendidos"' : '' ?>><i
                             class="ph ph-plus"></i> Registrar Prueba</button>
                 </div>
 
@@ -20,7 +22,7 @@
                                 <li>
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
-                                        <span>Fuerza</span> <strong><?= e($ultima['test_de_fuerza'] ?? 0) ?>/100</strong>
+                                        <span>Fuerza</span> <strong><?= e($ultima['test_de_fuerza_raw'] ?? '—') ?> cm (<?= e($ultima['test_de_fuerza'] ?? 0) ?>/100)</strong>
                                     </div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
@@ -33,7 +35,7 @@
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
                                         <span>Resistencia</span>
-                                        <strong><?= e($ultima['test_resistencia'] ?? 0) ?>/100</strong></div>
+                                        <strong><?= e($ultima['test_resistencia_raw'] ?? '—') ?> m (<?= e($ultima['test_resistencia'] ?? 0) ?>/100)</strong></div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
                                         <div
@@ -44,7 +46,7 @@
                                 <li>
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
-                                        <span>Velocidad</span> <strong><?= e($ultima['test_velocidad'] ?? 0) ?>/100</strong>
+                                        <span>Velocidad</span> <strong><?= e($ultima['test_velocidad_raw'] ?? '—') ?> s (<?= e($ultima['test_velocidad'] ?? 0) ?>/100)</strong>
                                     </div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
@@ -57,7 +59,7 @@
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
                                         <span>Coordinación</span>
-                                        <strong><?= e($ultima['test_coordinacion'] ?? 0) ?>/100</strong></div>
+                                        <strong><?= e($ultima['test_coordinacion_raw'] ?? '—') ?> s (<?= e($ultima['test_coordinacion'] ?? 0) ?>/100)</strong></div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
                                         <div
@@ -69,7 +71,7 @@
                                     <div
                                         style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
                                         <span>Reacción</span>
-                                        <strong><?= e($ultima['test_de_reaccion'] ?? 0) ?>/100</strong></div>
+                                        <strong><?= e($ultima['test_de_reaccion_raw'] ?? '—') ?> ms (<?= e($ultima['test_de_reaccion'] ?? 0) ?>/100)</strong></div>
                                     <div
                                         style="height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden;">
                                         <div
@@ -98,11 +100,11 @@
                         <thead>
                             <tr>
                                 <th>Fecha</th>
-                                <th>Fuerza</th>
-                                <th>Resist.</th>
-                                <th>Veloc.</th>
-                                <th>Coord.</th>
-                                <th>Reacc.</th>
+                                <th>Fuerza (CMJ)</th>
+                                <th>Resist. (Yo-Yo)</th>
+                                <th>Veloc. (30m)</th>
+                                <th>Coord. (Conos)</th>
+                                <th>Reacc. (Cognit.)</th>
                                 <?php if (can('admin')): ?>
                                     <th style="width: 110px; text-align: center;">Acciones</th>
                                 <?php endif; ?>
@@ -134,31 +136,31 @@
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 6px;">
                                                 <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-primary);"></div>
-                                                <?= e($p['test_de_fuerza'] ?? 0) ?>
+                                                <?= e($p['test_de_fuerza_raw'] !== null ? $p['test_de_fuerza_raw'] . ' cm (' . $p['test_de_fuerza'] . '/100)' : '—') ?>
                                             </div>
                                         </td>
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 6px;">
                                                 <div style="width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></div>
-                                                <?= e($p['test_resistencia'] ?? 0) ?>
+                                                <?= e($p['test_resistencia_raw'] !== null ? $p['test_resistencia_raw'] . ' m (' . $p['test_resistencia'] . '/100)' : '—') ?>
                                             </div>
                                         </td>
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 6px;">
                                                 <div style="width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></div>
-                                                <?= e($p['test_velocidad'] ?? 0) ?>
+                                                <?= e($p['test_velocidad_raw'] !== null ? $p['test_velocidad_raw'] . ' s (' . $p['test_velocidad'] . '/100)' : '—') ?>
                                             </div>
                                         </td>
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 6px;">
                                                 <div style="width: 8px; height: 8px; border-radius: 50%; background: #8B5CF6;"></div>
-                                                <?= e($p['test_coordinacion'] ?? 0) ?>
+                                                <?= e($p['test_coordinacion_raw'] !== null ? $p['test_coordinacion_raw'] . ' s (' . $p['test_coordinacion'] . '/100)' : '—') ?>
                                             </div>
                                         </td>
                                         <td>
                                             <div style="display: flex; align-items: center; gap: 6px;">
                                                 <div style="width: 8px; height: 8px; border-radius: 50%; background: #EC4899;"></div>
-                                                <?= e($p['test_de_reaccion'] ?? 0) ?>
+                                                <?= e($p['test_de_reaccion_raw'] !== null ? $p['test_de_reaccion_raw'] . ' ms (' . $p['test_de_reaccion'] . '/100)' : '—') ?>
                                             </div>
                                         </td>
                                         <?php if (can('admin')): ?>
@@ -168,11 +170,11 @@
                                                         data-id="<?= $p['test_id'] ?>"
                                                         data-fecha="<?= e(date('Y-m-d', strtotime($p['fecha_evento']))) ?>"
                                                         data-entrenador-id="<?= e($p['usuario_id'] ?? '') ?>"
-                                                        data-fuerza="<?= e($p['test_de_fuerza'] ?? '') ?>"
-                                                        data-resistencia="<?= e($p['test_resistencia'] ?? '') ?>"
-                                                        data-velocidad="<?= e($p['test_velocidad'] ?? '') ?>"
-                                                        data-coordinacion="<?= e($p['test_coordinacion'] ?? '') ?>"
-                                                        data-reaccion="<?= e($p['test_de_reaccion'] ?? '') ?>"
+                                                        data-fuerza="<?= e($p['test_de_fuerza_raw'] ?? '') ?>"
+                                                        data-resistencia="<?= e($p['test_resistencia_raw'] ?? '') ?>"
+                                                        data-velocidad="<?= e($p['test_velocidad_raw'] ?? '') ?>"
+                                                        data-coordinacion="<?= e($p['test_coordinacion_raw'] ?? '') ?>"
+                                                        data-reaccion="<?= e($p['test_de_reaccion_raw'] ?? '') ?>"
                                                         title="Editar prueba"
                                                         style="width: 28px; height: 28px; font-size: 14px;">
                                                         <i class="ph ph-pencil-simple"></i>
@@ -222,35 +224,35 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Fuerza</label>
-                                <input type="number" name="test_de_fuerza" class="form-control" min="0" max="100"
-                                    placeholder="0-100">
+                                <label class="form-label">Test de Fuerza (Salto CMJ - cm)</label>
+                                <input type="number" step="0.01" name="test_de_fuerza" class="form-control" min="1" max="100"
+                                    placeholder="Rango Élite (100%): 20 - 45 cm">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Test de Resistencia</label>
-                                <input type="number" name="test_resistencia" class="form-control" min="0" max="100"
-                                    placeholder="0-100">
+                                <label class="form-label">Test de Resistencia (Yo-Yo Test - m)</label>
+                                <input type="number" step="1" name="test_resistencia" class="form-control" min="1" max="1000"
+                                    placeholder="Rango Élite (100%): 600 - 2200 m">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Velocidad</label>
-                                <input type="number" name="test_velocidad" class="form-control" min="0" max="100"
-                                    placeholder="0-100">
+                                <label class="form-label">Test de Velocidad (Sprint 30m - s)</label>
+                                <input type="number" step="0.01" name="test_velocidad" class="form-control" min="1" max="10"
+                                    placeholder="Rango Élite (100%): 5.20 - 4.10 s">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Test de Coordinación</label>
-                                <input type="number" name="test_coordinacion" class="form-control" min="0" max="100"
-                                    placeholder="0-100">
+                                <label class="form-label">Test de Coordinación (Conos - s)</label>
+                                <input type="number" step="0.01" name="test_coordinacion" class="form-control" min="1" max="100"
+                                    placeholder="Rango Élite (100%): 22.50 - 16.50 s">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Reacción</label>
-                                <input type="number" name="test_de_reaccion" class="form-control" min="0" max="100"
-                                    placeholder="0-100">
+                                <label class="form-label">Test de Reacción (App Cognitiva - ms)</label>
+                                <input type="number" step="1" name="test_de_reaccion" class="form-control" min="100" max="1000"
+                                    placeholder="Rango Élite (100%): 450 - 220 ms">
                             </div>
                         </div>
                     </div>
@@ -291,30 +293,30 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Fuerza</label>
-                                <input type="number" name="test_de_fuerza" id="edit-prueba-fuerza" class="form-control" min="0" max="100" placeholder="0-100">
+                                <label class="form-label">Test de Fuerza (Salto CMJ - cm)</label>
+                                <input type="number" step="0.01" name="test_de_fuerza" id="edit-prueba-fuerza" class="form-control" min="1" max="100" placeholder="Rango Élite (100%): 20 - 45 cm">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Test de Resistencia</label>
-                                <input type="number" name="test_resistencia" id="edit-prueba-resistencia" class="form-control" min="0" max="100" placeholder="0-100">
+                                <label class="form-label">Test de Resistencia (Yo-Yo Test - m)</label>
+                                <input type="number" step="1" name="test_resistencia" id="edit-prueba-resistencia" class="form-control" min="1" max="1000" placeholder="Rango Élite (100%): 600 - 2200 m">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Velocidad</label>
-                                <input type="number" name="test_velocidad" id="edit-prueba-velocidad" class="form-control" min="0" max="100" placeholder="0-100">
+                                <label class="form-label">Test de Velocidad (Sprint 30m - s)</label>
+                                <input type="number" step="0.01" name="test_velocidad" id="edit-prueba-velocidad" class="form-control" min="1" max="10" placeholder="Rango Élite (100%): 5.20 - 4.10 s">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Test de Coordinación</label>
-                                <input type="number" name="test_coordinacion" id="edit-prueba-coordinacion" class="form-control" min="0" max="100" placeholder="0-100">
+                                <label class="form-label">Test de Coordinación (Conos - s)</label>
+                                <input type="number" step="0.01" name="test_coordinacion" id="edit-prueba-coordinacion" class="form-control" min="1" max="100" placeholder="Rango Élite (100%): 22.50 - 16.50 s">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                             <div class="form-group">
-                                <label class="form-label">Test de Reacción</label>
-                                <input type="number" name="test_de_reaccion" id="edit-prueba-reaccion" class="form-control" min="0" max="100" placeholder="0-100">
+                                <label class="form-label">Test de Reacción (App Cognitiva - ms)</label>
+                                <input type="number" step="1" name="test_de_reaccion" id="edit-prueba-reaccion" class="form-control" min="100" max="1000" placeholder="Rango Élite (100%): 450 - 220 ms">
                             </div>
                         </div>
                     </div>

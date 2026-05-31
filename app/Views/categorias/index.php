@@ -1,4 +1,6 @@
-<?php /** @var array $items */ ?>
+<?php /** @var array $items */
+/** @var array $filters */
+/** @var array $entrenadores */ ?>
 <div class="page-header">
     <div>
         <h1>Categorías Deportivas</h1>
@@ -13,7 +15,7 @@
 
 <?php 
 $total = count($items);
-$activas = count(array_filter($items, fn($i) => strtolower($i['estatus']) === 'activa'));
+$activas = count(array_filter($items, fn($i) => (int)$i['estatus'] === 1));
 $totalAtletas = array_sum(array_column($items, 'total_atletas'));
 ?>
 
@@ -33,6 +35,40 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
     </div>
 </div>
 
+<form method="GET" class="table-filters card" style="display: flex; gap: 16px; align-items: flex-end; padding: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+    <div class="form-group" style="flex: 1; min-width: 250px; margin-bottom: 0;">
+        <label class="form-label" for="q"><i class="ph ph-magnifying-glass"></i> Buscar Categoría</label>
+        <input type="search" id="q" name="q" class="form-control" placeholder="Nombre de categoría..." value="<?= e($filters['q'] ?? '') ?>">
+    </div>
+
+    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+        <label class="form-label" for="sexo"><i class="ph ph-gender-intersex"></i> Género</label>
+        <select id="sexo" name="sexo" class="form-control">
+            <option value="">Todos los géneros</option>
+            <option value="M" <?= ($filters['sexo'] ?? '') === 'M' ? 'selected' : '' ?>>Masculino</option>
+            <option value="F" <?= ($filters['sexo'] ?? '') === 'F' ? 'selected' : '' ?>>Femenino</option>
+            <option value="X" <?= ($filters['sexo'] ?? '') === 'X' ? 'selected' : '' ?>>Mixto</option>
+        </select>
+    </div>
+
+    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+        <label class="form-label" for="entrenador_id"><i class="ph ph-user"></i> Entrenador</label>
+        <select id="entrenador_id" name="entrenador_id" class="form-control">
+            <option value="">Todos los entrenadores</option>
+            <?php foreach ($entrenadores as $ent): ?>
+                <option value="<?= (int) $ent['usuario_id'] ?>" <?= ($filters['entrenador_id'] ?? '') == $ent['usuario_id'] ? 'selected' : '' ?>>
+                    <?= e($ent['nombre'] . ' ' . $ent['apellido']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+        <button type="submit" class="btn btn-outline"><i class="ph ph-funnel"></i> Filtrar</button>
+        <a href="<?= e(url('/admin/categorias')) ?>" class="btn btn-ghost" title="Limpiar filtros"><i class="ph ph-x"></i></a>
+    </div>
+</form>
+
 <div class="quick-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
     <?php if (empty($items)): ?>
         <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 80px 24px; background: var(--color-surface);">
@@ -51,25 +87,17 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
         <div class="card" style="margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
             <!-- Header Card -->
             <div style="padding: 24px; border-bottom: 1px solid var(--color-border); position: relative;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <div style="flex: 1;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                            <span class="badge badge-<?= strtolower($c['estatus']) === 'activa' ? 'success' : 'warning' ?>">
-                                <?= e(ucfirst($c['estatus'])) ?>
-                            </span>
-                            <span style="font-size: 12px; color: var(--color-text-muted); font-weight: 600;">ID: #<?= $c['categoria_id'] ?></span>
-                        </div>
-                        <h2 style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--color-text);">
-                            <?= e($c['nombre_categoria']) ?>
-                        </h2>
-                        <div style="display: flex; align-items: center; gap: 10px; color: var(--color-text-muted); font-size: 13px; font-weight: 500; margin-top: 4px;">
-                            <span><i class="ph ph-users"></i> <?= (int) $c['edad_min'] ?> a <?= (int) $c['edad_max'] ?> años</span>
-                            <span style="width: 4px; height: 4px; background: var(--color-border); border-radius: 50%;"></span>
-                            <span>
-                                <i class="ph ph-gender-<?= strtolower($c['sexo_categoria'] ?? 'M') === 'f' ? 'female' : (strtolower($c['sexo_categoria'] ?? 'M') === 'm' ? 'male' : 'intersex') ?>"></i>
-                                <?= $c['sexo_categoria'] === 'F' ? 'Femenino' : ($c['sexo_categoria'] === 'M' ? 'Masculino' : 'Mixto') ?>
-                            </span>
-                        </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <?php 
+                            $isActiva = (int) $c['estatus'] === 1;
+                            $statusText = $isActiva ? 'Activa' : 'Inactiva';
+                            $badgeClass = $isActiva ? 'success' : 'warning';
+                        ?>
+                        <span class="badge badge-<?= $badgeClass ?>">
+                            <?= e($statusText) ?>
+                        </span>
+                        <span style="font-size: 12px; color: var(--color-text-muted); font-weight: 600;">ID: #<?= $c['categoria_id'] ?></span>
                     </div>
                     <?php if (can('admin')): ?>
                         <div class="flex gap-sm">
@@ -84,6 +112,18 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
                             </form>
                         </div>
                     <?php endif; ?>
+                </div>
+                
+                <h2 style="margin: 0 0 12px 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--color-text); text-align: center;">
+                    <?= e($c['nombre_categoria']) ?>
+                </h2>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; color: var(--color-text-muted); font-size: 13px; font-weight: 500;">
+                    <span><i class="ph ph-users"></i> <?= (int) $c['edad_min'] ?> a <?= (int) $c['edad_max'] ?> años</span>
+                    <span>
+                        <i class="ph ph-gender-<?= strtolower($c['sexo_categoria'] ?? 'M') === 'f' ? 'female' : (strtolower($c['sexo_categoria'] ?? 'M') === 'm' ? 'male' : 'intersex') ?>"></i>
+                        <?= $c['sexo_categoria'] === 'F' ? 'Femenino' : ($c['sexo_categoria'] === 'M' ? 'Masculino' : 'Mixto') ?>
+                    </span>
                 </div>
             </div>
             
@@ -132,8 +172,8 @@ $totalAtletas = array_sum(array_column($items, 'total_atletas'));
             
             <!-- Actions -->
             <div style="padding: 16px 24px; background: var(--color-surface); border-top: 1px solid var(--color-border); display: flex; gap: 8px;">
-                <a href="<?= e(url('/admin/atletas?categoria_id=' . $c['categoria_id'])) ?>" class="btn btn-outline" style="flex: 1; font-size: 13px;">
-                    <i class="ph ph-users"></i> Listar
+                <a href="<?= e(url('/admin/categorias/' . $c['categoria_id'] . '/detalles')) ?>" class="btn btn-outline" style="flex: 1; font-size: 13px;">
+                    <i class="ph ph-users"></i> Ver Detalles
                 </a>
                 <a href="<?= e(url('/admin/reportes/categoria/' . $c['categoria_id'])) ?>" class="btn btn-primary" style="flex: 1; font-size: 13px;" target="_blank">
                     <i class="ph ph-file-pdf"></i> Reporte

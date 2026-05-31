@@ -60,7 +60,7 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
 
                 <div class="af-grid af-grid--3">
                     <div class="form-group">
-                        <label class="form-label"><span class="required">*</span> Cédula</label>
+                        <label class="form-label"><span class="required">*</span> Número de documento de identidad</label>
                         <?php
                             $cedVal   = $get('cedula', '');
                             $cedPref  = 'V';
@@ -70,7 +70,7 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                                     [$cedPref, $cedNum] = explode('-', $cedVal, 2);
                                 } else {
                                     $firstChar = strtoupper($cedVal[0]);
-                                    if (in_array($firstChar, ['V', 'E'])) {
+                                    if (in_array($firstChar, ['V', 'E', 'P'])) {
                                         $cedPref = $firstChar;
                                         $cedNum = substr($cedVal, 1);
                                     } else {
@@ -83,9 +83,10 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                             <select class="phone-prefix" id="cedula_prefix" aria-label="Prefijo">
                                 <option value="V" <?= $cedPref==='V'?'selected':'' ?>>V</option>
                                 <option value="E" <?= $cedPref==='E'?'selected':'' ?>>E</option>
+                                <option value="P" <?= $cedPref==='P'?'selected':'' ?>>P</option>
                             </select>
                             <span class="phone-sep">-</span>
-                            <input type="text" class="phone-number" id="cedula_number" maxlength="10" placeholder="12.345.678" autocomplete="off" value="<?= e($cedNum) ?>">
+                            <input type="text" class="phone-number" id="cedula_number" maxlength="15" placeholder="12.345.678" autocomplete="off" value="<?= e($cedNum) ?>">
                             <input type="hidden" name="cedula" id="cedula" value="<?= e($cedVal) ?>">
                         </div>
                     </div>
@@ -95,7 +96,7 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                             $telVal   = $get('telefono', '');
                             $telPref  = '';
                             $telNum   = '';
-                            foreach (['0412','0414','0416','0422','0424','0426'] as $_p) {
+                            foreach (['0412','0414','0416','0422','0424','0426','0255','0256'] as $_p) {
                                 if (str_starts_with($telVal, $_p)) { $telPref = $_p; $telNum = substr($telVal, 4); break; }
                             }
                         ?>
@@ -107,6 +108,8 @@ $maxDate = date('Y-m-d', strtotime('-18 years'));
                                 <option value="0422" <?= $telPref==='0422'?'selected':'' ?>>0422</option>
                                 <option value="0424" <?= $telPref==='0424'?'selected':'' ?>>0424</option>
                                 <option value="0426" <?= $telPref==='0426'?'selected':'' ?>>0426</option>
+                                <option value="0255" <?= $telPref==='0255'?'selected':'' ?>>0255</option>
+                                <option value="0256" <?= $telPref==='0256'?'selected':'' ?>>0256</option>
                             </select>
                             <span class="phone-sep">-</span>
                             <input type="text" class="phone-number" id="telefono_number" maxlength="7" placeholder="1234567" autocomplete="off" inputmode="numeric" value="<?= e($telNum) ?>">
@@ -303,12 +306,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // —— Validaciones de Cédula y Teléfono ———————————————————————————————————————
     const CEDULA_REGEX = /^[VE]-\d{1,3}(\.\d{3})*$/;
+    const PASAPORTE_REGEX = /^P-[A-Z0-9]{5,15}$/i;
 
     function formatCedulaNumber(digits) {
         return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
-    function validarCedula(val) { 
+    function validarCedula(val) {
+        if (PASAPORTE_REGEX.test(val)) return true;
         if (!CEDULA_REGEX.test(val)) return false;
         const digitsOnly = val.replace(/[^\d]/g, '');
         return digitsOnly.length >= 7;
@@ -329,40 +334,74 @@ document.addEventListener('DOMContentLoaded', function() {
         const hiddenEl = document.getElementById(hiddenId);
         if (!prefixEl || !numberEl || !hiddenEl) return;
 
+        function isPassport() { return prefixEl.value === 'P'; }
+
         function sync() {
-            let val = numberEl.value.replace(/[^\d]/g, '');
-            val = formatCedulaNumber(val);
-            numberEl.value = val;
-            hiddenEl.value = val.length ? prefixEl.value + '-' + val : '';
+            if (isPassport()) {
+                // Pasaporte: alfanumérico, sin formato de puntos
+                let val = numberEl.value.replace(/[^A-Z0-9]/gi, '').substring(0, 15).toUpperCase();
+                numberEl.value = val;
+                hiddenEl.value = val.length ? 'P-' + val : '';
+            } else {
+                // Cédula V/E: solo dígitos con formato de puntos, máx 8 dígitos
+                let val = numberEl.value.replace(/[^\d]/g, '').substring(0, 8);
+                val = formatCedulaNumber(val);
+                numberEl.value = val;
+                hiddenEl.value = val.length ? prefixEl.value + '-' + val : '';
+            }
         }
 
-        // Si ya viene un valor cargado
-        if (hiddenEl.value) {
+        function loadExisting() {
+            if (!hiddenEl.value) return;
             let raw = hiddenEl.value;
             let prefix = 'V', num = raw;
             if (raw.includes('-')) {
                 let parts = raw.split('-');
-                prefix = parts[0];
-                num = parts[1] || '';
+                prefix = parts[0].toUpperCase();
+                num = parts.slice(1).join('-') || '';
             } else {
                 let firstChar = raw.charAt(0).toUpperCase();
-                if (['V', 'E'].includes(firstChar)) {
+                if (['V', 'E', 'P'].includes(firstChar)) {
                     prefix = firstChar;
                     num = raw.substring(1);
                 }
             }
             prefixEl.value = prefix;
-            numberEl.value = formatCedulaNumber(num.replace(/[^\d]/g, ''));
+            if (prefix === 'P') {
+                numberEl.value = num.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                numberEl.placeholder = 'ABC123456';
+                numberEl.maxLength = 15;
+            } else {
+                numberEl.value = formatCedulaNumber(num.replace(/[^\d]/g, ''));
+                numberEl.placeholder = '12.345.678';
+                numberEl.maxLength = 10;
+            }
         }
+
+        loadExisting();
         sync();
 
         numberEl.addEventListener('input', () => { sync(); clearError(errorKey); });
-        prefixEl.addEventListener('change', () => { sync(); clearError(errorKey); numberEl.focus(); });
+        prefixEl.addEventListener('change', () => {
+            numberEl.value = '';
+            hiddenEl.value = '';
+            if (isPassport()) {
+                numberEl.placeholder = 'ABC123456';
+                numberEl.maxLength = 15;
+            } else {
+                numberEl.placeholder = '12.345.678';
+                numberEl.maxLength = 10;
+            }
+            sync();
+            clearError(errorKey);
+            numberEl.focus();
+        });
 
         numberEl.addEventListener('blur', () => {
             const val = hiddenEl.value;
             if (val && !validarCedula(val)) {
-                showError(errorKey, 'Formato inválido. Ej: ' + prefixEl.value + '-12.345.678');
+                const hint = isPassport() ? 'Ej: P-ABC123456' : 'Ej: ' + prefixEl.value + '-12.345.678';
+                showError(errorKey, 'Formato inválido. ' + hint);
             } else {
                 clearError(errorKey);
             }
@@ -466,6 +505,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (wrap) wrap.style.borderColor = '';
                 else input.style.borderColor = '';
             }
+
+            // Validar formato de email
+            if (input.type === 'email' && input.value.trim()) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(input.value.trim())) {
+                    if (wrap) wrap.style.borderColor = 'var(--color-danger,#e53e3e)';
+                    else input.style.borderColor = 'var(--color-danger,#e53e3e)';
+                    errors.push('El formato del correo electrónico es inválido.');
+                    isValid = false;
+                }
+            }
         });
 
         if (currentIdx === 0) {
@@ -473,13 +523,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const ced = document.getElementById('cedula').value;
             const cedWrap = document.getElementById('phone-wrap-cedula');
             
+            const isPass = document.getElementById('cedula_prefix').value === 'P';
+            const docName = isPass ? 'Pasaporte' : 'Cédula';
             if (!cedNum) {
                 if (cedWrap) cedWrap.style.borderColor = 'var(--color-danger,#e53e3e)';
-                errors.push('El campo "Cédula" es obligatorio.');
+                errors.push('El campo "' + docName + '" es obligatorio.');
                 isValid = false;
             } else if (!validarCedula(ced)) {
                 if (cedWrap) cedWrap.style.borderColor = 'var(--color-danger,#e53e3e)';
-                errors.push('La cédula tiene formato inválido. Ej: V-12.345.678');
+                errors.push(isPass ? 'El pasaporte debe tener entre 5 y 15 caracteres alfanuméricos. Ej: P-ABC123456' : 'La cédula debe tener entre 7 y 8 dígitos numéricos. Ej: V-12.345.678');
                 isValid = false;
             } else {
                 if (cedWrap) cedWrap.style.borderColor = '';
@@ -637,7 +689,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const ced = document.getElementById('cedula').value;
             if (ced && !validarCedula(ced)) {
                 const cedInp = document.getElementById('cedula_number');
-                errors.push({ label: 'La cédula tiene formato inválido. Ej: V-12.345.678', element: cedInp });
+                const isPass = document.getElementById('cedula_prefix').value === 'P';
+                const msg = isPass ? 'El pasaporte tiene formato inválido. Ej: P-ABC123456' : 'La cédula tiene formato inválido. Ej: V-12.345.678';
+                errors.push({ label: msg, element: cedInp });
             }
             const tel = document.getElementById('telefono_number').value;
             if (!tel || tel.length !== 7) {

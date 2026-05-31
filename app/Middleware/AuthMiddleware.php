@@ -20,12 +20,16 @@ final class AuthMiddleware
             return Response::redirect('/login');
         }
 
+        // La ruta keep-alive puede renovar la sesión aunque haya "expirado"
+        // el temporizador de inactividad, siempre que el JWT siga siendo válido.
+        $isKeepAlive = $request->uri() === '/api/keep-alive';
+
         // Verificar expiración de sesión basada en la configuración de la BD
         $tiempoSesionMin = (int) config_db('tiempo_sesion', 120);
         $tiempoSesionSeg = $tiempoSesionMin * 60;
         $lastActivity = $_SESSION['_last_activity'] ?? 0;
 
-        if ($lastActivity > 0 && (time() - $lastActivity) > $tiempoSesionSeg) {
+        if (!$isKeepAlive && $lastActivity > 0 && (time() - $lastActivity) > $tiempoSesionSeg) {
             Auth::logout();
             if ($request->isJson()) {
                 return Response::json(['error' => 'Sesión expirada'], 401);

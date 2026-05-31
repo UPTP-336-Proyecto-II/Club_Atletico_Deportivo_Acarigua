@@ -35,7 +35,11 @@ final class MedidasAntropometricasController extends Controller
         return $this->view('medidas.atleta', [
             'title' => 'Antropometría - ' . $atleta['nombre'] . ' ' . $atleta['apellido'],
             'active' => 'medidas',
-            'breadcrumb' => ['Inicio', 'Antropometría', $atleta['nombre']],
+            'breadcrumb' => [
+                'Inicio',
+                ['label' => 'Antropometría', 'url' => url('/admin/medidas')],
+                $atleta['nombre'] . ' ' . $atleta['apellido']
+            ],
             'atleta' => $atleta,
             'historial' => $historial,
         ], 'admin');
@@ -44,6 +48,24 @@ final class MedidasAntropometricasController extends Controller
     public function store(Request $request): Response
     {
         $id = (int) $request->param('id');
+        $atleta = (new Atleta())->findCompleto($id);
+        if (!$atleta) {
+            flash('error', 'Atleta no encontrado.');
+            return $this->redirect('/admin/medidas');
+        }
+
+        if (in_array((int)$atleta['estatus'], [0, 3], true)) {
+            $msg = 'No es posible registrar medidas antropométricas para un atleta suspendido o inactivo.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json([
+                    'success' => false,
+                    'message' => $msg
+                ], 403);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/medidas/atleta/$id");
+        }
+
         $data = [
             'atleta_id'              => $id,
             'fecha_medicion'         => (string) $request->input('fecha_medicion', date('Y-m-d')),

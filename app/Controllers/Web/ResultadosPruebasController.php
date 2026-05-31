@@ -31,7 +31,12 @@ final class ResultadosPruebasController extends Controller
         return $this->view('resultados_pruebas.atleta', [
             'title' => 'Pruebas - ' . $atleta['nombre'],
             'active' => 'pruebas',
-            'breadcrumb' => ['Inicio', 'Pruebas', $atleta['nombre']],
+            'breadcrumb' => [
+                'Inicio',
+                ['label' => 'Reportes', 'url' => url('/admin/reportes')],
+                ['label' => 'Pruebas físicas', 'url' => url('/admin/reportes/pruebas-fisicas')],
+                $atleta['nombre'] . ' ' . $atleta['apellido']
+            ],
             'atleta' => $atleta,
             'historial' => (new ResultadoPrueba())->historial($id),
         ], 'admin');
@@ -40,6 +45,24 @@ final class ResultadosPruebasController extends Controller
     public function store(Request $request): Response
     {
         $id = (int) $request->param('id');
+        $atleta = (new Atleta())->findCompleto($id);
+        if (!$atleta) {
+            flash('error', 'Atleta no encontrado.');
+            return $this->redirect('/admin/pruebas');
+        }
+
+        if (in_array((int)$atleta['estatus'], [0, 3], true)) {
+            $msg = 'No es posible registrar pruebas físicas para un atleta suspendido o inactivo.';
+            if ($request->isAjax() || $request->isJson()) {
+                return Response::json([
+                    'success' => false,
+                    'message' => $msg
+                ], 403);
+            }
+            flash('error', $msg);
+            return $this->redirect("/admin/resultados-pruebas/atleta/$id");
+        }
+
         $fechaEvaluacion = (string) $request->input('fecha_evaluacion', date('Y-m-d'));
 
         // Validar que la fecha de evaluación no sea futura
@@ -58,7 +81,7 @@ final class ResultadosPruebasController extends Controller
         $db = Database::connection();
         $entrenadorId = (int) $request->input('entrenador_id');
         if (!$entrenadorId) {
-            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id IN (" . ROL_ADMIN . ", " . ROL_ENTRENADOR . ") LIMIT 1")->fetchColumn();
         }
 
         $eventoId = 0;
@@ -108,16 +131,16 @@ final class ResultadosPruebasController extends Controller
 
         $v = \App\Core\Validator::make($data, [
             'test_de_fuerza'    => 'numeric|min:1|max:100',
-            'test_resistencia'  => 'numeric|min:1|max:100',
-            'test_velocidad'    => 'numeric|min:1|max:100',
+            'test_resistencia'  => 'numeric|min:1|max:1000',
+            'test_velocidad'    => 'numeric|min:1|max:10',
             'test_coordinacion' => 'numeric|min:1|max:100',
-            'test_de_reaccion'  => 'numeric|min:1|max:100',
+            'test_de_reaccion'  => 'numeric|min:100|max:1000',
         ], [
-            'test_de_fuerza'    => 'El test de fuerza debe ser un número entero entre 1 y 100.',
-            'test_resistencia'  => 'El test de resistencia debe ser un número entero entre 1 y 100.',
-            'test_velocidad'    => 'El test de velocidad debe ser un número entero entre 1 y 100.',
-            'test_coordinacion' => 'El test de coordinación debe ser un número entero entre 1 y 100.',
-            'test_de_reaccion'  => 'El test de reacción debe ser un número entero entre 1 y 100.',
+            'test_de_fuerza'    => 'El salto CMJ (Fuerza) debe ser un número entre 1 y 100 cm.',
+            'test_resistencia'  => 'El Yo-Yo Test (Resistencia) debe ser un número entre 1 y 1000 metros.',
+            'test_velocidad'    => 'El Sprint 30m (Velocidad) debe ser un número entre 1.00 y 10.00 segundos.',
+            'test_coordinacion' => 'El Circuito de Conos (Coordinación) debe ser un número entre 1 y 100 segundos.',
+            'test_de_reaccion'  => 'La App Cognitiva (Reacción) debe ser un número entre 100 y 1000 ms.',
         ]);
 
         if (!$v->validate()) {
@@ -185,7 +208,7 @@ final class ResultadosPruebasController extends Controller
             $entrenadorId = (int) $db->query("SELECT a.usuario_id FROM resultados_pruebas rp INNER JOIN actividades a ON rp.actividad_id = a.actividad_id WHERE rp.test_id = $id")->fetchColumn();
         }
         if (!$entrenadorId) {
-            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id IN (" . ROL_ADMIN . ", " . ROL_ENTRENADOR . ") LIMIT 1")->fetchColumn();
         }
 
         $eventoId = 0;
@@ -234,16 +257,16 @@ final class ResultadosPruebasController extends Controller
 
         $v = \App\Core\Validator::make($data, [
             'test_de_fuerza'    => 'numeric|min:1|max:100',
-            'test_resistencia'  => 'numeric|min:1|max:100',
-            'test_velocidad'    => 'numeric|min:1|max:100',
+            'test_resistencia'  => 'numeric|min:1|max:1000',
+            'test_velocidad'    => 'numeric|min:1|max:10',
             'test_coordinacion' => 'numeric|min:1|max:100',
-            'test_de_reaccion'  => 'numeric|min:1|max:100',
+            'test_de_reaccion'  => 'numeric|min:100|max:1000',
         ], [
-            'test_de_fuerza'    => 'El test de fuerza debe ser un número entero entre 1 y 100.',
-            'test_resistencia'  => 'El test de resistencia debe ser un número entero entre 1 y 100.',
-            'test_velocidad'    => 'El test de velocidad debe ser un número entero entre 1 y 100.',
-            'test_coordinacion' => 'El test de coordinación debe ser un número entero entre 1 y 100.',
-            'test_de_reaccion'  => 'El test de reacción debe ser un número entero entre 1 y 100.',
+            'test_de_fuerza'    => 'El salto CMJ (Fuerza) debe ser un número entre 1 y 100 cm.',
+            'test_resistencia'  => 'El Yo-Yo Test (Resistencia) debe ser un número entre 1 y 1000 metros.',
+            'test_velocidad'    => 'El Sprint 30m (Velocidad) debe ser un número entre 1.00 y 10.00 segundos.',
+            'test_coordinacion' => 'El Circuito de Conos (Coordinación) debe ser un número entre 1 y 100 segundos.',
+            'test_de_reaccion'  => 'La App Cognitiva (Reacción) debe ser un número entre 100 y 1000 ms.',
         ]);
 
         if (!$v->validate()) {

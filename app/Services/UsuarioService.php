@@ -50,41 +50,76 @@ final class UsuarioService
     public function actualizar(int $usuarioId, array $data, array $fotoFile = []): void
     {
         $usuario = new Usuario();
-        $actual = $usuario->find($usuarioId);
+        $actual = $usuario->findCompleto($usuarioId);
         if (!$actual) {
             throw new RuntimeException('Usuario no encontrado.');
         }
 
         Database::beginTransaction();
         try {
-            // Dirección: reutilizar existente o crear nueva
+            // Fusionar datos actuales con los nuevos provistos para evitar anular campos
+            $nombre = array_key_exists('nombre', $data) ? $data['nombre'] : $actual['nombre'];
+            $apellido = array_key_exists('apellido', $data) ? $data['apellido'] : $actual['apellido'];
+            $cedula = array_key_exists('cedula', $data) ? $data['cedula'] : $actual['cedula'];
+            $telefono = array_key_exists('telefono', $data) ? $data['telefono'] : $actual['telefono'];
+            $fechaNac = array_key_exists('fecha_nac', $data) ? $data['fecha_nac'] : $actual['fecha_nac'];
+            $correo = array_key_exists('correo', $data) ? $data['correo'] : $actual['correo'];
+            $rolId = array_key_exists('rol_id', $data) ? $data['rol_id'] : $actual['rol_id'];
+            $estatus = array_key_exists('estatus', $data) ? $data['estatus'] : $actual['estatus'];
+
+            // Dirección
             $direccionId = $actual['direccion_id'] ?? null;
+            $parroquiaId = array_key_exists('parroquia_id', $data) ? $data['parroquia_id'] : ($actual['parroquias_id'] ?? null);
+            $localidad = array_key_exists('localidad', $data) ? $data['localidad'] : ($actual['localidad'] ?? null);
+            $tipoVivienda = array_key_exists('tipo_vivienda', $data) ? $data['tipo_vivienda'] : ($actual['tipo_vivienda'] ?? null);
+            $ubicacionVivienda = array_key_exists('ubicacion_vivienda', $data) ? $data['ubicacion_vivienda'] : ($actual['ubicacion_vivienda'] ?? null);
+
             if ($direccionId) {
                 (new Direccion())->update((int) $direccionId, [
-                    'parroquias_id'     => $data['parroquia_id'] ?? null,
-                    'localidad'         => $data['localidad'] ?? null,
-                    'tipo_vivienda'     => $data['tipo_vivienda'] ?? null,
-                    'ubicacion_vivienda'=> $data['ubicacion_vivienda'] ?? null,
+                    'parroquias_id'     => $parroquiaId,
+                    'localidad'         => $localidad,
+                    'tipo_vivienda'     => $tipoVivienda,
+                    'ubicacion_vivienda'=> $ubicacionVivienda,
                 ]);
-            } else {
-                $direccionId = $this->guardarDireccion($data);
+            } else if ($parroquiaId || $localidad || $tipoVivienda || $ubicacionVivienda) {
+                $direccionId = (new Direccion())->insert([
+                    'parroquias_id'     => $parroquiaId ?: 1,
+                    'localidad'         => $localidad ?: '',
+                    'tipo_vivienda'     => $tipoVivienda ?: 'casa',
+                    'ubicacion_vivienda'=> $ubicacionVivienda ?: '',
+                ]);
             }
 
             $update = [
-                'nombre'       => $data['nombre'],
-                'apellido'     => $data['apellido'],
-                'cedula'       => $data['cedula'],
-                'telefono'     => $data['telefono'],
-                'fecha_nac'    => $data['fecha_nac'] ?: null,
-                'correo'       => $data['correo'],
-                'rol_id'       => $data['rol_id'],
-                'estatus'      => $data['estatus'] ?? 'Activo',
+                'nombre'       => $nombre,
+                'apellido'     => $apellido,
+                'cedula'       => $cedula,
+                'telefono'     => $telefono,
+                'fecha_nac'    => $fechaNac ?: null,
+                'correo'       => $correo,
+                'rol_id'       => $rolId,
+                'estatus'      => $estatus ?? 'Activo',
                 'direccion_id' => $direccionId,
             ];
-            $nuevaFoto = $this->guardarFoto($fotoFile);
-            if ($nuevaFoto !== null) {
-                $update['foto'] = $nuevaFoto;
+
+            // Subir o eliminar foto
+            if (isset($data['eliminar_foto']) && $data['eliminar_foto'] == '1') {
+                $update['foto'] = null;
+                if (!empty($actual['foto'])) {
+                    $oldPath = BASE_PATH . '/public' . $actual['foto'];
+                    if (file_exists($oldPath)) @unlink($oldPath);
+                }
+            } else {
+                $nuevaFoto = $this->guardarFoto($fotoFile);
+                if ($nuevaFoto !== null) {
+                    $update['foto'] = $nuevaFoto;
+                    if (!empty($actual['foto'])) {
+                        $oldPath = BASE_PATH . '/public' . $actual['foto'];
+                        if (file_exists($oldPath)) @unlink($oldPath);
+                    }
+                }
             }
+
             $usuario->update($usuarioId, $update);
 
             Database::commit();
