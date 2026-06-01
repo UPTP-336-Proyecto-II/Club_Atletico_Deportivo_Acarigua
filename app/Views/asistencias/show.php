@@ -8,7 +8,21 @@
         <a href="<?= e(url('/admin/asistencias')) ?>" class="btn btn-ghost">
             <i class="ph ph-caret-left"></i> Volver al Listado
         </a>
-        <?php if (can('admin')): ?>
+        <?php 
+        $user = \App\Core\Auth::user();
+        $isEntrenador = $user && $user['rol_id'] == ROL_ENTRENADOR;
+        $isAdminOrSuper = $user && in_array($user['rol_id'], [ROL_SUPERUSER, ROL_ADMIN]);
+        
+        $canEdit = $isAdminOrSuper;
+        if ($isEntrenador) {
+            $fechaActividad = strtotime($actividad['fecha']);
+            $limite = strtotime('+30 days', $fechaActividad);
+            if (time() <= $limite) {
+                $canEdit = true;
+            }
+        }
+        ?>
+        <?php if ($canEdit): ?>
             <a href="<?= e(url('/admin/asistencias/' . $actividad['actividad_id'] . '/editar')) ?>" class="btn btn-outline">
                 <i class="ph ph-pencil-simple"></i> Editar Registro
             </a>

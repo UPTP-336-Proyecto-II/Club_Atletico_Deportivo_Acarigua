@@ -82,7 +82,7 @@ final class AsistenciasController extends Controller
             return $this->redirect('/admin/asistencias/crear');
         }
 
-        $minDate = strtotime('2019-01-01');
+        $minDate = strtotime('2026-01-01');
         $eventDate = strtotime($data['fecha_evento']);
         if ($eventDate > strtotime(date('Y-m-d'))) {
             $this->withOld($request->body());
@@ -91,7 +91,7 @@ final class AsistenciasController extends Controller
         }
         if ($eventDate < $minDate) {
             $this->withOld($request->body());
-            flash('error', 'No se pueden registrar asistencias anteriores al año 2019.');
+            flash('error', 'No se pueden registrar asistencias anteriores al año 2026.');
             return $this->redirect('/admin/asistencias/crear');
         }
         if (!empty($data['hora_inicio']) && !empty($data['hora_fin']) && strtotime($data['hora_inicio']) >= strtotime($data['hora_fin'])) {
@@ -262,8 +262,8 @@ final class AsistenciasController extends Controller
             flash('error', 'No se pueden registrar asistencias en fechas futuras.');
             return $this->redirect("/admin/asistencias/{$id}/editar");
         }
-        if (strtotime($data['fecha_evento']) < strtotime('2019-01-01')) {
-            flash('error', 'No se pueden registrar asistencias anteriores al año 2019.');
+        if (strtotime($data['fecha_evento']) < strtotime('2026-01-01')) {
+            flash('error', 'No se pueden registrar asistencias anteriores al año 2026.');
             return $this->redirect("/admin/asistencias/{$id}/editar");
         }
         if (!empty($data['hora_inicio']) && !empty($data['hora_fin']) && strtotime($data['hora_inicio']) >= strtotime($data['hora_fin'])) {
@@ -329,6 +329,17 @@ final class AsistenciasController extends Controller
     public function destroy(Request $request): Response
     {
         $id = (int) $request->param('id');
+        
+        // Restricción de 30 días para entrenadores al eliminar
+        if (Auth::user()['rol_id'] == ROL_ENTRENADOR) {
+            $db = Database::connection();
+            $actOrig = $db->query("SELECT fecha FROM actividades WHERE actividad_id = $id")->fetch();
+            if ($actOrig && time() > strtotime('+30 days', strtotime($actOrig['fecha']))) {
+                flash('error', 'El tiempo permitido para eliminar esta asistencia por un entrenador (30 días) ha expirado.');
+                return $this->redirect('/admin/asistencias');
+            }
+        }
+
         try {
             $db = Database::connection();
             $db->beginTransaction();
