@@ -27,7 +27,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label" data-tooltip="Fecha en la que se realizó la actividad" data-tooltip-pos="top"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e(old('fecha_evento', date('Y-m-d'))) ?>" min="2019-01-01" max="<?= date('Y-m-d') ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e(old('fecha_evento', date('Y-m-d'))) ?>" min="2026-01-01" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label" data-tooltip="Tipo de actividad: Entrenamiento, Partido, etc." data-tooltip-pos="top"><span class="required">*</span> Tipo de Actividad</label>
