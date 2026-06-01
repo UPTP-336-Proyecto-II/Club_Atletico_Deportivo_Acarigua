@@ -80,11 +80,11 @@ final class CategoriasController extends Controller
             return $this->redirect('/admin/categorias/crear');
         }
 
-        $entrenador = (new Usuario())->find((int) $data['usuario_id']);
-        if (!$entrenador || (int) $entrenador['rol_id'] !== 3) {
-            $this->withOld($data)->withErrors(['usuario_id' => 'El entrenador responsable seleccionado no es válido o no posee el rol de entrenador.']);
-            return $this->redirect('/admin/categorias/crear');
-        }
+        //$entrenador = (new Usuario())->find((int) $data['usuario_id']);
+        //if (!$entrenador || (int) $entrenador['rol_id'] !== 3) {
+            //$this->withOld($data)->withErrors(['usuario_id' => 'El entrenador responsable seleccionado no es válido o no posee el rol de entrenador.']);
+            //return $this->redirect('/admin/categorias/crear');
+        //}
 
         try {
             (new Categoria())->insert($data);
