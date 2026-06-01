@@ -9,14 +9,14 @@
     </a>
 </div>
 
-<form method="POST" action="<?= e(url('/admin/asistencias/' . $actividad['actividad_id'] . '/editar')) ?>" id="form-edit-asistencia">
+<form method="POST" action="<?= e(url('/admin/asistencias/' . $actividad['actividad_id'] . '/editar')) ?>" id="form-edit-asistencia" novalidate>
     <?= csrf_field() ?>
 
     <div class="card" style="margin-bottom: 24px;">
         <div class="af-grid af-grid--2">
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Fecha del Evento</label>
-                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" min="2019-01-01" max="<?= date('Y-m-d') ?>">
+                <input type="date" name="fecha_evento" class="form-control" required value="<?= e($actividad['fecha']) ?>" min="2026-01-01" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
                 <label class="form-label"><span class="required">*</span> Tipo de Actividad</label>

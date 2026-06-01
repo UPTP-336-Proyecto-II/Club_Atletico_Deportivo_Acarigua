@@ -81,7 +81,7 @@ final class ResultadosPruebasController extends Controller
         $db = Database::connection();
         $entrenadorId = (int) $request->input('entrenador_id');
         if (!$entrenadorId) {
-            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id IN (" . ROL_ADMIN . ", " . ROL_ENTRENADOR . ") LIMIT 1")->fetchColumn();
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
         }
 
         $eventoId = 0;
@@ -137,7 +137,7 @@ final class ResultadosPruebasController extends Controller
             'test_de_reaccion'  => 'numeric|min:100|max:1000',
         ], [
             'test_de_fuerza'    => 'El salto CMJ (Fuerza) debe ser un número entre 1 y 100 cm.',
-            'test_resistencia'  => 'El Yo-Yo Test (Resistencia) debe ser un número entre 1 y 1000 metros.',
+            'test_resistencia'  => 'El Yo-Yo Test (Resistencia) debe ser un número entre 1 y 10000 metros.',
             'test_velocidad'    => 'El Sprint 30m (Velocidad) debe ser un número entre 1.00 y 10.00 segundos.',
             'test_coordinacion' => 'El Circuito de Conos (Coordinación) debe ser un número entre 1 y 100 segundos.',
             'test_de_reaccion'  => 'La App Cognitiva (Reacción) debe ser un número entre 100 y 1000 ms.',
@@ -208,7 +208,7 @@ final class ResultadosPruebasController extends Controller
             $entrenadorId = (int) $db->query("SELECT a.usuario_id FROM resultados_pruebas rp INNER JOIN actividades a ON rp.actividad_id = a.actividad_id WHERE rp.test_id = $id")->fetchColumn();
         }
         if (!$entrenadorId) {
-            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id IN (" . ROL_ADMIN . ", " . ROL_ENTRENADOR . ") LIMIT 1")->fetchColumn();
+            $entrenadorId = (int) $db->query("SELECT usuario_id FROM usuarios WHERE rol_id = " . ROL_ENTRENADOR . " LIMIT 1")->fetchColumn();
         }
 
         $eventoId = 0;
@@ -257,16 +257,16 @@ final class ResultadosPruebasController extends Controller
 
         $v = \App\Core\Validator::make($data, [
             'test_de_fuerza'    => 'numeric|min:1|max:100',
-            'test_resistencia'  => 'numeric|min:1|max:1000',
+            'test_resistencia'  => 'numeric|min:1|max:10000',
             'test_velocidad'    => 'numeric|min:1|max:10',
             'test_coordinacion' => 'numeric|min:1|max:100',
-            'test_de_reaccion'  => 'numeric|min:100|max:1000',
+            'test_de_reaccion'  => 'numeric|min:10|max:2000',
         ], [
             'test_de_fuerza'    => 'El salto CMJ (Fuerza) debe ser un número entre 1 y 100 cm.',
-            'test_resistencia'  => 'El Yo-Yo Test (Resistencia) debe ser un número entre 1 y 1000 metros.',
+            'test_resistencia'  => 'El Yo-Yo Test (Resistencia) debe ser un número entre 1 y 10000 metros.',
             'test_velocidad'    => 'El Sprint 30m (Velocidad) debe ser un número entre 1.00 y 10.00 segundos.',
             'test_coordinacion' => 'El Circuito de Conos (Coordinación) debe ser un número entre 1 y 100 segundos.',
-            'test_de_reaccion'  => 'La App Cognitiva (Reacción) debe ser un número entre 100 y 1000 ms.',
+            'test_de_reaccion'  => 'La App Cognitiva (Reacción) debe ser un número entre 10 y 2000 ms.',
         ]);
 
         if (!$v->validate()) {

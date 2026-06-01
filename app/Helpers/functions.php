@@ -45,7 +45,19 @@ if (!function_exists('e')) {
 if (!function_exists('url')) {
     function url(string $path = ''): string
     {
-        $base = rtrim((string) config('app.url'), '/');
+        if (php_sapi_name() === 'cli') {
+            $base = rtrim((string) config('app.url'), '/');
+        } else {
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'] ?? 'localhost:8000';
+            
+            // Extraer el subdirectorio (si existe) de la URL configurada
+            $configUrl = (string) config('app.url');
+            $pathParts = parse_url($configUrl, PHP_URL_PATH);
+            $subDir = $pathParts ? rtrim($pathParts, '/') : '';
+            
+            $base = $protocol . '://' . $host . $subDir;
+        }
         $path = '/' . ltrim($path, '/');
         return $base . $path;
     }
