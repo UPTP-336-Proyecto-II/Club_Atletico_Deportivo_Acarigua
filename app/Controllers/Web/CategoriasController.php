@@ -193,11 +193,11 @@ final class CategoriasController extends Controller
             return $this->redirect("/admin/categorias/$id/editar");
         }
 
-        $entrenador = (new Usuario())->find((int) $data['usuario_id']);
-        if (!$entrenador || (int) $entrenador['rol_id'] !== 3) {
-            $this->withOld($data)->withErrors(['usuario_id' => 'El entrenador responsable seleccionado no es válido o no posee el rol de entrenador.']);
-            return $this->redirect("/admin/categorias/$id/editar");
-        }
+        //$entrenador = (new Usuario())->find((int) $data['usuario_id']);
+        //if (!$entrenador || (int) $entrenador['rol_id'] !== 3) {
+            //$this->withOld($data)->withErrors(['usuario_id' => 'El entrenador responsable seleccionado no es válido o no posee el rol de entrenador.']);
+            //return $this->redirect("/admin/categorias/$id/editar");
+        //}
 
         // Si intenta inactivar (estatus 2), verificar si tiene atletas
         if ($data['estatus'] === 2) {
